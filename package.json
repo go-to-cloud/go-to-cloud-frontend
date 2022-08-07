@@ -43,6 +43,7 @@
     "nprogress": "^0.2.0",
     "pinia": "^2.0.17",
     "pinia-plugin-persist": "^1.0.0",
+    "pnpm": "^7.9.0",
     "qrcode": "^1.5.1",
     "qs": "^6.11.0",
     "url": "^0.11.0",
