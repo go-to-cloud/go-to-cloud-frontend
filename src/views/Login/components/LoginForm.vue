@@ -42,7 +42,7 @@ const schema = reactive<FormSchema[]>([
   {
     field: 'username',
     label: t('login.username'),
-    value: 'admin',
+    value: 'root',
     component: 'Input',
     colProps: {
       span: 24
@@ -54,7 +54,7 @@ const schema = reactive<FormSchema[]>([
   {
     field: 'password',
     label: t('login.password'),
-    value: 'admin',
+    value: 'root',
     component: 'InputPassword',
     colProps: {
       span: 24
@@ -129,17 +129,17 @@ const signIn = async () => {
         const res = await loginApi(formData)
 
         if (res) {
-          wsCache.set(appStore.getUserInfo, res.data)
+          wsCache.set(appStore.getUserInfo, res)
           // 是否使用动态路由
           if (appStore.getDynamicRouter) {
-            getRole()
+            await getRole()
           } else {
             await permissionStore.generateRoutes('none').catch(() => {})
             permissionStore.getAddRouters.forEach((route) => {
               addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
             })
             permissionStore.setIsAddRouters(true)
-            push({ path: redirect.value || permissionStore.addRouters[0].path })
+            await push({ path: redirect.value || permissionStore.addRouters[0].path })
           }
         }
       } finally {

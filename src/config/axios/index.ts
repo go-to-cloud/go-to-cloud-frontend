@@ -5,6 +5,9 @@ import { ElMessage } from 'element-plus'
 import qs from 'qs'
 
 import { config } from '@/config/axios/config'
+import { useCache } from '@/hooks/web/useCache'
+
+import { UserType } from '@/api/login/types'
 
 const { result_code, base_url } = config
 
@@ -25,8 +28,14 @@ service.interceptors.request.use(
     ) {
       config.data = qs.stringify(config.data)
     }
-    // 添加token，可根据实际业务修改
-    // config!.headers!['Authorization'] = 'something'
+
+    const { wsCache } = useCache()
+
+    let userInfo = wsCache.get('userInfo') as UserType
+    if (userInfo !== null) {
+      config!.headers!['Authorization'] = 'Bearer ' + userInfo.token
+    }
+
     // get参数编码
     if (config.method === 'get' && config.params) {
       let url = config.url as string
