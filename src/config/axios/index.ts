@@ -6,8 +6,9 @@ import qs from 'qs'
 
 import { config } from '@/config/axios/config'
 import { useCache } from '@/hooks/web/useCache'
-
 import { UserType } from '@/api/login/types'
+
+// import { UserType } from '@/api/login/types'
 
 const { result_code, base_url } = config
 
@@ -18,7 +19,7 @@ const service: AxiosInstance = axios.create({
   baseURL: PATH_URL, // api 的 base_url
   timeout: config.request_timeout // 请求超时时间
 })
-
+const { wsCache } = useCache()
 // request拦截器
 service.interceptors.request.use(
   (config: AxiosRequestConfig) => {
@@ -29,11 +30,10 @@ service.interceptors.request.use(
       config.data = qs.stringify(config.data)
     }
 
-    const { wsCache } = useCache()
-
-    let userInfo = wsCache.get('userInfo') as UserType
-    if (userInfo !== null) {
-      config!.headers!['Authorization'] = 'Bearer ' + userInfo.token
+    const userInfo = wsCache.get('userInfo')
+    if (userInfo != null) {
+      const user = userInfo as UserType
+      config!.headers!['Authorization'] = 'Bearer ' + user.token
     }
 
     // get参数编码
