@@ -112,6 +112,7 @@ export default {
     dashboard: 'Dashboard',
     analysis: 'Analysis',
     workplace: 'Workplace',
+    project: 'Projects',
     guide: 'Guide',
     component: 'Component',
     icon: 'Icon',
@@ -188,7 +189,7 @@ export default {
     goodMorning: 'Good morning',
     happyDay: 'Wish you happy every day!',
     toady: `It's sunny today`,
-    project: 'Project',
+    projects: 'Project',
     access: 'Project access',
     toDo: 'To do',
     introduction: 'A serious introduction',
@@ -206,6 +207,13 @@ export default {
     push: 'push',
     pushCode: 'Archer push code to Github',
     follow: 'Follow'
+  },
+  projects: {
+    name: 'Project Name',
+    modules: 'Module Manage',
+    action: 'Actions',
+    title: 'Projects',
+    desc: 'description'
   },
   formDemo: {
     input: 'Input',

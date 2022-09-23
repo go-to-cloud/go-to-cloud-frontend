@@ -112,6 +112,7 @@ export default {
     dashboard: '首页',
     analysis: '分析页',
     workplace: '工作台',
+    projects: '项目',
     guide: '引导',
     component: '组件',
     icon: '图标',
@@ -206,6 +207,13 @@ export default {
     push: '推送',
     pushCode: 'Archer 推送 代码到 Github',
     follow: '关注'
+  },
+  projects: {
+    name: '项目名称',
+    modules: '管理模块',
+    action: '操作',
+    title: '项目',
+    desc: '描述'
   },
   formDemo: {
     input: '输入框',

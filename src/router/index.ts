@@ -10,7 +10,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard/analysis',
+    redirect: '/dashboard/workplace',
     name: 'Root',
     meta: {
       hidden: true
@@ -59,51 +59,54 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/dashboard',
     component: Layout,
-    redirect: '/dashboard/analysis',
+    meta: {},
     name: 'Dashboard',
-    meta: {
-      title: t('router.dashboard'),
-      icon: 'ant-design:dashboard-filled',
-      alwaysShow: true
-    },
     children: [
-      {
-        path: 'analysis',
-        component: () => import('@/views/Dashboard/Analysis.vue'),
-        name: 'Analysis',
-        meta: {
-          title: t('router.analysis'),
-          noCache: true,
-          affix: true
-        }
-      },
       {
         path: 'workplace',
         component: () => import('@/views/Dashboard/Workplace.vue'),
         name: 'Workplace',
         meta: {
           title: t('router.workplace'),
+          icon: 'ant-design:dashboard-filled',
           noCache: true
         }
       }
     ]
   },
   {
-    path: '/external-link',
+    path: '/projects',
     component: Layout,
     meta: {},
-    name: 'ExternalLink',
+    name: 'Projects',
     children: [
       {
-        path: 'https://element-plus-admin-doc.cn/',
-        name: 'DocumentLink',
+        path: 'index',
+        component: () => import('@/views/Projects/Project.vue'),
+        name: 'Projects',
         meta: {
-          title: t('router.document'),
+          title: t('router.projects'),
           icon: 'clarity:document-solid'
         }
       }
     ]
   },
+  // {
+  //   path: '/external-link',
+  //   component: Layout,
+  //   meta: {},
+  //   name: 'ExternalLink',
+  //   children: [
+  //     {
+  //       path: 'https://element-plus-admin-doc.cn/',
+  //       name: 'DocumentLink',
+  //       meta: {
+  //         title: t('router.document'),
+  //         icon: 'clarity:document-solid'
+  //       }
+  //     }
+  //   ]
+  // },
   {
     path: '/guide',
     component: Layout,
