@@ -5,6 +5,7 @@ import { ConfigGlobal } from '@/components/ConfigGlobal'
 import { isDark } from '@/utils/is'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useCache } from '@/hooks/web/useCache'
+import { setCssVar } from '@/utils'
 
 const { getPrefixCls } = useDesign()
 
@@ -26,6 +27,13 @@ const setDefaultTheme = () => {
   }
   const isDarkTheme = isDark()
   appStore.setIsDark(isDarkTheme)
+
+  // 切换标签栏显示时，同步切换标签栏的高度
+  setCssVar('--tags-view-height', '0px')
+  appStore.setTagsView(false)
+
+  // 菜单置顶
+  appStore.setLayout('top')
 }
 
 setDefaultTheme()

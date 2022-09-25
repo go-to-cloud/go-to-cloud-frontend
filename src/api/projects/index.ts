@@ -1,19 +1,19 @@
 import { useAxios } from '@/hooks/web/useAxios'
-import type { TableData } from './types'
+import type { ProjectData } from './types'
 
 const request = useAxios()
 
-export const getTableListApi = async (params: any): Promise<IResponse> => {
-  const res = await request.get({ url: '/example/list', params })
+export const getProjectsApi = async (params: any): Promise<IResponse> => {
+  const res = await request.get({ url: '/projects/list', params })
   return res && res.data
 }
 
-export const saveTableApi = async (data: Partial<TableData>): Promise<IResponse> => {
+export const saveTableApi = async (data: Partial<ProjectData>): Promise<IResponse> => {
   const res = await request.post({ url: '/example/save', data })
   return res && res.data
 }
 
-export const getTableDetApi = async (id: string): Promise<IResponse<TableData>> => {
+export const getTableDetApi = async (id: string): Promise<IResponse<ProjectData>> => {
   const res = await request.get({ url: '/example/detail', params: { id } })
   return res && res.data
 }

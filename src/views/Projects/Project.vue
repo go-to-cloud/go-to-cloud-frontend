@@ -2,8 +2,8 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getTableListApi } from '@/api/table'
-import { TableData } from '@/api/table/types'
+import { getProjectsApi } from '@/api/projects/index'
+import { ProjectData } from '@/api/projects/types'
 import { ref, h } from 'vue'
 import { ElTag, ElButton } from 'element-plus'
 
@@ -17,52 +17,53 @@ const { t } = useI18n()
 const columns: TableColumn[] = [
   {
     field: 'name',
-    label: t('projects.name'),
-    width: '500'
+    label: t('project.name'),
+    width: '450'
   },
   {
-    field: 'modules',
-    label: t('projects.modules'),
+    field: 'id',
+    label: t('project.modules'),
     width: '300'
   },
   {
     field: 'action',
-    label: t('projects.action')
+    label: t('project.action')
   }
 ]
 
 const loading = ref(true)
 
-let tableDataList = ref<TableData[]>([])
+let projectDataList = ref<ProjectData[]>([])
 
-const getTableList = async (params?: Params) => {
-  const res = await getTableListApi(
+const getProjectList = async (params?: Params) => {
+  const res = await getProjectsApi(
     params || {
       pageIndex: 1,
-      pageSize: 10
+      pageSize: 20
     }
   )
     .catch(() => {})
     .finally(() => {
       loading.value = false
     })
+
   if (res) {
-    tableDataList.value = res.data.list
+    projectDataList.value = res.data.data
   }
 }
 
-getTableList()
+getProjectList()
 
-const acitonFn = (data: TableSlotDefault) => {
+const actionFn = (data: any) => {
   console.log(data)
 }
 </script>
 
 <template>
-  <ContentWrap :title="t('projects.title')" :message="t('projects.desc')">
-    <Table :columns="columns" :data="tableDataList" :loading="loading">
+  <ContentWrap :title="t('project.title')" :message="t('project.desc')">
+    <Table :columns="columns" :data="projectDataList" :loading="loading">
       <template #action="data">
-        <ElButton type="primary" @click="acitonFn(data as TableSlotDefault)">
+        <ElButton type="primary" @click="actionFn(data)">
           {{ t('tableDemo.action') }}
         </ElButton>
       </template>
