@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getProjectsApi } from '@/api/projects/index'
+import { getProjectsApi } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
-import { ref, h } from 'vue'
-import { ElTag, ElButton } from 'element-plus'
+import { ref } from 'vue'
+import { ElButton } from 'element-plus'
+import { Plus, Search } from '@element-plus/icons-vue'
+
+const keywords = ref('')
 
 interface Params {
   pageIndex?: number
@@ -60,13 +62,37 @@ const actionFn = (data: any) => {
 </script>
 
 <template>
-  <ContentWrap :title="t('project.title')" :message="t('project.desc')">
-    <Table :columns="columns" :data="projectDataList" :loading="loading">
-      <template #action="data">
-        <ElButton type="primary" @click="actionFn(data)">
-          {{ t('tableDemo.action') }}
-        </ElButton>
-      </template>
-    </Table>
-  </ContentWrap>
+  <ElRow justify="space-between">
+    <ElCol :span="6">
+      <ElSpace wrap>
+        <span class="header_title">{{ t('router.projects') }}</span>
+        <ElDivider direction="vertical" />
+        <ElInput
+          v-model="keywords"
+          :placeholder="t('project.name')"
+          :suffix-icon="Search"
+          clearable
+        />
+      </ElSpace>
+    </ElCol>
+    <ElCol :span="6">
+      <ElButton :icon="Plus" type="primary">{{ t('project.create') }}</ElButton>
+    </ElCol>
+  </ElRow>
+  <ElTabs>
+    <ElTabPane :label="t('project.all')">
+      <Table :columns="columns" :data="projectDataList" :loading="loading" />
+    </ElTabPane>
+    <ElTabPane :label="t('project.archived')">
+      <span>DFDFDF</span>
+    </ElTabPane>
+  </ElTabs>
 </template>
+
+<style scoped>
+.header_title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+</style>

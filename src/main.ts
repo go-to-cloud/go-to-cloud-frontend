@@ -19,6 +19,8 @@ import { setupElementPlus } from '@/plugins/elementPlus'
 // 引入全局样式
 import '@/styles/index.less'
 
+import 'element-plus/dist/index.css'
+
 // 引入动画
 import '@/plugins/animate.css'
 

@@ -38,30 +38,12 @@
         </el-menu-item>
       </el-menu>
     </el-col>
-    <el-col :span="12">
-      <el-card class="box-card">
-        <template #header>
-          <div class="card-header">
-            <span>Card name</span>
-            <el-button class="button" text>Operation button</el-button>
-          </div>
-        </template>
-        <div v-for="o in 4" :key="o" class="text item">{{ 'List item ' + o }}</div>
-      </el-card>
-    </el-col>
   </el-row>
 </template>
 
 <script lang="ts" setup>
-import {
-  Document,
-  Menu as IconMenu,
-  Location,
-  Setting,
-  Edit,
-  Picture,
-  Upload
-} from '@element-plus/icons-vue'
+import { Document, Location, Menu as IconMenu, Setting } from '@element-plus/icons-vue'
+
 const handleOpen = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
 }

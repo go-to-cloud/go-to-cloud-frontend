@@ -184,7 +184,10 @@ export default {
     modules: 'Module Manage',
     action: 'Actions',
     title: 'Projects',
-    desc: 'description'
+    desc: 'description',
+    all: 'All Projects',
+    archived: 'Archived Projects',
+    create: 'New Project'
   },
   formDemo: {
     input: 'Input',

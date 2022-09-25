@@ -183,7 +183,10 @@ export default {
     modules: '管理模块',
     action: '操作',
     title: '项目',
-    desc: '描述'
+    desc: '描述',
+    all: '全部项目',
+    archived: '归档项目',
+    create: '新建项目'
   },
   formDemo: {
     input: '输入框',
