@@ -36,9 +36,9 @@ import App from './App.vue'
 
 import './permission'
 
-import ElementPlus from "element-plus";
+import ElementPlus from 'element-plus'
 
-import locale from "element-plus/lib/locale/lang/zh-cn";
+import locale from 'element-plus/lib/locale/lang/zh-cn'
 
 // 创建实例
 const setupAll = async () => {
@@ -52,12 +52,11 @@ const setupAll = async () => {
 
   setupElementPlus(app)
 
-
   setupRouter(app)
 
   setupPermission(app)
 
-  app.use(ElementPlus, { locale });
+  app.use(ElementPlus, { locale })
   app.mount('#app')
 }
 

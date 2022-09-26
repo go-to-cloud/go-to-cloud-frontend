@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useAppStore } from '@/store/modules/app'
 import { ElSwitch } from 'element-plus'
 import { useIcon } from '@/hooks/web/useIcon'
@@ -16,7 +15,7 @@ const CrescentMoon = useIcon({ icon: 'emojione-monotone:crescent-moon', color: '
 const appStore = useAppStore()
 
 // 初始化获取是否是暗黑主题
-const isDark = ref(appStore.getIsDark)
+const isDark = false //ref(appStore.getIsDark)
 
 // 设置switch的背景颜色
 const blackColor = 'var(--el-color-black)'

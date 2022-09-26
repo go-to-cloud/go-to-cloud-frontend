@@ -1,53 +1,184 @@
+<script setup lang="ts">
+import { useI18n } from '@/hooks/web/useI18n'
+import { Table } from '@/components/Table'
+import { CodeRepoData, getCodeRepoApi } from '@/api/configure/coderepo'
+import { ref } from 'vue'
+import { ElButton } from 'element-plus'
+import { Dialog } from '@/components/Dialog'
+import { Connection, Search } from '@element-plus/icons-vue'
+
+const bindDialogVisible = ref(false)
+
+const keywords = ref('')
+
+interface Params {
+  pageIndex?: number
+  pageSize?: number
+}
+
+const { t } = useI18n()
+
+const columns: TableColumn[] = [
+  {
+    field: 'name',
+    label: t('coderepo.name'),
+    width: '150'
+  },
+  {
+    field: 'origin',
+    label: t('coderepo.origin'),
+    width: '300'
+  },
+  {
+    field: 'projects',
+    label: t('coderepo.projects'),
+    width: '200'
+  },
+  {
+    field: 'remark',
+    label: t('coderepo.remark'),
+    width: '300'
+  },
+  {
+    field: 'action',
+    label: t('coderepo.action')
+  }
+]
+
+const loading = ref(true)
+
+let codeRepoDataList = ref<CodeRepoData[]>([])
+
+const getCodeRepoList = async (params?: Params) => {
+  const res = await getCodeRepoApi(
+    params || {
+      pageIndex: 1,
+      pageSize: 20
+    }
+  )
+    .catch(() => {})
+    .finally(() => {
+      loading.value = false
+    })
+
+  if (res) {
+    codeRepoDataList.value = res.data.data
+  }
+}
+
+getCodeRepoList()
+
+const origin = ref('Gitlab')
+const isOriginPublic = ref(false)
+const remark = ref('')
+</script>
+
 <template>
-  <el-row>
-    <el-col :span="12">
-      <el-menu
-        default-active="2"
-        class="el-menu-vertical-demo"
-        @open="handleOpen"
-        @close="handleClose"
-      >
-        <el-sub-menu index="1">
-          <template #title>
-            <el-icon><location /></el-icon>
-            <span>Navigator One</span>
-          </template>
-          <el-menu-item-group title="Group One">
-            <el-menu-item index="1-1">item one</el-menu-item>
-            <el-menu-item index="1-2">item two</el-menu-item>
-          </el-menu-item-group>
-          <el-menu-item-group title="Group Two">
-            <el-menu-item index="1-3">item three</el-menu-item>
-          </el-menu-item-group>
-          <el-sub-menu index="1-4">
-            <template #title>item four</template>
-            <el-menu-item index="1-4-1">item one</el-menu-item>
-          </el-sub-menu>
-        </el-sub-menu>
-        <el-menu-item index="2">
-          <el-icon><icon-menu /></el-icon>
-          <span>Navigator Two</span>
-        </el-menu-item>
-        <el-menu-item index="3" disabled>
-          <el-icon><document /></el-icon>
-          <span>Navigator Three</span>
-        </el-menu-item>
-        <el-menu-item index="4">
-          <el-icon><setting /></el-icon>
-          <span>Navigator Four</span>
-        </el-menu-item>
-      </el-menu>
-    </el-col>
-  </el-row>
+  <ElRow justify="space-between">
+    <ElCol :span="6">
+      <ElSpace wrap>
+        <span class="header_title">{{ t('router.coderepo') }}</span>
+        <ElDivider direction="vertical" />
+        <ElInput
+          v-model="keywords"
+          :placeholder="t('coderepo.name')"
+          :suffix-icon="Search"
+          clearable
+        />
+      </ElSpace>
+    </ElCol>
+    <ElCol :span="6">
+      <ElButton :icon="Connection" type="primary" @click="bindDialogVisible = true">{{
+        t('coderepo.bind')
+      }}</ElButton>
+    </ElCol>
+  </ElRow>
+  <ElTabs>
+    <ElTabPane :label="t('coderepo.all')">
+      <Table :columns="columns" :data="codeRepoDataList" :loading="loading" />
+    </ElTabPane>
+  </ElTabs>
+  <Dialog
+    v-model="bindDialogVisible"
+    :title="t('coderepo.bind')"
+    :fullscreen="false"
+    max-height="590px"
+  >
+    <ElForm label-position="top">
+      <ElRow>
+        <ElCol :span="10">
+          <ElFormItem required :label="t('coderepo.name')">
+            <ElInput
+              :label="t('coderepo.name')"
+              :placeholder="t('common.inputText') + t('coderepo.name')"
+            />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow>
+        <ElFormItem :label="t('coderepo.origin')">
+          <ElRadioGroup v-model="origin" size="large">
+            <ElRadioButton label="Gitlab" />
+            <ElRadioButton label="Github" />
+            <ElRadioButton label="Gitee" />
+            <ElRadioButton label="Gitea" />
+            <ElRadioButton label="Gogs" />
+          </ElRadioGroup>
+        </ElFormItem>
+      </ElRow>
+      <ElRow>
+        <ElFormItem :label="t('coderepo.type')">
+          <ElSwitch
+            v-model="isOriginPublic"
+            :inactive-text="t('coderepo.private')"
+            :active-text="t('coderepo.public')"
+        /></ElFormItem>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem required :label="t('coderepo.address')">
+            <ElInput :placeholder="t('common.inputText') + t('coderepo.address')" />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow v-if="isOriginPublic === false && origin === 'Gitlab'">
+        <ElCol :span="10">
+          <ElFormItem :label="t('coderepo.user')">
+            <ElInput :placeholder="t('common.inputText') + t('coderepo.address')" />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow v-if="isOriginPublic === false">
+        <ElCol :span="10">
+          <ElFormItem :label="t('coderepo.token')">
+            <ElInput :placeholder="t('common.inputText') + t('coderepo.token')" />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem :label="t('coderepo.remark')">
+            <ElInput v-model="remark" show-word-limit maxlength="200" type="textarea" />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+    </ElForm>
+    <template #footer>
+      <span>
+        <el-button type="success" style="position: absolute; left: 10px">{{
+          t('common.testing')
+        }}</el-button>
+        <el-button @click="bindDialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="dialogFormVisible = false">Confirm</el-button>
+      </span>
+    </template>
+  </Dialog>
 </template>
 
-<script lang="ts" setup>
-import { Document, Location, Menu as IconMenu, Setting } from '@element-plus/icons-vue'
-
-const handleOpen = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
+<style scoped>
+.header_title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
 }
-const handleClose = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
-}
-</script>
+</style>

@@ -1,8 +1,7 @@
 <script lang="tsx">
-import { computed, defineComponent, unref } from 'vue'
+import { computed, defineComponent } from 'vue'
 import { useAppStore } from '@/store/modules/app'
 import { Backtop } from '@/components/Backtop'
-import { Setting } from '@/components/Setting'
 import { useRenderLayout } from './components/useRenderLayout'
 import { useDesign } from '@/hooks/web/useDesign'
 
@@ -25,22 +24,24 @@ const handleClickOutside = () => {
 }
 
 const renderLayout = () => {
-  switch (unref(layout)) {
-    case 'classic':
-      const { renderClassic } = useRenderLayout()
-      return renderClassic()
-    case 'topLeft':
-      const { renderTopLeft } = useRenderLayout()
-      return renderTopLeft()
-    case 'top':
-      const { renderTop } = useRenderLayout()
-      return renderTop()
-    case 'cutMenu':
-      const { renderCutMenu } = useRenderLayout()
-      return renderCutMenu()
-    default:
-      break
-  }
+  const { renderTop } = useRenderLayout()
+  return renderTop()
+  // switch (unref(layout)) {
+  //   case 'classic':
+  //     const { renderClassic } = useRenderLayout()
+  //     return renderClassic()
+  //   case 'topLeft':
+  //     const { renderTopLeft } = useRenderLayout()
+  //     return renderTopLeft()
+  //   case 'top':
+  //     const { renderTop } = useRenderLayout()
+  //     return renderTop()
+  //   case 'cutMenu':
+  //     const { renderCutMenu } = useRenderLayout()
+  //     return renderCutMenu()
+  //   default:
+  //     break
+  // }
 }
 
 export default defineComponent({
@@ -58,21 +59,19 @@ export default defineComponent({
         {renderLayout()}
 
         <Backtop></Backtop>
-
-        <Setting></Setting>
       </section>
     )
   }
 })
 </script>
 
-<style lang="less" scoped>
-@prefix-cls: ~'@{namespace}-layout';
+<!--<style lang="less" scoped>-->
+<!--@prefix-cls: ~'@{namespace}-layout';-->
 
-.@{prefix-cls} {
-  background-color: var(--app-contnet-bg-color);
-  :deep(.@{elNamespace}-scrollbar__view) {
-    height: 100% !important;
-  }
-}
-</style>
+<!--.@{prefix-cls} {-->
+<!--  background-color: var(&#45;&#45;app-contnet-bg-color);-->
+<!--  :deep(.@{elNamespace}-scrollbar__view) {-->
+<!--    height: 100% !important;-->
+<!--  }-->
+<!--}-->
+<!--</style>-->

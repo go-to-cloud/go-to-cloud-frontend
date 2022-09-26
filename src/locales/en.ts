@@ -1,5 +1,6 @@
 export default {
   common: {
+    testing: 'Testing',
     inputText: 'Please input',
     selectText: 'Please select',
     startTimeText: 'Start time',
@@ -188,6 +189,22 @@ export default {
     all: 'All Projects',
     archived: 'Archived Projects',
     create: 'New Project'
+  },
+  coderepo: {
+    name: 'Repo Name',
+    import: 'Import Git Repo',
+    bind: 'Bind Repo',
+    all: 'All Git Repo',
+    origin: 'Repo Origin',
+    type: 'Repo Type',
+    public: 'Public',
+    private: 'Private',
+    projects: 'Projects',
+    remark: 'Remark',
+    action: 'Actions',
+    address: 'Git URL',
+    user: 'User Name',
+    token: 'Access Token'
   },
   formDemo: {
     input: 'Input',

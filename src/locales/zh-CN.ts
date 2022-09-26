@@ -1,5 +1,6 @@
 export default {
   common: {
+    testing: '测试',
     inputText: '请输入',
     selectText: '请选择',
     startTimeText: '开始时间',
@@ -187,6 +188,22 @@ export default {
     all: '全部项目',
     archived: '归档项目',
     create: '新建项目'
+  },
+  coderepo: {
+    name: '仓库名称',
+    import: '导入仓库',
+    bind: '绑定仓库',
+    all: '全部仓库',
+    origin: '仓库来源',
+    type: '仓库类型',
+    public: '公开',
+    private: '私有',
+    projects: '关联项目',
+    remark: '备注',
+    action: '操作',
+    address: '仓库地址',
+    user: '用户名',
+    token: '访问令牌'
   },
   formDemo: {
     input: '输入框',
