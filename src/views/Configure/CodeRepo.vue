@@ -9,8 +9,6 @@ import { Connection, Search } from '@element-plus/icons-vue'
 
 const bindDialogVisible = ref(false)
 
-const keywords = ref('')
-
 interface Params {
   pageIndex?: number
   pageSize?: number
@@ -68,9 +66,12 @@ const getCodeRepoList = async (params?: Params) => {
 
 getCodeRepoList()
 
+const keywords = ref('')
 const origin = ref('Gitlab')
 const isOriginPublic = ref(false)
 const remark = ref('')
+const address = ref('')
+const name = ref('')
 </script>
 
 <template>
@@ -98,17 +99,13 @@ const remark = ref('')
       <Table :columns="columns" :data="codeRepoDataList" :loading="loading" />
     </ElTabPane>
   </ElTabs>
-  <Dialog
-    v-model="bindDialogVisible"
-    :title="t('coderepo.bind')"
-    :fullscreen="false"
-    max-height="590px"
-  >
+  <Dialog v-model="bindDialogVisible" :title="t('coderepo.bind')" :fullscreen="false">
     <ElForm label-position="top">
       <ElRow>
         <ElCol :span="10">
           <ElFormItem required :label="t('coderepo.name')">
             <ElInput
+              v-model="name"
               :label="t('coderepo.name')"
               :placeholder="t('common.inputText') + t('coderepo.name')"
             />
@@ -137,7 +134,10 @@ const remark = ref('')
       <ElRow>
         <ElCol :span="18">
           <ElFormItem required :label="t('coderepo.address')">
-            <ElInput :placeholder="t('common.inputText') + t('coderepo.address')" />
+            <ElInput
+              v-model="address"
+              :placeholder="t('common.inputText') + t('coderepo.address')"
+            />
           </ElFormItem>
         </ElCol>
       </ElRow>
@@ -165,9 +165,12 @@ const remark = ref('')
     </ElForm>
     <template #footer>
       <span>
-        <el-button type="success" style="position: absolute; left: 10px">{{
-          t('common.testing')
-        }}</el-button>
+        <el-button
+          :disabled="address === ''"
+          type="success"
+          style="position: absolute; left: 10px"
+          >{{ t('common.testing') }}</el-button
+        >
         <el-button @click="bindDialogVisible = false">Cancel</el-button>
         <el-button type="primary" @click="dialogFormVisible = false">Confirm</el-button>
       </span>
