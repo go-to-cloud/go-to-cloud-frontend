@@ -205,6 +205,10 @@ export default {
     user: '用户名',
     token: '访问令牌'
   },
+  artifacts: {
+    name: '制品仓库名称',
+    bind: '绑定制品仓库'
+  },
   formDemo: {
     input: '输入框',
     inputNumber: '数字输入框',

@@ -206,6 +206,10 @@ export default {
     user: 'User Name',
     token: 'Access Token'
   },
+  artifacts: {
+    name: 'Artifacts Repo Name',
+    bind: 'Bind Artifact Repo'
+  },
   formDemo: {
     input: 'Input',
     inputNumber: 'InputNumber',
