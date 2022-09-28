@@ -97,79 +97,63 @@ const name = ref('')
   <ElTabs class="artifact-tabs" tab-position="left">
     <ElTabPane>
       <template #label>
-        <ElSpace wrap :size="20">
-          <Icon icon="vscode-icons:file-type-nuget" width="64" height="64" />
-          <ElSpace alignment="start" :size="0" direction="vertical">
-            <ElRow>#仓库名称</ElRow>
-            <ElRow><ElButton style="cursor: pointer" link disabled>Nuget</ElButton></ElRow>
-          </ElSpace>
+        <ElSpace wrap :size="10">
+          <span>短的仓库</span>
+          <Icon icon="vscode-icons:file-type-nuget" width="32" height="32" />
         </ElSpace>
       </template>
       nuget
     </ElTabPane>
     <ElTabPane>
       <template #label>
-        <ElSpace wrap :size="20">
-          <Icon icon="vscode-icons:file-type-maven" width="64" height="64" />
-          <ElSpace alignment="start" :size="0" direction="vertical">
-            <ElRow>#仓库名称</ElRow>
-            <ElRow><ElButton style="cursor: pointer" link disabled>Nuget</ElButton></ElRow>
-          </ElSpace>
+        <ElSpace wrap :size="10">
+          <ElRow>长的仓库名称</ElRow>
+          <Icon icon="vscode-icons:file-type-maven" width="32" height="32" />
         </ElSpace>
       </template>
-      nuget
+      maven
     </ElTabPane>
-    <!--    <ElTabPane>-->
-    <!--      <template #label>-->
-    <!--        <div style="width: 220px; margin: 6px 0 6px 0">-->
-    <!--          <ElRow>-->
-    <!--            <ElCol :span="6">-->
-    <!--              <Icon icon="vscode-icons:file-type-maven" width="40" height="40" />-->
-    <!--            </ElCol>-->
-    <!--            <ElCol :span="1" />-->
-    <!--            <ElCol :span="8">-->
-    <!--              <span>afasfasdf</span>-->
-    <!--            </ElCol>-->
-    <!--          </ElRow>-->
-    <!--        </div>-->
-    <!--      </template>-->
-    <!--      maven-->
-    <!--    </ElTabPane>-->
-    <!--    <ElTabPane>-->
-    <!--      <template #label>-->
-    <!--        <span class="custom-tabs-label">-->
-    <!--          <Icon icon="vscode-icons:file-type-docker2" width="40" height="40" />-->
-    <!--        </span>-->
-    <!--      </template>-->
-    <!--      docker-->
-    <!--    </ElTabPane>-->
+    <ElTabPane>
+      <template #label>
+        <ElSpace wrap :size="10">
+          <ElRow>一个很长的仓库名</ElRow>
+          <Icon icon="vscode-icons:file-type-docker2" width="32" height="32" />
+        </ElSpace>
+      </template>
+      docker
+    </ElTabPane>
   </ElTabs>
-  <Dialog v-model="bindDialogVisible" :title="t('coderepo.bind')" :fullscreen="false">
+  <Dialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
     <ElForm label-position="top">
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem required :label="t('coderepo.name')">
+          <ElFormItem required :label="t('artifacts.name')">
             <ElInput
               v-model="name"
-              :label="t('coderepo.name')"
-              :placeholder="t('common.inputText') + t('coderepo.name')"
+              :label="t('artifacts.name')"
+              :placeholder="t('common.inputText') + t('artifacts.name')"
             />
           </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
-        <ElFormItem :label="t('coderepo.origin')">
-          <ElRadioGroup v-model="origin" size="large">
-            <ElRadioButton label="Gitlab" />
-            <ElRadioButton label="Github" />
-            <ElRadioButton label="Gitee" />
-            <ElRadioButton label="Gitea" />
-            <ElRadioButton label="Gogs" />
-          </ElRadioGroup>
+        <ElFormItem :label="t('artifacts.origin')">
+          <ElSpace :size="10" wrap>
+            <div style="border: solid 1px #06f; width: 80px; height: 80px">Docker</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+            <div style="border: solid 1px #dadfe6; width: 80px; height: 80px">as</div>
+          </ElSpace>
         </ElFormItem>
       </ElRow>
       <ElRow>
-        <ElFormItem :label="t('coderepo.type')">
+        <ElFormItem :label="t('artifacts.type')">
           <ElSwitch
             v-model="isOriginPublic"
             :inactive-text="t('coderepo.private')"
@@ -232,5 +216,8 @@ const name = ref('')
 .artifact-tabs {
   margin: 10px;
   height: 800px;
+}
+.el-tabs__item {
+  height: 80px;
 }
 </style>
