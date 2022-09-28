@@ -217,7 +217,4 @@ const name = ref('')
   margin: 10px;
   height: 800px;
 }
-.el-tabs__item {
-  height: 80px;
-}
 </style>
