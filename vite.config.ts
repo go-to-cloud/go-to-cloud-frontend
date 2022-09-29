@@ -115,10 +115,10 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       }
     },
     server: {
-      port: 8090,
+      port: 18090,
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          target: 'http://localhost:18080',
           changeOrigin: true,
         }
       },
