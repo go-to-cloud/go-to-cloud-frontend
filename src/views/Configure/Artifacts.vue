@@ -32,7 +32,13 @@
           "
         >
           <ElSpace :size="10" alignment="center" style="width: 200px">
-            <Icon style="margin-top: 0" :icon="GetIcon(type)" width="40" height="40" />
+            <Icon
+              style="margin-top: 0"
+              :icon="GetIcon(type)[0]"
+              :color="GetIcon(type)[1]"
+              width="40"
+              height="40"
+            />
             <div style="height: 80px; margin-top: 4px">
               <div style="margin: -15px 0 0 5px; height: 40px; text-align: left">{{
                 type.RepoName
@@ -153,7 +159,7 @@
                   : ''
               "
             >
-              <Icon :icon="GetIcon(type)" width="44" height="44" />
+              <Icon :icon="GetIcon(type)[0]" :color="GetIcon(type)[1]" width="44" height="44" />
               {{ GetTypeName(type) }}
               <div
                 :class="type.Id === artifactSelected && type.Enabled ? 'radio-sel-selected' : ''"
@@ -315,19 +321,19 @@ function GetTypeName(artifact: ArtifactType) {
 function GetIcon(artifact: ArtifactType) {
   switch (artifact.Type) {
     case ArtifactRepoType.Docker:
-      return IconDocker
+      return [IconDocker, null]
     case ArtifactRepoType.OSS:
-      return IconOSS
+      return [IconOSS, '#E47037']
     case ArtifactRepoType.Nuget:
-      return IconNuget
+      return [IconNuget, null]
     case ArtifactRepoType.Maven:
-      return IconMaven
+      return [IconMaven, null]
     case ArtifactRepoType.Npm:
-      return IconNpm
+      return [IconNpm, null]
     case ArtifactRepoType.S3:
-      return IconS3
+      return [IconS3, null]
     default:
-      return IconOSS
+      return [IconOSS, '#E47037']
   }
 }
 
