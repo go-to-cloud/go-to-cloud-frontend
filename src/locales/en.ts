@@ -1,6 +1,7 @@
 export default {
   common: {
     repo: 'Repo',
+    viewDetail: 'View Detail',
     testing: 'Testing',
     inputText: 'Please input',
     selectText: 'Please select',
@@ -212,6 +213,16 @@ export default {
     bind: 'Bind Artifact Repo',
     type: 'Artifact Repo Visibility',
     origin: 'Artifact Type',
+    docker: {
+      list: 'Image Name',
+      latest_version: 'Latest Version',
+      latest_push_at: 'Latest Publish',
+      publish_counter: 'Publish Times',
+      copy_latest_image: 'Copy Latest Image URL',
+      delete_latest_image: 'Delete Latest Image',
+      delete_all_images: 'Delete All Images',
+      action: 'Operation'
+    },
     visibility: {
       internal: 'Internal',
       private: 'Private',

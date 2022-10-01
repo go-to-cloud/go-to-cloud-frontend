@@ -19,7 +19,7 @@
     </ElCol>
   </ElRow>
   <ElTabs class="artifact-tabs" tab-position="left">
-    <ElTabPane v-for="type in artifactTypes" :key="type.Id">
+    <ElTabPane v-for="type in artifactTypes" :key="type.Id" style="padding: 20px">
       <template #label>
         <div
           @mouseover="artifactTabHover = type.Id"
@@ -38,7 +38,7 @@
                 type.RepoName
               }}</div>
               <div style="margin: -10px 0 0 5px; height: 40px; font-size: 12px; color: #606c80">
-                <span>{{ type.Name }} {{ t('common.repo') }} </span>
+                <span>{{ GetTypeName(type) }} {{ t('common.repo') }} </span>
                 <ElDivider direction="vertical" />
                 <span>{{ visibilityText(type.Visibility) }}</span></div
               >
@@ -46,13 +46,80 @@
           </ElSpace>
         </div>
       </template>
-      <div v-if="type.Type === ArtifactRepoType.Docker">
-        <ElPageHeader style="padding: 20px">
-          <template #content>
-            <span>Title</span>
-          </template>
-        </ElPageHeader>
-      </div>
+      <ElSpace :size="10" direction="vertical" alignment="start" fill fill-ratio="100">
+        <span class="header_title">{{ type.RepoName }}</span>
+        <div v-if="type.Type === ArtifactRepoType.Docker">
+          <ElTable :data="type.Items" style="width: 100%">
+            <ElTableColumn fixed prop="name" :label="t('artifacts.docker.list')" width="250">
+              <template #default="scope">
+                <ElLink :underline="false"
+                  >{{ scope.row.name }} <ElIcon style="left: 5px"><CopyDocument /></ElIcon
+                ></ElLink>
+              </template>
+            </ElTableColumn>
+            <ElTableColumn
+              fixed
+              prop="latestVersion"
+              :label="t('artifacts.docker.latest_version')"
+              width="180"
+            >
+              <template #default="scope">
+                <ElTag round type="success">
+                  {{ scope.row.latestVersion }}
+                </ElTag>
+              </template></ElTableColumn
+            >
+            <ElTableColumn
+              fixed
+              prop="publishedAt"
+              :label="t('artifacts.docker.latest_push_at')"
+              width="180"
+            />
+            <ElTableColumn
+              prop="publishCounter"
+              :label="t('artifacts.docker.publish_counter')"
+              width="160"
+            >
+              <template #default="scope">
+                <ElLink type="info" :underline="false">{{ scope.row.publishCounter }}</ElLink>
+              </template>
+            </ElTableColumn>
+            <ElTableColumn fixed="right" prop="id" :label="t('artifacts.docker.action')" width="80">
+              <template #default>
+                <el-dropdown>
+                  <span class="el-dropdown-link">
+                    <ElButton :icon="MoreFilled" circle />
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <ElDropdownItem>
+                        <ElLink :icon="Expand" :underline="false">
+                          {{ t('common.viewDetail') }}
+                        </ElLink>
+                      </ElDropdownItem>
+                      <ElDropdownItem>
+                        <ElLink :icon="CopyDocument" :underline="false">
+                          {{ t('artifacts.docker.copy_latest_image') }}</ElLink
+                        >
+                      </ElDropdownItem>
+                      <ElDropdownItem divided>
+                        <ElLink :icon="Delete" :underline="false" type="danger">
+                          {{ t('artifacts.docker.delete_latest_image') }}
+                        </ElLink>
+                      </ElDropdownItem>
+                      <ElDropdownItem divided>
+                        <ElLink :icon="Delete" :underline="false" type="danger">
+                          {{ t('artifacts.docker.delete_all_images') }}
+                        </ElLink>
+                      </ElDropdownItem>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </template>
+            </ElTableColumn>
+          </ElTable>
+        </div>
+      </ElSpace>
     </ElTabPane>
   </ElTabs>
   <Dialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
@@ -72,7 +139,7 @@
         <ElFormItem :label="t('artifacts.origin')">
           <ElSpace :size="10" wrap>
             <div
-              v-for="type in artifactTypes"
+              v-for="type in supportedArtifactTypes"
               :key="type.Id"
               @mouseover="artifactTypeHover = type.Id"
               @mouseleave="artifactTypeHover = 0"
@@ -87,7 +154,7 @@
               "
             >
               <Icon :icon="GetIcon(type)" width="44" height="44" />
-              {{ type.Name }}
+              {{ GetTypeName(type) }}
               <div
                 :class="type.Id === artifactSelected && type.Enabled ? 'radio-sel-selected' : ''"
               ></div>
@@ -156,7 +223,14 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
 import { ElButton, ElDivider } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
-import { Connection, Search } from '@element-plus/icons-vue'
+import {
+  Connection,
+  CopyDocument,
+  Delete,
+  Expand,
+  MoreFilled,
+  Search
+} from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 
 const bindDialogVisible = ref(false)
@@ -171,6 +245,7 @@ const isOriginPublic = ref(false)
 const remark = ref('')
 const address = ref('')
 const name = ref('')
+
 const artifactTypeHover = ref(0)
 const artifactSelected = ref(1)
 const artifactTabHover = ref(0)
@@ -187,14 +262,16 @@ enum ArtifactRepoType {
   Docker = 1,
   Nuget = 2,
   Maven = 3,
-  Npm = 4
+  Npm = 4,
+  S3 = 5
 }
 
-const IconOSS = 'logos:aws-s3'
+const IconOSS = 'ant-design:aliyun-outlined'
 const IconDocker = 'logos:docker-icon'
 const IconNuget = 'vscode-icons:file-type-nuget'
 const IconMaven = 'vscode-icons:file-type-maven'
 const IconNpm = 'logos:npm-icon'
+const IconS3 = 'logos:aws-s3'
 
 const visibilityText = (v: ArtifactVisibility) => {
   switch (v) {
@@ -209,12 +286,30 @@ const visibilityText = (v: ArtifactVisibility) => {
 
 interface ArtifactType {
   Id: number
-  Name: string
   Enabled: boolean
   RepoName: string
   Visibility: ArtifactVisibility
   Type: ArtifactRepoType
   Items: Array<any> | null
+}
+
+function GetTypeName(artifact: ArtifactType) {
+  switch (artifact.Type) {
+    case ArtifactRepoType.Docker:
+      return 'Docker'
+    case ArtifactRepoType.OSS:
+      return 'Ali-OSS'
+    case ArtifactRepoType.Nuget:
+      return 'Nuget'
+    case ArtifactRepoType.Maven:
+      return 'Maven'
+    case ArtifactRepoType.Npm:
+      return 'Npm'
+    case ArtifactRepoType.S3:
+      return 'S3'
+    default:
+      return IconOSS
+  }
 }
 
 function GetIcon(artifact: ArtifactType) {
@@ -229,46 +324,86 @@ function GetIcon(artifact: ArtifactType) {
       return IconMaven
     case ArtifactRepoType.Npm:
       return IconNpm
+    case ArtifactRepoType.S3:
+      return IconS3
     default:
       return IconOSS
   }
 }
 
+const supportedArtifactTypes: Array<ArtifactType> = [
+  {
+    Id: 1,
+    Enabled: true,
+    RepoName: '',
+    Visibility: ArtifactVisibility.Private,
+    Type: ArtifactRepoType.Docker,
+    Items: null
+  },
+  {
+    Id: 2,
+    Enabled: false,
+    RepoName: '',
+    Visibility: ArtifactVisibility.Private,
+    Type: ArtifactRepoType.Nuget,
+    Items: null
+  },
+  {
+    Id: 3,
+    Enabled: false,
+    RepoName: '',
+    Visibility: ArtifactVisibility.Public,
+    Type: ArtifactRepoType.Maven,
+    Items: null
+  },
+  {
+    Id: 4,
+    Enabled: false,
+    RepoName: '',
+    Visibility: ArtifactVisibility.Internal,
+    Type: ArtifactRepoType.Npm,
+    Items: null
+  },
+  {
+    Id: 5,
+    Enabled: false,
+    RepoName: '',
+    Visibility: ArtifactVisibility.Internal,
+    Type: ArtifactRepoType.OSS,
+    Items: null
+  },
+  {
+    Id: 6,
+    Enabled: false,
+    RepoName: '',
+    Visibility: ArtifactVisibility.Internal,
+    Type: ArtifactRepoType.S3,
+    Items: null
+  }
+]
+
 const artifactTypes: Array<ArtifactType> = [
   {
     Id: 1,
-    Name: 'Docker',
     Enabled: true,
     RepoName: '用户自定名称',
     Visibility: ArtifactVisibility.Private,
     Type: ArtifactRepoType.Docker,
-    Items: ['a']
+    Items: [
+      {
+        name: 'Hello',
+        latestVersion: 'latest',
+        publishedAt: '2022-01-01',
+        publishCounter: 3
+      }
+    ]
   },
   {
     Id: 2,
-    Name: 'Nuget',
     Enabled: true,
-    RepoName: 'User Name',
+    RepoName: 'dotnet',
     Visibility: ArtifactVisibility.Private,
     Type: ArtifactRepoType.Nuget,
-    Items: ['b', 'c']
-  },
-  {
-    Id: 3,
-    Name: 'Maven',
-    Enabled: false,
-    RepoName: '随机',
-    Visibility: ArtifactVisibility.Public,
-    Type: ArtifactRepoType.Maven,
-    Items: [1, 2, 3]
-  },
-  {
-    Id: 4,
-    Name: 'npm',
-    Enabled: false,
-    RepoName: '好名称',
-    Visibility: ArtifactVisibility.Internal,
-    Type: ArtifactRepoType.Npm,
     Items: null
   }
 ]
@@ -282,7 +417,7 @@ const artifactTypes: Array<ArtifactType> = [
 
 .artifact-tabs {
   background-color: #fff;
-  margin: 10px;
+  margin: 10px 0 10px 0;
   height: 800px;
 }
 

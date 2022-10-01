@@ -1,6 +1,7 @@
 export default {
   common: {
     repo: '仓库',
+    viewDetail: '查看详情',
     testing: '测试',
     inputText: '请输入',
     selectText: '请选择',
@@ -211,6 +212,16 @@ export default {
     bind: '绑定制品仓库',
     type: '制品仓库可见性',
     origin: '制品类型',
+    docker: {
+      list: '镜像名称',
+      latest_version: '最新版本',
+      latest_push_at: '最近发布时间',
+      publish_counter: '发布次数',
+      copy_latest_image: '拷贝最新镜像地址',
+      delete_latest_image: '删除最新镜像',
+      delete_all_images: '删除所有镜像',
+      action: '操作'
+    },
     visibility: {
       internal: '项目内',
       private: '私有',
