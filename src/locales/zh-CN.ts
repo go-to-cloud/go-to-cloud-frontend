@@ -1,5 +1,6 @@
 export default {
   common: {
+    repo: '仓库',
     testing: '测试',
     inputText: '请输入',
     selectText: '请选择',
@@ -207,7 +208,14 @@ export default {
   },
   artifacts: {
     name: '制品仓库名称',
-    bind: '绑定制品仓库'
+    bind: '绑定制品仓库',
+    type: '制品仓库可见性',
+    origin: '制品类型',
+    visibility: {
+      internal: '项目内',
+      private: '私有',
+      public: '公开'
+    }
   },
   formDemo: {
     input: '输入框',

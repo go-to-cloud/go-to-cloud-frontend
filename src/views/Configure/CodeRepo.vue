@@ -76,7 +76,7 @@ const name = ref('')
 
 <template>
   <ElRow justify="space-between">
-    <ElCol :span="6">
+    <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.coderepo') }}</span>
         <ElDivider direction="vertical" />
@@ -88,7 +88,7 @@ const name = ref('')
         />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6">
+    <ElCol :span="6" style="text-align: right">
       <ElButton :icon="Connection" type="primary" @click="bindDialogVisible = true">{{
         t('coderepo.bind')
       }}</ElButton>

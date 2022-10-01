@@ -1,5 +1,6 @@
 export default {
   common: {
+    repo: 'Repo',
     testing: 'Testing',
     inputText: 'Please input',
     selectText: 'Please select',
@@ -208,7 +209,14 @@ export default {
   },
   artifacts: {
     name: 'Artifacts Repo Name',
-    bind: 'Bind Artifact Repo'
+    bind: 'Bind Artifact Repo',
+    type: 'Artifact Repo Visibility',
+    origin: 'Artifact Type',
+    visibility: {
+      internal: 'Internal',
+      private: 'Private',
+      public: 'Public'
+    }
   },
   formDemo: {
     input: 'Input',

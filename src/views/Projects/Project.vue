@@ -98,7 +98,7 @@ const tableData = [
 
 <template>
   <ElRow justify="space-between">
-    <ElCol :span="6">
+    <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.projects') }}</span>
         <ElDivider direction="vertical" />
@@ -110,7 +110,7 @@ const tableData = [
         />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6">
+    <ElCol :span="6" style="text-align: right">
       <ElButton :icon="Plus" type="primary">{{ t('project.create') }}</ElButton>
     </ElCol>
   </ElRow>
