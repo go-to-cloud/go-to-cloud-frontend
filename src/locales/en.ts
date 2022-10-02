@@ -204,9 +204,11 @@ export default {
     projects: 'Projects',
     remark: 'Remark',
     action: 'Actions',
-    address: 'Git URL',
+    url: 'Git URL',
     user: 'User Name',
-    token: 'Access Token'
+    token: 'Access Token',
+    testingPassed: 'Code Repo Testing Passed',
+    testingFailed: 'Code Repo Testing Failed'
   },
   artifacts: {
     name: 'Artifacts Repo Name',

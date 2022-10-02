@@ -203,9 +203,11 @@ export default {
     projects: '关联项目',
     remark: '备注',
     action: '操作',
-    address: '仓库地址',
+    url: '仓库地址',
     user: '用户名',
-    token: '访问令牌'
+    token: '访问令牌',
+    testingPassed: '代码仓库连接成功',
+    testingFailed: '代码仓库连接失败'
   },
   artifacts: {
     name: '制品仓库名称',

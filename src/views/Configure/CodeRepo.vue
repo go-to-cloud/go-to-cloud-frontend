@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { CodeRepoData, getCodeRepoApi } from '@/api/configure/coderepo'
-import { ref } from 'vue'
-import { ElButton } from 'element-plus'
+import { CodeRepoData, GetCodeRepoApi, testingRepoApi } from '@/api/configure/coderepo'
+import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
-import { Connection, Search } from '@element-plus/icons-vue'
+import { Connection, MagicStick, Search } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 
 const bindDialogVisible = ref(false)
@@ -16,6 +16,9 @@ interface Params {
 }
 
 const { t } = useI18n()
+
+const hostGithub = 'https://github.com/'
+const hostGitee = 'https://gitee.com/'
 
 const columns: TableColumn[] = [
   {
@@ -44,23 +47,71 @@ const columns: TableColumn[] = [
   }
 ]
 
-const loading = ref(true)
-
-const codeRepoTypeHover = ref(0)
-const codeRepoSelected = ref(1)
-
 enum ScmType {
   Gitlab = 0,
   Github = 1,
   Gitee = 2,
   Gitea = 3
 }
+
+const loading = ref(true)
+
+const codeRepoTypeHover = ref(0)
+
 interface CodeRepoType {
-  Id: number
   RepoName: string
   Type: ScmType
   Items: Array<any> | null
 }
+
+const codeRepoCreateFormRef = ref<FormInstance>()
+const codeRepoCreateForm = ref({
+  name: '',
+  origin: ScmType.Gitlab,
+  isPublic: false,
+  url: '',
+  token: null,
+  remark: ''
+})
+
+function isUrl(url) {
+  const pattern =
+    '^(https|http)://' +
+    "(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?" + //user:password@
+    '(([0-9]{1,3}.){3}[0-9]{1,3}' + // ip
+    '|' + // or
+    "([0-9a-z_!~*'()-]+.)*" + // domain
+    '([0-9a-z][0-9a-z-]{0,61})?[0-9a-z].' + // sub domain
+    '[a-z]{2,6})' + // first level domain- .com and etc
+    '(:[0-9]{1,4})?' + // port
+    '((/?)|' + // a slash isn't required if there is no file name
+    "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$"
+
+  if (codeRepoCreateForm.value.origin === ScmType.Github) {
+    url = hostGithub + url
+  } else if (codeRepoCreateForm.value.origin === ScmType.Gitee) {
+    url = hostGitee + url
+  }
+  return new RegExp(pattern).test(url)
+}
+
+const codeRepoCreateFormRule = ref<FormRules>({
+  name: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur'
+    }
+  ],
+  url: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur',
+      validator: (rule, value) => isUrl(value)
+    }
+  ]
+})
 
 function GetIcon(codeRepo: CodeRepoType) {
   switch (codeRepo.Type) {
@@ -79,35 +130,31 @@ function GetIcon(codeRepo: CodeRepoType) {
 
 const supportedCodeRepoTypes: Array<CodeRepoType> = [
   {
-    Id: 1,
     RepoName: 'Gitlab',
     Type: ScmType.Gitlab,
     Items: null
   },
   {
-    Id: 2,
     RepoName: 'Github',
     Type: ScmType.Github,
     Items: null
   },
   {
-    Id: 3,
     RepoName: 'Gitee',
     Type: ScmType.Gitee,
     Items: null
   },
   {
-    Id: 4,
     RepoName: 'Gitea',
     Type: ScmType.Gitea,
     Items: null
   }
 ]
 
-let codeRepoDataList = ref<CodeRepoData[]>([])
+const codeRepoDataList = ref<CodeRepoData[]>([])
 
 const getCodeRepoList = async (params?: Params) => {
-  const res = await getCodeRepoApi(
+  const res = await GetCodeRepoApi(
     params || {
       pageIndex: 1,
       pageSize: 20
@@ -126,11 +173,46 @@ const getCodeRepoList = async (params?: Params) => {
 getCodeRepoList()
 
 const keywords = ref('')
-const origin = ref('Gitlab')
-const isOriginPublic = ref(false)
-const remark = ref('')
-const address = ref('')
-const name = ref('')
+
+const testing = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    const res = await testingRepoApi(codeRepoCreateForm.value)
+      .then((resp) => {
+        resp.success
+          ? ElMessage({
+              type: 'success',
+              message: t('coderepo.testingPassed'),
+              showClose: true,
+              center: true
+            })
+          : ElMessage({
+              type: 'error',
+              message: t('coderepo.testingFailed'),
+              showClose: true,
+              center: true,
+              grouping: true
+            })
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'error',
+          message: t('coderepo.testingFailed'),
+          showClose: true,
+          center: true
+        })
+      })
+  })
+}
+const submit = async (formEl: FormInstance | undefined) => {
+  console.log(codeRepoCreateForm.value)
+  //bindDialogVisible.value = false
+}
+const close = (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  formEl.resetFields()
+  bindDialogVisible.value = false
+}
 </script>
 
 <template>
@@ -159,12 +241,18 @@ const name = ref('')
     </ElTabPane>
   </ElTabs>
   <Dialog v-model="bindDialogVisible" :title="t('coderepo.bind')" :fullscreen="false">
-    <ElForm label-position="top">
+    <ElForm
+      ref="codeRepoCreateFormRef"
+      status-icon
+      :rules="codeRepoCreateFormRule"
+      label-position="top"
+      :model="codeRepoCreateForm"
+    >
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem required :label="t('coderepo.name')">
+          <ElFormItem prop="name" :label="t('coderepo.name')">
             <ElInput
-              v-model="name"
+              v-model="codeRepoCreateForm.name"
               :label="t('coderepo.name')"
               :placeholder="t('common.inputText') + t('coderepo.name')"
             />
@@ -176,20 +264,22 @@ const name = ref('')
           <ElSpace :size="10" wrap>
             <div
               v-for="type in supportedCodeRepoTypes"
-              :key="type.Id"
-              @mouseover="codeRepoTypeHover = type.Id"
-              @mouseleave="codeRepoTypeHover = 0"
-              @click="codeRepoSelected = type.Id"
+              :key="type.Type"
+              @mouseover="codeRepoTypeHover = type.Type"
+              @mouseleave="codeRepoTypeHover = -1"
+              @click="codeRepoCreateForm.origin = type.Type"
               class="radio-sel"
               :class="
-                type.Id === codeRepoTypeHover || type.Id === codeRepoSelected
+                type.Type === codeRepoTypeHover || type.Type === codeRepoCreateForm.origin
                   ? 'radio-sel-hover'
                   : 'radio-sel-hover-disabled'
               "
             >
               <Icon :icon="GetIcon(type)[0]" :color="GetIcon(type)[1]" width="44" height="44" />
               {{ type.RepoName }}
-              <div :class="type.Id === codeRepoSelected ? 'radio-sel-selected' : ''"></div>
+              <div
+                :class="type.Type === codeRepoCreateForm.origin ? 'radio-sel-selected' : ''"
+              ></div>
             </div>
           </ElSpace>
         </ElFormItem>
@@ -197,39 +287,54 @@ const name = ref('')
       <ElRow>
         <ElFormItem :label="t('coderepo.type')">
           <ElSwitch
-            v-model="isOriginPublic"
+            v-model="codeRepoCreateForm.isPublic"
             :inactive-text="t('coderepo.private')"
             :active-text="t('coderepo.public')"
         /></ElFormItem>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem required :label="t('coderepo.address')">
+          <ElFormItem prop="url" :label="t('coderepo.url')">
             <ElInput
-              v-model="address"
-              :placeholder="t('common.inputText') + t('coderepo.address')"
-            />
+              v-model="codeRepoCreateForm.url"
+              :placeholder="t('common.inputText') + t('coderepo.url')"
+            >
+              <template v-if="codeRepoCreateForm.origin === ScmType.Github" #prepend>{{
+                hostGithub
+              }}</template>
+              <template v-else-if="codeRepoCreateForm.origin === ScmType.Gitee" #prepend>
+                {{ hostGitee }}
+              </template>
+            </ElInput>
           </ElFormItem>
         </ElCol>
       </ElRow>
-      <ElRow v-if="isOriginPublic === false && origin === 'Gitlab'">
-        <ElCol :span="10">
-          <ElFormItem :label="t('coderepo.user')">
-            <ElInput :placeholder="t('common.inputText') + t('coderepo.address')" />
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow v-if="isOriginPublic === false">
+      <ElRow v-if="!codeRepoCreateForm.isPublic">
         <ElCol :span="10">
           <ElFormItem :label="t('coderepo.token')">
-            <ElInput :placeholder="t('common.inputText') + t('coderepo.token')" />
+            <ElInput
+              type="password"
+              show-password
+              autocomplete="off"
+              v-model="codeRepoCreateForm.token"
+              :placeholder="t('common.inputText') + t('coderepo.token')"
+            >
+              <template #append
+                ><ElIcon><MagicStick /> </ElIcon
+              ></template>
+            </ElInput>
           </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
           <ElFormItem :label="t('coderepo.remark')">
-            <ElInput v-model="remark" show-word-limit maxlength="200" type="textarea" />
+            <ElInput
+              v-model="codeRepoCreateForm.remark"
+              show-word-limit
+              maxlength="200"
+              type="textarea"
+            />
           </ElFormItem>
         </ElCol>
       </ElRow>
@@ -237,13 +342,16 @@ const name = ref('')
     <template #footer>
       <span>
         <el-button
-          :disabled="address === ''"
+          @click="testing(codeRepoCreateFormRef)"
+          :disabled="!isUrl(codeRepoCreateForm.url)"
           type="success"
           style="position: absolute; left: 10px"
           >{{ t('common.testing') }}</el-button
         >
-        <el-button @click="bindDialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">Confirm</el-button>
+        <el-button @click="close(codeRepoCreateFormRef)">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submit(codeRepoCreateFormRef)">{{
+          t('common.ok')
+        }}</el-button>
       </span>
     </template>
   </Dialog>
