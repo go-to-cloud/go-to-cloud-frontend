@@ -3,6 +3,7 @@ export default {
     repo: 'Repo',
     viewDetail: 'View Detail',
     testing: 'Testing',
+    owned_org_by: 'Organization',
     inputText: 'Please input',
     selectText: 'Please select',
     startTimeText: 'Start time',
@@ -208,7 +209,10 @@ export default {
     user: 'User Name',
     token: 'Access Token',
     testingPassed: 'Code Repo Testing Passed',
-    testingFailed: 'Code Repo Testing Failed'
+    testingFailed: 'Code Repo Testing Failed',
+    bindSuccess: 'Code Repo Bind Success',
+    bindFailure: 'Code Repo Bind Failure',
+    at_least_one_org: 'At least On Organization'
   },
   artifacts: {
     name: 'Artifacts Repo Name',

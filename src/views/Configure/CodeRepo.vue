@@ -2,11 +2,14 @@
 import { ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { CodeRepoData, GetCodeRepoApi, testingRepoApi } from '@/api/configure/coderepo'
+import { bindRepoApi, GetCodeRepoApi, testingRepoApi } from '@/api/configure/coderepo'
+import { getOrganizationsApi } from '@/api/common/index'
+import { CodeRepoData } from '@/api/configure/types'
 import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
 import { Connection, MagicStick, Search } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
+import { Org } from '@/api/common/types'
 
 const bindDialogVisible = ref(false)
 
@@ -14,6 +17,25 @@ interface Params {
   pageIndex?: number
   pageSize?: number
 }
+
+const Organizations = new Array<Org>()
+
+const getOrganizations = async (params?: Params) => {
+  await getOrganizationsApi().then((resp) => {
+    if (resp!) {
+      codeRepoCreateForm.value.orgs = new Array<number>()
+      for (let entry of resp.entries()) {
+        Organizations.push({
+          id: Number(entry[0]),
+          name: entry[1]
+        })
+        codeRepoCreateForm.value.orgs.push(Number(entry[0]))
+      }
+    }
+  })
+}
+
+getOrganizations()
 
 const { t } = useI18n()
 
@@ -71,7 +93,8 @@ const codeRepoCreateForm = ref({
   isPublic: false,
   url: '',
   token: null,
-  remark: ''
+  remark: '',
+  orgs: ref(Array<number>())
 })
 
 function isUrl(url) {
@@ -109,6 +132,16 @@ const codeRepoCreateFormRule = ref<FormRules>({
       message: '',
       trigger: 'blur',
       validator: (rule, value) => isUrl(value)
+    }
+  ],
+  orgs: [
+    {
+      required: true,
+      message: t('at_least_one_org'),
+      trigger: 'blur',
+      validator: (rule, value) => {
+        return (value as Array<Org>).length > 0
+      }
     }
   ]
 })
@@ -159,11 +192,9 @@ const getCodeRepoList = async (params?: Params) => {
       pageIndex: 1,
       pageSize: 20
     }
-  )
-    .catch(() => {})
-    .finally(() => {
-      loading.value = false
-    })
+  ).finally(() => {
+    loading.value = false
+  })
 
   if (res) {
     codeRepoDataList.value = res.data.data
@@ -177,7 +208,7 @@ const keywords = ref('')
 const testing = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate(async (valid, fields) => {
-    const res = await testingRepoApi(codeRepoCreateForm.value)
+    await testingRepoApi(codeRepoCreateForm.value)
       .then((resp) => {
         resp.success
           ? ElMessage({
@@ -205,8 +236,40 @@ const testing = async (formEl: FormInstance | undefined) => {
   })
 }
 const submit = async (formEl: FormInstance | undefined) => {
-  console.log(codeRepoCreateForm.value)
-  //bindDialogVisible.value = false
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      await bindRepoApi(codeRepoCreateForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            getCodeRepoList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('coderepo.bindSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('coderepo.bindFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('coderepo.bindFailure'),
+            showClose: true,
+            center: true
+          })
+        })
+    }
+  })
 }
 const close = (formEl: FormInstance | undefined) => {
   if (!formEl) return
@@ -283,6 +346,19 @@ const close = (formEl: FormInstance | undefined) => {
             </div>
           </ElSpace>
         </ElFormItem>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem prop="orgs" :label="t('common.owned_org_by')">
+            <ElSelect multiple v-model="codeRepoCreateForm.orgs" style="width: 100%">
+              <ElOption
+                v-for="org in Organizations"
+                :key="org.id"
+                :label="org.name"
+                :value="org.id"
+              /> </ElSelect
+          ></ElFormItem>
+        </ElCol>
       </ElRow>
       <ElRow>
         <ElFormItem :label="t('coderepo.type')">

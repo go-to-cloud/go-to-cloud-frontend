@@ -3,6 +3,7 @@ export default {
     repo: '仓库',
     viewDetail: '查看详情',
     testing: '测试',
+    owned_org_by: '所属组织',
     inputText: '请输入',
     selectText: '请选择',
     startTimeText: '开始时间',
@@ -207,7 +208,10 @@ export default {
     user: '用户名',
     token: '访问令牌',
     testingPassed: '代码仓库连接成功',
-    testingFailed: '代码仓库连接失败'
+    testingFailed: '代码仓库连接失败',
+    bindSuccess: '代码仓库绑定成功',
+    bindFailure: '代码仓库绑定失败',
+    at_least_one_org: '至少选择一个组织'
   },
   artifacts: {
     name: '制品仓库名称',
