@@ -20,7 +20,7 @@ interface Params {
 
 const Organizations = new Array<Org>()
 
-const getOrganizations = async (params?: Params) => {
+const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
       codeRepoCreateForm.value.orgs = new Array<number>()
@@ -187,18 +187,19 @@ const supportedCodeRepoTypes: Array<CodeRepoType> = [
 const codeRepoDataList = ref<CodeRepoData[]>([])
 
 const getCodeRepoList = async (params?: Params) => {
-  const res = await GetCodeRepoApi(
+  await GetCodeRepoApi(
     params || {
       pageIndex: 1,
       pageSize: 20
     }
-  ).finally(() => {
-    loading.value = false
-  })
-
-  if (res) {
-    codeRepoDataList.value = res.data.data
-  }
+  )
+    .then((resp) => {
+      codeRepoDataList.value = new Array<CodeRepoData>()
+      codeRepoDataList.value = resp
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 
 getCodeRepoList()

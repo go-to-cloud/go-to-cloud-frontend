@@ -1,11 +1,11 @@
 import { useAxios } from '@/hooks/web/useAxios'
-import { CodeRepoCreationSubmitResult, TestingResult } from '@/api/configure/types'
+import { CodeRepoCreationSubmitResult, CodeRepoData, TestingResult } from '@/api/configure/types'
 
 const request = useAxios()
 
-export const GetCodeRepoApi = async (params: any): Promise<IResponse> => {
-  const res = await request.get({ url: '/configure/coderepo', params })
-  return res && res.data
+export const GetCodeRepoApi = async (params: any): Promise<CodeRepoData[]> => {
+  const res = await request.get<IResponse<CodeRepoData[]>>({ url: '/configure/coderepo', params })
+  return res && res.data && res.data.data
 }
 
 export const testingRepoApi = async (params: any): Promise<TestingResult> => {
