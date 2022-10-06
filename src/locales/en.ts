@@ -3,8 +3,11 @@ export default {
     repo: 'Repo',
     viewDetail: 'View Detail',
     testing: 'Testing',
-    owned_org_by: 'Organization',
+    organization: 'Organization',
     inputText: 'Please input',
+    add: 'Add',
+    save: 'Save',
+    update: 'Update',
     selectText: 'Please select',
     startTimeText: 'Start time',
     endTimeText: 'End time',
@@ -44,7 +47,8 @@ export default {
     delOk: 'OK',
     delCancel: 'Cancel',
     delNoData: 'Please select the data to delete',
-    delSuccess: 'Deleted successfully'
+    delSuccess: 'Deleted successfully',
+    confirmMsgTitle: 'Confirming'
   },
   error: {
     noPermission: `Sorry, you don't have permission to access this page.`,
@@ -202,7 +206,7 @@ export default {
     type: 'Repo Type',
     public: 'Public',
     private: 'Private',
-    projects: 'Projects',
+    orgs: 'Organizations',
     remark: 'Remark',
     action: 'Actions',
     url: 'Git URL',
@@ -212,7 +216,10 @@ export default {
     testingFailed: 'Code Repo Testing Failed',
     bindSuccess: 'Code Repo Bind Success',
     bindFailure: 'Code Repo Bind Failure',
-    at_least_one_org: 'At least On Organization'
+    at_least_one_org: 'At least On Organization',
+    updatedAt: 'Imported On',
+    remove: 'Remove Code Repo',
+    removeConfirm: 'Bind repo will be removed. Continue?'
   },
   artifacts: {
     name: 'Artifacts Repo Name',

@@ -3,8 +3,11 @@ export default {
     repo: '仓库',
     viewDetail: '查看详情',
     testing: '测试',
-    owned_org_by: '所属组织',
+    organization: '所属组织',
     inputText: '请输入',
+    add: '新增',
+    save: '保存',
+    update: '更新',
     selectText: '请选择',
     startTimeText: '开始时间',
     endTimeText: '结束时间',
@@ -44,7 +47,8 @@ export default {
     delOk: '确定',
     delCancel: '取消',
     delNoData: '请选择需要删除的数据',
-    delSuccess: '删除成功'
+    delSuccess: '删除成功',
+    confirmMsgTitle: '是否确认'
   },
   error: {
     noPermission: `抱歉，您无权访问此页面。`,
@@ -201,7 +205,7 @@ export default {
     type: '仓库类型',
     public: '公开',
     private: '私有',
-    projects: '关联项目',
+    orgs: '所属组织',
     remark: '备注',
     action: '操作',
     url: '仓库地址',
@@ -211,7 +215,10 @@ export default {
     testingFailed: '代码仓库连接失败',
     bindSuccess: '代码仓库绑定成功',
     bindFailure: '代码仓库绑定失败',
-    at_least_one_org: '至少选择一个组织'
+    at_least_one_org: '至少选择一个组织',
+    updatedAt: '导入日期',
+    remove: '移除代码仓库',
+    removeConfirm: '即将移除代码仓库绑定关系，是否继续？'
   },
   artifacts: {
     name: '制品仓库名称',
