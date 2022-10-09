@@ -129,12 +129,17 @@
     </ElTabPane>
   </ElTabs>
   <Dialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
-    <ElForm label-position="top">
+    <ElForm
+      :rules="artifactRepoFormRule"
+      ref="artifactRepoFormRef"
+      :model="artifactRepoForm"
+      label-position="top"
+    >
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem required :label="t('artifacts.name')">
+          <ElFormItem prop="name" :label="t('artifacts.name')">
             <ElInput
-              v-model="name"
+              v-model="artifactRepoForm.name"
               :label="t('artifacts.name')"
               :placeholder="t('common.inputText') + t('artifacts.name')"
             />
@@ -149,10 +154,10 @@
               :key="type.Id"
               @mouseover="artifactTypeHover = type.Id"
               @mouseleave="artifactTypeHover = 0"
-              @click="type.Enabled ? (artifactSelected = type.Id) : true"
+              @click="type.Enabled ? (artifactRepoForm.type = type.Id) : true"
               class="radio-sel"
               :class="
-                type.Id === artifactTypeHover || type.Id === artifactSelected
+                type.Id === artifactTypeHover || type.Id == artifactRepoForm.type
                   ? type.Enabled
                     ? 'radio-sel-hover'
                     : 'radio-sel-hover-disabled'
@@ -162,49 +167,77 @@
               <Icon :icon="GetIcon(type)[0]" :color="GetIcon(type)[1]" width="44" height="44" />
               {{ GetTypeName(type) }}
               <div
-                :class="type.Id === artifactSelected && type.Enabled ? 'radio-sel-selected' : ''"
+                :class="
+                  type.Id == artifactRepoForm.type && type.Enabled ? 'radio-sel-selected' : ''
+                "
               ></div>
             </div>
           </ElSpace>
         </ElFormItem>
       </ElRow>
       <ElRow>
-        <ElFormItem :label="t('artifacts.type')">
+        <ElFormItem :label="t('artifacts.security_type')">
           <ElSwitch
-            v-model="isOriginPublic"
-            :inactive-text="t('coderepo.private')"
-            :active-text="t('coderepo.public')"
+            v-model="artifactRepoForm.isSecurity"
+            :inactive-text="t('artifacts.security.insecurity')"
+            :active-text="t('artifacts.security.security')"
           />
         </ElFormItem>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem required :label="t('coderepo.address')">
+          <ElFormItem prop="orgs" :label="t('common.organization')">
+            <ElSelect multiple v-model="artifactRepoForm.orgs" style="width: 100%">
+              <ElOption
+                v-for="org in Organizations"
+                :key="org.id"
+                :label="org.name"
+                :value="org.id"
+              /> </ElSelect
+          ></ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem prop="url" :label="t('artifacts.url')">
             <ElInput
-              v-model="address"
-              :placeholder="t('common.inputText') + t('coderepo.address')"
+              v-model="artifactRepoForm.url"
+              :placeholder="t('common.inputText') + t('artifacts.url')"
             />
           </ElFormItem>
         </ElCol>
       </ElRow>
-      <ElRow v-if="isOriginPublic === false && origin === 'Gitlab'">
+      <ElRow>
         <ElCol :span="10">
-          <ElFormItem :label="t('coderepo.user')">
-            <ElInput :placeholder="t('common.inputText') + t('coderepo.address')" />
+          <ElFormItem prop="user" :label="t('artifacts.user')">
+            <ElInput
+              v-model="artifactRepoForm.user"
+              :placeholder="t('common.inputText') + t('artifacts.user')"
+            />
           </ElFormItem>
         </ElCol>
       </ElRow>
-      <ElRow v-if="isOriginPublic === false">
+      <ElRow>
         <ElCol :span="10">
-          <ElFormItem :label="t('coderepo.token')">
-            <ElInput :placeholder="t('common.inputText') + t('coderepo.token')" />
+          <ElFormItem prop="password" :label="t('artifacts.password')">
+            <ElInput
+              type="password"
+              v-model="artifactRepoForm.password"
+              autocomplete="false"
+              :placeholder="t('common.inputText') + t('artifacts.password')"
+            />
           </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem :label="t('coderepo.remark')">
-            <ElInput v-model="remark" show-word-limit maxlength="200" type="textarea" />
+          <ElFormItem :label="t('common.remark')">
+            <ElInput
+              v-model="artifactRepoForm.remark"
+              show-word-limit
+              maxlength="200"
+              type="textarea"
+            />
           </ElFormItem>
         </ElCol>
       </ElRow>
@@ -212,13 +245,23 @@
     <template #footer>
       <span>
         <el-button
-          :disabled="address === ''"
+          @click="testing(artifactRepoFormRef)"
+          :disabled="
+            artifactRepoForm.url === '' ||
+            artifactRepoForm.user === '' ||
+            artifactRepoForm.password === ''
+          "
           type="success"
           style="position: absolute; left: 10px"
           >{{ t('common.testing') }}</el-button
         >
-        <el-button @click="bindDialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="bindDialogVisible = false">Confirm</el-button>
+        <ElButton @click="close(artifactRepoFormRef)">{{ t('common.cancel') }}</ElButton>
+        <ElButton v-if="dlgForCreate" type="primary" @click="submit(artifactRepoFormRef)">{{
+          t('common.ok')
+        }}</ElButton>
+        <ElButton v-if="!dlgForCreate" type="primary" @click="save(artifactRepoFormRef)">{{
+          t('common.update')
+        }}</ElButton>
       </span>
     </template>
   </Dialog>
@@ -227,7 +270,7 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
-import { ElButton, ElDivider } from 'element-plus'
+import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
 import {
   Connection,
@@ -238,22 +281,84 @@ import {
   Search
 } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
+import { Org } from '@/api/common/types'
+import { isEmpty } from '@/utils/is'
+import { getOrganizationsApi } from '@/api/common'
+import { testingArtifactRepoApi } from '@/api/configure/artifact'
 
 const bindDialogVisible = ref(false)
 
 const { t } = useI18n()
 
 const loading = ref(true)
-
 const keywords = ref('')
-const origin = ref('Gitlab')
-const isOriginPublic = ref(false)
-const remark = ref('')
-const address = ref('')
-const name = ref('')
+const Organizations = new Array<Org>()
+const dlgForCreate = ref(true)
 
+const testing = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    await testingArtifactRepoApi(artifactRepoForm.value)
+      .then((resp) => {
+        resp.success
+          ? ElMessage({
+              type: 'success',
+              message: t('artifacts.testingPassed'),
+              showClose: true,
+              center: true
+            })
+          : ElMessage({
+              type: 'error',
+              message: t('artifacts.testingFailed'),
+              showClose: true,
+              center: true,
+              grouping: true
+            })
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'error',
+          message: t('artifacts.testingFailed'),
+          showClose: true,
+          center: true
+        })
+      })
+  })
+}
+const close = (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  bindDialogVisible.value = false
+  artifactRepoForm.value = {
+    id: 0,
+    name: '',
+    type: ArtifactRepoType.Docker,
+    isSecurity: true,
+    url: '',
+    user: '',
+    password: '',
+    remark: '',
+    orgs: []
+  }
+  getOrganizations()
+}
+
+const getOrganizations = async () => {
+  await getOrganizationsApi().then((resp) => {
+    if (resp!) {
+      artifactRepoForm.value.orgs = new Array<number>()
+      for (let entry of resp.entries()) {
+        Organizations.push({
+          id: Number(entry[0]),
+          name: entry[1]
+        })
+        artifactRepoForm.value.orgs.push(Number(entry[0]))
+      }
+    }
+  })
+}
+
+getOrganizations()
 const artifactTypeHover = ref(0)
-const artifactSelected = ref(1)
 const artifactTabHover = ref(0)
 const artifactTabSelected = ref(1)
 
@@ -272,6 +377,63 @@ enum ArtifactRepoType {
   S3 = 5
 }
 
+const artifactRepoFormRule = ref<FormRules>({
+  name: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur',
+      validator: (rule, value) => !isEmpty(value)
+    }
+  ],
+  url: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur',
+      validator: (rule, value) => !isEmpty(value)
+    }
+  ],
+  user: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur',
+      validator: (rule, value) => !isEmpty(value)
+    }
+  ],
+  password: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur',
+      validator: (rule, value) => !isEmpty(value)
+    }
+  ],
+  orgs: [
+    {
+      required: true,
+      message: t('at_least_one_org'),
+      trigger: 'blur',
+      validator: (rule, value) => {
+        return (value as Array<Org>).length > 0
+      }
+    }
+  ]
+})
+const artifactRepoFormRef = ref<FormInstance>()
+const artifactRepoForm = ref({
+  id: 0,
+  name: '',
+  type: ArtifactRepoType.Docker,
+  isSecurity: true,
+  url: '',
+  user: '',
+  password: '',
+  remark: '',
+  orgs: ref(Array<number>())
+})
+
 const IconOSS = 'ant-design:aliyun-outlined'
 const IconDocker = 'logos:docker-icon'
 const IconNuget = 'vscode-icons:file-type-nuget'
@@ -282,11 +444,11 @@ const IconS3 = 'logos:aws-s3'
 const visibilityText = (v: ArtifactVisibility) => {
   switch (v) {
     case ArtifactVisibility.Internal:
-      return t('artifacts.visibility.internal')
+      return t('visibility.internal')
     case ArtifactVisibility.Private:
-      return t('artifacts.visibility.private')
+      return t('visibility.private')
     default:
-      return t('artifacts.visibility.public')
+      return t('visibility.public')
   }
 }
 

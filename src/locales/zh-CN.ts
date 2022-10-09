@@ -1,4 +1,9 @@
 export default {
+  visibility: {
+    internal: '项目内',
+    private: '私有',
+    public: '公开'
+  },
   common: {
     repo: '仓库',
     viewDetail: '查看详情',
@@ -8,6 +13,7 @@ export default {
     add: '新增',
     save: '保存',
     update: '更新',
+    remark: '备注',
     selectText: '请选择',
     startTimeText: '开始时间',
     endTimeText: '结束时间',
@@ -203,10 +209,7 @@ export default {
     all: '全部仓库',
     origin: '仓库来源',
     type: '仓库类型',
-    public: '公开',
-    private: '私有',
     orgs: '所属组织',
-    remark: '备注',
     action: '操作',
     url: '仓库地址',
     user: '用户名',
@@ -223,8 +226,15 @@ export default {
   artifacts: {
     name: '制品仓库名称',
     bind: '绑定制品仓库',
-    type: '制品仓库可见性',
+    security_type: '制品仓库地址安全性',
+    security: {
+      insecurity: 'HTTP',
+      security: 'HTTPS'
+    },
     origin: '制品类型',
+    url: '制品仓库地址',
+    user: '用户名',
+    password: '密码',
     docker: {
       list: '镜像名称',
       latest_version: '最新版本',
@@ -235,11 +245,10 @@ export default {
       delete_all_images: '删除所有镜像',
       action: '操作'
     },
-    visibility: {
-      internal: '项目内',
-      private: '私有',
-      public: '公开'
-    }
+    testingPassed: '制品仓库连接成功',
+    testingFailed: '制品仓库连接失败',
+    bindSuccess: '制品仓库绑定成功',
+    bindFailure: '制品仓库绑定失败'
   },
   formDemo: {
     input: '输入框',

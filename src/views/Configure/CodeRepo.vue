@@ -65,7 +65,7 @@ const columns: TableColumn[] = [
   },
   {
     field: 'remark',
-    label: t('coderepo.remark'),
+    label: t('common.remark'),
     width: '300'
   },
   {
@@ -337,10 +337,9 @@ const close = (formEl: FormInstance | undefined) => {
     remark: '',
     orgs: []
   }
+  getOrganizations()
 }
-const handleClose = (tag: number) => {
-  console.log(tag)
-}
+
 interface HandlerCommand {
   id: number
   cmd: string
@@ -452,14 +451,12 @@ const actionHandler = (command: HandlerCommand) => {
                 v-for="item in scope.row.orgLites"
                 :key="item.orgId"
                 :closable="false"
-                @close="handleClose(item.orgId)"
                 >{{ item.orgName }}</ElTag
               >
-              <!--<ElButton size="small">+ {{ t('common.add') }}</ElButton>-->
             </ElSpace></template
           >
         </ElTableColumn>
-        <ElTableColumn prop="remark" :label="t('coderepo.remark')" width="300" />
+        <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
         <ElTableColumn prop="updatedAt" :label="t('coderepo.updatedAt')" width="200" />
         <ElTableColumn fixed="right" prop="id" :label="t('coderepo.action')" width="80">
           <template #default="scope">
@@ -553,8 +550,8 @@ const actionHandler = (command: HandlerCommand) => {
         <ElFormItem :label="t('coderepo.type')">
           <ElSwitch
             v-model="codeRepoDetailForm.isPublic"
-            :inactive-text="t('coderepo.private')"
-            :active-text="t('coderepo.public')"
+            :inactive-text="t('visibility.private')"
+            :active-text="t('visibility.public')"
         /></ElFormItem>
       </ElRow>
       <ElRow>
@@ -593,7 +590,7 @@ const actionHandler = (command: HandlerCommand) => {
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem :label="t('coderepo.remark')">
+          <ElFormItem :label="t('common.remark')">
             <ElInput
               v-model="codeRepoDetailForm.remark"
               show-word-limit

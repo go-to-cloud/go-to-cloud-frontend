@@ -1,4 +1,9 @@
 export default {
+  visibility: {
+    internal: 'Internal',
+    private: 'Private',
+    public: 'Public'
+  },
   common: {
     repo: 'Repo',
     viewDetail: 'View Detail',
@@ -8,6 +13,7 @@ export default {
     add: 'Add',
     save: 'Save',
     update: 'Update',
+    remark: 'Remark',
     selectText: 'Please select',
     startTimeText: 'Start time',
     endTimeText: 'End time',
@@ -204,10 +210,7 @@ export default {
     all: 'All Git Repo',
     origin: 'Repo Origin',
     type: 'Repo Type',
-    public: 'Public',
-    private: 'Private',
     orgs: 'Organizations',
-    remark: 'Remark',
     action: 'Actions',
     url: 'Git URL',
     user: 'User Name',
@@ -224,8 +227,15 @@ export default {
   artifacts: {
     name: 'Artifacts Repo Name',
     bind: 'Bind Artifact Repo',
-    type: 'Artifact Repo Visibility',
+    security_type: 'Artifact Repo Security',
+    security: {
+      insecurity: 'HTTP',
+      security: 'HTTPS'
+    },
     origin: 'Artifact Type',
+    url: 'Artifact Repo URL',
+    user: 'User',
+    password: 'Password',
     docker: {
       list: 'Image Name',
       latest_version: 'Latest Version',
@@ -236,11 +246,10 @@ export default {
       delete_all_images: 'Delete All Images',
       action: 'Operation'
     },
-    visibility: {
-      internal: 'Internal',
-      private: 'Private',
-      public: 'Public'
-    }
+    testingPassed: 'Artifact Repo Testing Passed',
+    testingFailed: 'Artifact Repo Testing Failed',
+    bindSuccess: 'Artifact Repo Bind Success',
+    bindFailure: 'Artifact Repo Bind Failure'
   },
   formDemo: {
     input: 'Input',
