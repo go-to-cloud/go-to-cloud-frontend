@@ -1,8 +1,8 @@
 import { useAxios } from '@/hooks/web/useAxios'
 import {
-  CodeRepoCreationSubmitResult,
   CodeRepoData,
   RemoveRepoResult,
+  RepoCreationSubmitResult,
   TestingResult
 } from '@/api/configure/types'
 
@@ -21,16 +21,16 @@ export const testingRepoApi = async (params: any): Promise<TestingResult> => {
   return res && res.data && res.data.data
 }
 
-export const bindRepoApi = async (params: any): Promise<CodeRepoCreationSubmitResult> => {
-  const res = await request.post<IResponse<CodeRepoCreationSubmitResult>>({
+export const bindRepoApi = async (params: any): Promise<RepoCreationSubmitResult> => {
+  const res = await request.post<IResponse<RepoCreationSubmitResult>>({
     url: '/configure/coderepo/bind',
     data: params
   })
   return res && res.data && res.data.data
 }
 
-export const updateRepoApi = async (params: any): Promise<CodeRepoCreationSubmitResult> => {
-  const res = await request.put<IResponse<CodeRepoCreationSubmitResult>>({
+export const updateRepoApi = async (params: any): Promise<RepoCreationSubmitResult> => {
+  const res = await request.put<IResponse<RepoCreationSubmitResult>>({
     url: '/configure/coderepo/bind',
     data: params
   })

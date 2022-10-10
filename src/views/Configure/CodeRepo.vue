@@ -100,7 +100,18 @@ const codeRepoDetailForm = ref({
   remark: '',
   orgs: ref(Array<number>())
 })
-
+function resetForm() {
+  codeRepoDetailForm.value = {
+    id: 0,
+    name: '',
+    origin: ScmType.Gitlab,
+    isPublic: false,
+    url: '',
+    token: '',
+    remark: '',
+    orgs: []
+  }
+}
 function isUrl(url) {
   const pattern =
     '^(https|http)://' +
@@ -259,6 +270,7 @@ const submit = async (formEl: FormInstance | undefined) => {
         .then((resp) => {
           if (resp.success) {
             bindDialogVisible.value = false
+            resetForm()
             getCodeRepoList()
           }
           resp.success
@@ -296,6 +308,7 @@ const save = async (formEl: FormInstance | undefined) => {
         .then((resp) => {
           if (resp.success) {
             bindDialogVisible.value = false
+            resetForm()
             getCodeRepoList()
           }
           resp.success
@@ -327,16 +340,7 @@ const save = async (formEl: FormInstance | undefined) => {
 const close = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   bindDialogVisible.value = false
-  codeRepoDetailForm.value = {
-    id: 0,
-    name: '',
-    origin: ScmType.Gitlab,
-    isPublic: false,
-    url: '',
-    token: '',
-    remark: '',
-    orgs: []
-  }
+  resetForm()
   getOrganizations()
 }
 

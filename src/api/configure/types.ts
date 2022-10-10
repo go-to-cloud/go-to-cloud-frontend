@@ -19,7 +19,7 @@ export type TestingResult = {
   success: boolean
 }
 
-export type CodeRepoCreationSubmitResult = {
+export type RepoCreationSubmitResult = {
   success: boolean
   id: number
 }

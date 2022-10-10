@@ -284,7 +284,7 @@ import { Icon } from '@iconify/vue'
 import { Org } from '@/api/common/types'
 import { isEmpty } from '@/utils/is'
 import { getOrganizationsApi } from '@/api/common'
-import { testingArtifactRepoApi } from '@/api/configure/artifact'
+import { bindRepoApi, testingRepoApi } from '@/api/configure/artifact'
 
 const bindDialogVisible = ref(false)
 
@@ -298,7 +298,7 @@ const dlgForCreate = ref(true)
 const testing = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate(async (valid, fields) => {
-    await testingArtifactRepoApi(artifactRepoForm.value)
+    await testingRepoApi(artifactRepoForm.value)
       .then((resp) => {
         resp.success
           ? ElMessage({
@@ -325,20 +325,47 @@ const testing = async (formEl: FormInstance | undefined) => {
       })
   })
 }
+const submit = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      await bindRepoApi(artifactRepoForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            // getCodeRepoList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('coderepo.bindSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('coderepo.bindFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('coderepo.bindFailure'),
+            showClose: true,
+            center: true
+          })
+        })
+    }
+  })
+}
 const close = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   bindDialogVisible.value = false
-  artifactRepoForm.value = {
-    id: 0,
-    name: '',
-    type: ArtifactRepoType.Docker,
-    isSecurity: true,
-    url: '',
-    user: '',
-    password: '',
-    remark: '',
-    orgs: []
-  }
+  resetForm()
   getOrganizations()
 }
 
@@ -433,6 +460,19 @@ const artifactRepoForm = ref({
   remark: '',
   orgs: ref(Array<number>())
 })
+function resetForm() {
+  artifactRepoForm.value = {
+    id: 0,
+    name: '',
+    type: ArtifactRepoType.Docker,
+    isSecurity: true,
+    url: '',
+    user: '',
+    password: '',
+    remark: '',
+    orgs: []
+  }
+}
 
 const IconOSS = 'ant-design:aliyun-outlined'
 const IconDocker = 'logos:docker-icon'
