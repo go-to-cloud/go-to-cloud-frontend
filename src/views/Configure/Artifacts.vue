@@ -46,7 +46,7 @@
               <div style="margin: -10px 0 0 5px; height: 40px; font-size: 12px; color: #606c80">
                 <span>{{ GetTypeName(type) }} {{ t('common.repo') }} </span>
                 <ElDivider direction="vertical" />
-                <span>{{ visibilityText(type.Visibility) }}</span></div
+                <span> {{ t('common.action') }} </span></div
               >
             </div>
           </ElSpace>

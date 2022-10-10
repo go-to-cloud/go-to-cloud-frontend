@@ -15,6 +15,7 @@ export default {
     update: '更新',
     remark: '备注',
     selectText: '请选择',
+    action: '操作',
     startTimeText: '开始时间',
     endTimeText: '结束时间',
     login: '登录',

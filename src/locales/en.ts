@@ -15,6 +15,7 @@ export default {
     update: 'Update',
     remark: 'Remark',
     selectText: 'Please select',
+    action: '操作',
     startTimeText: 'Start time',
     endTimeText: 'End time',
     login: 'Login',
