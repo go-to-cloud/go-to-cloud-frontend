@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import {
   bindRepoApi,
-  GetCodeRepoApi,
+  getCodeRepoApi,
   removeRepoApi,
   testingRepoApi,
   updateRepoApi
@@ -217,7 +217,7 @@ const supportedCodeRepoTypes: Array<CodeRepoType> = [
 const codeRepoDataList = ref<CodeRepoData[]>([])
 
 const getCodeRepoList = async (params?: Params) => {
-  await GetCodeRepoApi(
+  await getCodeRepoApi(
     params || {
       pageIndex: 1,
       pageSize: 20
@@ -314,13 +314,13 @@ const save = async (formEl: FormInstance | undefined) => {
           resp.success
             ? ElMessage({
                 type: 'success',
-                message: t('coderepo.bindSuccess'),
+                message: t('coderepo.updateSuccess'),
                 showClose: true,
                 center: true
               })
             : ElMessage({
                 type: 'error',
-                message: t('coderepo.bindFailure'),
+                message: t('coderepo.updateFailure'),
                 showClose: true,
                 center: true,
                 grouping: true
@@ -329,7 +329,7 @@ const save = async (formEl: FormInstance | undefined) => {
         .catch(() => {
           ElMessage({
             type: 'error',
-            message: t('coderepo.bindFailure'),
+            message: t('coderepo.updateFailure'),
             showClose: true,
             center: true
           })

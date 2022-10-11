@@ -219,6 +219,8 @@ export default {
     testingFailed: '代码仓库连接失败',
     bindSuccess: '代码仓库绑定成功',
     bindFailure: '代码仓库绑定失败',
+    updateSuccess: '代码仓库更新成功',
+    updateFailure: '代码仓库更新失败',
     at_least_one_org: '至少选择一个组织',
     updatedAt: '导入日期',
     remove: '移除代码仓库',
@@ -249,7 +251,9 @@ export default {
     testingPassed: '制品仓库连接成功',
     testingFailed: '制品仓库连接失败',
     bindSuccess: '制品仓库绑定成功',
-    bindFailure: '制品仓库绑定失败'
+    bindFailure: '制品仓库绑定失败',
+    updateSuccess: '制品仓库更新成功',
+    updateFailure: '制品仓库更新失败'
   },
   formDemo: {
     input: '输入框',

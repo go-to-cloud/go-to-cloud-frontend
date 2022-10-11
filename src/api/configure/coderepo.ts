@@ -8,7 +8,7 @@ import {
 
 const request = useAxios()
 
-export const GetCodeRepoApi = async (params: any): Promise<CodeRepoData[]> => {
+export const getCodeRepoApi = async (params: any): Promise<CodeRepoData[]> => {
   const res = await request.get<IResponse<CodeRepoData[]>>({ url: '/configure/coderepo', params })
   return res && res.data && res.data.data
 }
@@ -31,7 +31,7 @@ export const bindRepoApi = async (params: any): Promise<RepoCreationSubmitResult
 
 export const updateRepoApi = async (params: any): Promise<RepoCreationSubmitResult> => {
   const res = await request.put<IResponse<RepoCreationSubmitResult>>({
-    url: '/configure/coderepo/bind',
+    url: '/configure/coderepo',
     data: params
   })
   return res && res.data && res.data.data

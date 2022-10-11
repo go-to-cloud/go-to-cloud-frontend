@@ -284,7 +284,13 @@ import { Icon } from '@iconify/vue'
 import { Org } from '@/api/common/types'
 import { isEmpty } from '@/utils/is'
 import { getOrganizationsApi } from '@/api/common'
-import { bindRepoApi, GetArtifactRepoApi, testingRepoApi } from '@/api/configure/artifact'
+import {
+  bindRepoApi,
+  getArtifactRepoApi,
+  testingRepoApi,
+  updateRepoApi,
+  removeRepoApi
+} from '@/api/configure/artifact'
 import { ArtifactRepoData } from '@/api/configure/types'
 
 const bindDialogVisible = ref(false)
@@ -296,6 +302,13 @@ const keywords = ref('')
 const Organizations = new Array<Org>()
 const dlgForCreate = ref(true)
 
+const removeRepo = async (repoId: number) => {
+  await removeRepoApi(repoId).then((resp) => {
+    if (resp.success) {
+      getArtifactRepoList()
+    }
+  })
+}
 const testing = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate(async (valid, fields) => {
@@ -335,7 +348,7 @@ const submit = async (formEl: FormInstance | undefined) => {
           if (resp.success) {
             bindDialogVisible.value = false
             resetForm()
-            // getCodeRepoList()
+            getArtifactRepoList()
           }
           resp.success
             ? ElMessage({
@@ -363,6 +376,44 @@ const submit = async (formEl: FormInstance | undefined) => {
     }
   })
 }
+const save = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      await updateRepoApi(artifactRepoForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            getArtifactRepoList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('artifacts.updateSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('artifacts.updateFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('artifacts.updateFailure'),
+            showClose: true,
+            center: true
+          })
+        })
+    }
+  })
+}
+
 const close = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   bindDialogVisible.value = false
@@ -374,7 +425,7 @@ const artifactRepoDataList = ref<ArtifactRepoData[]>([])
 const artifactTypes: Array<ArtifactType> = []
 
 const getArtifactRepoList = async (params?: any) => {
-  await GetArtifactRepoApi(params).then((resp) => {
+  await getArtifactRepoApi(params).then((resp) => {
     artifactRepoDataList.value = new Array<ArtifactRepoData>()
     artifactRepoDataList.value = resp
 

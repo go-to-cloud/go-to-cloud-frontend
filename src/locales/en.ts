@@ -220,6 +220,8 @@ export default {
     testingFailed: 'Code Repo Testing Failed',
     bindSuccess: 'Code Repo Bind Success',
     bindFailure: 'Code Repo Bind Failure',
+    updateSuccess: 'Code Repo Update Success',
+    updateFailure: 'Code Repo Update Failure',
     at_least_one_org: 'At least On Organization',
     updatedAt: 'Imported On',
     remove: 'Remove Code Repo',
@@ -250,7 +252,9 @@ export default {
     testingPassed: 'Artifact Repo Testing Passed',
     testingFailed: 'Artifact Repo Testing Failed',
     bindSuccess: 'Artifact Repo Bind Success',
-    bindFailure: 'Artifact Repo Bind Failure'
+    bindFailure: 'Artifact Repo Bind Failure',
+    updateSuccess: 'Artifact Repo Update Success',
+    updateFailure: 'Artifact Repo Update Failure'
   },
   formDemo: {
     input: 'Input',
