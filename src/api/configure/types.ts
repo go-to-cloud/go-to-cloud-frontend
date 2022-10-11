@@ -9,6 +9,18 @@ export type CodeRepoData = {
   updatedAt: string
   token: string
 }
+export type ArtifactRepoData = {
+  id: number
+  name: string
+  type: number
+  url: string
+  isSecurity: boolean
+  orgLites: Array<OrgLite>
+  remark: string
+  updatedAt: string
+  user: string
+  password: string
+}
 
 export type OrgLite = {
   orgId: number

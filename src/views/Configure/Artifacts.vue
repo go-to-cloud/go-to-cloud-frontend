@@ -284,7 +284,8 @@ import { Icon } from '@iconify/vue'
 import { Org } from '@/api/common/types'
 import { isEmpty } from '@/utils/is'
 import { getOrganizationsApi } from '@/api/common'
-import { bindRepoApi, testingRepoApi } from '@/api/configure/artifact'
+import { bindRepoApi, GetArtifactRepoApi, testingRepoApi } from '@/api/configure/artifact'
+import { ArtifactRepoData } from '@/api/configure/types'
 
 const bindDialogVisible = ref(false)
 
@@ -369,6 +370,37 @@ const close = (formEl: FormInstance | undefined) => {
   getOrganizations()
 }
 
+const artifactRepoDataList = ref<ArtifactRepoData[]>([])
+const artifactTypes: Array<ArtifactType> = []
+
+const getArtifactRepoList = async (params?: any) => {
+  await GetArtifactRepoApi(params).then((resp) => {
+    artifactRepoDataList.value = new Array<ArtifactRepoData>()
+    artifactRepoDataList.value = resp
+
+    for (let i = 0; i < resp.length; i++) {
+      artifactTypes.push({
+        Id: resp[i].id,
+        Enabled: true,
+        RepoName: resp[i].name,
+        IsSecurity: resp[i].isSecurity,
+        Type: resp[i].type,
+        Items: [
+          {
+            name: 'Hello',
+            latestVersion: 'latest',
+            publishedAt: '2022-01-01',
+            publishCounter: 3
+          }
+        ],
+        Data: resp[i]
+      })
+    }
+  })
+}
+
+getArtifactRepoList()
+
 const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
@@ -388,12 +420,6 @@ getOrganizations()
 const artifactTypeHover = ref(0)
 const artifactTabHover = ref(0)
 const artifactTabSelected = ref(1)
-
-enum ArtifactVisibility {
-  Private = 0,
-  Internal = 1,
-  Public = 2
-}
 
 enum ArtifactRepoType {
   OSS = 0,
@@ -481,24 +507,14 @@ const IconMaven = 'vscode-icons:file-type-maven'
 const IconNpm = 'logos:npm-icon'
 const IconS3 = 'logos:aws-s3'
 
-const visibilityText = (v: ArtifactVisibility) => {
-  switch (v) {
-    case ArtifactVisibility.Internal:
-      return t('visibility.internal')
-    case ArtifactVisibility.Private:
-      return t('visibility.private')
-    default:
-      return t('visibility.public')
-  }
-}
-
 interface ArtifactType {
   Id: number
   Enabled: boolean
   RepoName: string
-  Visibility: ArtifactVisibility
+  IsSecurity: boolean
   Type: ArtifactRepoType
   Items: Array<any> | null
+  Data: ArtifactRepoData | null
 }
 
 function GetTypeName(artifact: ArtifactType) {
@@ -544,75 +560,55 @@ const supportedArtifactTypes: Array<ArtifactType> = [
     Id: 1,
     Enabled: true,
     RepoName: '',
-    Visibility: ArtifactVisibility.Private,
+    IsSecurity: true,
     Type: ArtifactRepoType.Docker,
-    Items: null
+    Items: null,
+    Data: null
   },
   {
     Id: 2,
     Enabled: false,
     RepoName: '',
-    Visibility: ArtifactVisibility.Private,
+    IsSecurity: true,
     Type: ArtifactRepoType.Nuget,
-    Items: null
+    Items: null,
+    Data: null
   },
   {
     Id: 3,
     Enabled: false,
     RepoName: '',
-    Visibility: ArtifactVisibility.Public,
+    IsSecurity: true,
     Type: ArtifactRepoType.Maven,
-    Items: null
+    Items: null,
+    Data: null
   },
   {
     Id: 4,
     Enabled: false,
     RepoName: '',
-    Visibility: ArtifactVisibility.Internal,
+    IsSecurity: true,
     Type: ArtifactRepoType.Npm,
-    Items: null
+    Items: null,
+    Data: null
   },
   {
     Id: 5,
     Enabled: false,
     RepoName: '',
-    Visibility: ArtifactVisibility.Internal,
+    IsSecurity: true,
     Type: ArtifactRepoType.OSS,
-    Items: null
+    Items: null,
+    Data: null
   },
   {
     Id: 6,
     Enabled: false,
     RepoName: '',
-    Visibility: ArtifactVisibility.Internal,
+    IsSecurity: true,
     Type: ArtifactRepoType.S3,
-    Items: null
-  }
-]
-
-const artifactTypes: Array<ArtifactType> = [
-  {
-    Id: 1,
-    Enabled: true,
-    RepoName: '用户自定名称',
-    Visibility: ArtifactVisibility.Private,
-    Type: ArtifactRepoType.Docker,
-    Items: [
-      {
-        name: 'Hello',
-        latestVersion: 'latest',
-        publishedAt: '2022-01-01',
-        publishCounter: 3
-      }
-    ]
-  },
-  {
-    Id: 2,
-    Enabled: true,
-    RepoName: 'dotnet',
-    Visibility: ArtifactVisibility.Private,
-    Type: ArtifactRepoType.Nuget,
-    Items: null
+    Items: null,
+    Data: null
   }
 ]
 </script>
