@@ -16,6 +16,7 @@ export default {
     remark: '备注',
     selectText: '请选择',
     action: '操作',
+    edit: '编辑',
     startTimeText: '开始时间',
     endTimeText: '结束时间',
     login: '登录',
@@ -246,14 +247,16 @@ export default {
       copy_latest_image: '拷贝最新镜像地址',
       delete_latest_image: '删除最新镜像',
       delete_all_images: '删除所有镜像',
-      action: '操作'
+      action: '操作',
+      remove: '移除制品仓库'
     },
     testingPassed: '制品仓库连接成功',
     testingFailed: '制品仓库连接失败',
     bindSuccess: '制品仓库绑定成功',
     bindFailure: '制品仓库绑定失败',
     updateSuccess: '制品仓库更新成功',
-    updateFailure: '制品仓库更新失败'
+    updateFailure: '制品仓库更新失败',
+    removeConfirm: '即将移除制品仓库绑定关系，是否继续？'
   },
   formDemo: {
     input: '输入框',

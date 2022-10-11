@@ -1,7 +1,7 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import type { App } from 'vue'
-import { Layout, getParentLayout } from '@/utils/routerHelper'
+import { getParentLayout, Layout } from '@/utils/routerHelper'
 import { useI18n } from '@/hooks/web/useI18n'
 
 const { t } = useI18n()
@@ -139,7 +139,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     children: [
       {
         path: 'pipeline',
-        component: () => import('@/views/Pipelines/pipeline.vue'),
+        component: () => import('@/views/Pipelines/Index.vue'),
         name: 'Pipeline',
         meta: {
           title: t('router.approach')

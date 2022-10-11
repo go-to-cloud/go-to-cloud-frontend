@@ -15,7 +15,8 @@ export default {
     update: 'Update',
     remark: 'Remark',
     selectText: 'Please select',
-    action: '操作',
+    action: 'Action',
+    edit: 'Edit',
     startTimeText: 'Start time',
     endTimeText: 'End time',
     login: 'Login',
@@ -247,14 +248,16 @@ export default {
       copy_latest_image: 'Copy Latest Image URL',
       delete_latest_image: 'Delete Latest Image',
       delete_all_images: 'Delete All Images',
-      action: 'Operation'
+      action: 'Operation',
+      remove: 'Remove Artifact Repo'
     },
     testingPassed: 'Artifact Repo Testing Passed',
     testingFailed: 'Artifact Repo Testing Failed',
     bindSuccess: 'Artifact Repo Bind Success',
     bindFailure: 'Artifact Repo Bind Failure',
     updateSuccess: 'Artifact Repo Update Success',
-    updateFailure: 'Artifact Repo Update Failure'
+    updateFailure: 'Artifact Repo Update Failure',
+    removeConfirm: 'Bind repo will be removed. Continue?'
   },
   formDemo: {
     input: 'Input',
