@@ -46,3 +46,10 @@ export const removeRepoApi = async (params: number): Promise<RemoveRepoResult> =
   })
   return res && res.data && res.data.data
 }
+
+export const getRepoItemApi = async (params: number): Promise<RemoveRepoResult> => {
+  const res = await request.get<IResponse<RemoveRepoResult>>({
+    url: '/configure/artifact/' + params
+  })
+  return res && res.data && res.data.data
+}

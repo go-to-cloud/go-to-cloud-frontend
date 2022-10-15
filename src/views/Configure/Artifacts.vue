@@ -20,6 +20,7 @@ import { getOrganizationsApi } from '@/api/common'
 import {
   bindRepoApi,
   getArtifactRepoApi,
+  getRepoItemApi,
   removeRepoApi,
   testingRepoApi,
   updateRepoApi
@@ -33,8 +34,18 @@ const { t } = useI18n()
 
 const loading = ref(true)
 const keywords = ref('')
-const Organizations = new Array<Org>()
+const Organizations = ref<Array<Org>>(new Array<Org>())
 const dlgForCreate = ref(true)
+
+const selectedRepoTab = ref('-1')
+const repoSelected = async (name: string) => {
+  // TODO: 如果选中项的item为空，则执行，否则不执行(利用缓存）
+  const artifact = artifactTypes.value[Number(name)]
+  const artifactId = artifact.Id
+  await getRepoItemApi(artifactId).then((resp) => {
+    console.log('++++++++++', resp)
+  })
+}
 
 const removeRepo = async (repoId: number) => {
   await removeRepoApi(repoId).then((resp) => {
@@ -168,16 +179,20 @@ const getArtifactRepoList = async (params?: any) => {
         RepoName: resp[i].name,
         IsSecurity: resp[i].isSecurity,
         Type: resp[i].type,
-        Items: [
-          {
-            name: 'Hello',
-            latestVersion: 'latest',
-            publishedAt: '2022-01-01',
-            publishCounter: 3
-          }
-        ],
+        Items: [],
+        // Items: [
+        //   {
+        //     name: 'Hello',
+        //     latestVersion: 'latest',
+        //     publishedAt: '2022-01-01',
+        //     publishCounter: 3
+        //   }
+        // ],
         Data: resp[i]
       })
+    }
+    if (resp.length > 0 && selectedRepoTab.value === '-1') {
+      selectedRepoTab.value = '0'
     }
   })
 }
@@ -188,8 +203,9 @@ const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
       artifactRepoForm.value.orgs = new Array<number>()
+      Organizations.value = new Array<Org>()
       for (let entry of resp.entries()) {
-        Organizations.push({
+        Organizations.value.push({
           id: Number(entry[0]),
           name: entry[1]
         })
@@ -202,7 +218,7 @@ const getOrganizations = async () => {
 getOrganizations()
 const artifactTypeHover = ref(0)
 const artifactTabHover = ref(0)
-const artifactTabSelected = ref(1)
+const artifactTabSelected = ref(-1)
 
 enum ArtifactRepoType {
   OSS = 0,
@@ -439,7 +455,15 @@ const actionHandler = (command: HandlerCommand) => {
       break
   }
 }
+function isFirstTabInit(a: ArtifactType): boolean {
+  return (
+    (a === artifactTypes.value[0] && selectedRepoTab.value === '0') ||
+    a.Id === artifactTabHover.value ||
+    a.Id === artifactTabSelected.value
+  )
+}
 </script>
+
 <template>
   <ElRow justify="space-between">
     <ElCol :span="18">
@@ -460,18 +484,19 @@ const actionHandler = (command: HandlerCommand) => {
       </ElButton>
     </ElCol>
   </ElRow>
-  <ElTabs class="artifact-tabs" tab-position="left">
+  <ElTabs
+    class="artifact-tabs"
+    tab-position="left"
+    @tab-change="repoSelected"
+    v-model="selectedRepoTab"
+  >
     <ElTabPane v-for="type in artifactTypes" :key="type.Id" style="padding: 20px">
       <template #label>
         <div
           @mouseover="artifactTabHover = type.Id"
           @mouseleave="artifactTabHover = 0"
           @click="artifactTabSelected = type.Id"
-          :class="
-            type.Id === artifactTabHover || type.Id === artifactTabSelected
-              ? 'artifact-tab-focus'
-              : ''
-          "
+          :class="isFirstTabInit(type) ? 'artifact-tab-focus' : ''"
         >
           <ElSpace :size="10" alignment="center" style="width: 200px">
             <Icon

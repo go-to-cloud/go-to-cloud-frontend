@@ -9,6 +9,13 @@ export type CodeRepoData = {
   updatedAt: string
   token: string
 }
+export type ArtifactRepoItem = {
+  id: number
+  name: string
+  latestVersion: string
+  publishedAt: string
+  publishCounter: number
+}
 export type ArtifactRepoData = {
   id: number
   name: string
@@ -20,6 +27,7 @@ export type ArtifactRepoData = {
   updatedAt: string
   user: string
   password: string
+  items: Array<ArtifactRepoItem> | null
 }
 
 export type OrgLite = {

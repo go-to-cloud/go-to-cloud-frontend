@@ -23,14 +23,15 @@ interface Params {
   pageSize?: number
 }
 
-const Organizations = new Array<Org>()
+const Organizations = ref<Array<Org>>(new Array<Org>())
 
 const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
       codeRepoDetailForm.value.orgs = new Array<number>()
+      Organizations.value = new Array<Org>()
       for (let entry of resp.entries()) {
-        Organizations.push({
+        Organizations.value.push({
           id: Number(entry[0]),
           name: entry[1]
         })
