@@ -62,7 +62,8 @@ export default {
     noPermission: `抱歉，您无权访问此页面。`,
     pageError: '抱歉，您访问的页面不存在。',
     networkError: '抱歉，服务器报告错误。',
-    returnToHome: '返回首页'
+    returnToHome: '返回首页',
+    repoEmpty: '暂无仓库数据，点击按钮去绑定一个仓库'
   },
   setting: {
     projectSetting: '项目配置',
@@ -257,6 +258,11 @@ export default {
     updateSuccess: '制品仓库更新成功',
     updateFailure: '制品仓库更新失败',
     removeConfirm: '即将移除制品仓库绑定关系，是否继续？'
+  },
+  k8s: {
+    bind: '绑定K8S集群',
+    name: '集群名称',
+    kubeconfig: 'KubeConfig'
   },
   formDemo: {
     input: '输入框',

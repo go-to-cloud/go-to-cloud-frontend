@@ -1,7 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { App } from 'vue'
-import { getParentLayout, Layout } from '@/utils/routerHelper'
+import { Layout } from '@/utils/routerHelper'
 import { useI18n } from '@/hooks/web/useI18n'
 
 const { t } = useI18n()
@@ -119,7 +119,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
       },
       {
         path: 'kubernetes',
-        component: getParentLayout(),
+        component: () => import('@/views/Configure/Kubernetes.vue'),
         name: 'Kubernetes',
         meta: {
           title: t('router.k8s')

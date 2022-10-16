@@ -11,6 +11,7 @@ import {
 import { getOrganizationsApi } from '@/api/common'
 import { CodeRepoData } from '@/api/configure/types'
 import { ElButton, ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { Error } from '@/components/Error'
 import { Dialog } from '@/components/Dialog'
 import { Connection, Delete, Expand, MagicStick, MoreFilled, Search } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
@@ -101,6 +102,7 @@ const codeRepoDetailForm = ref({
   remark: '',
   orgs: ref(Array<number>())
 })
+
 function resetForm() {
   codeRepoDetailForm.value = {
     id: 0,
@@ -113,6 +115,7 @@ function resetForm() {
     orgs: []
   }
 }
+
 function isUrl(url) {
   const pattern =
     '^(https|http)://' +
@@ -224,7 +227,6 @@ const getCodeRepoList = async (params?: Params) => {
       pageSize: 20
     }
   ).then((resp) => {
-    codeRepoDataList.value = new Array<CodeRepoData>()
     codeRepoDataList.value = resp
   })
 }
@@ -406,7 +408,17 @@ const actionHandler = (command: HandlerCommand) => {
 </script>
 
 <template>
-  <ElRow justify="space-between">
+  <Error
+    type="coderepo_empty"
+    @error-click="
+      () => {
+        dlgForCreate = true
+        bindDialogVisible = true
+      }
+    "
+    v-if="codeRepoDataList.length == 0"
+  />
+  <ElRow justify="space-between" v-if="codeRepoDataList.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.coderepo') }}</span>
@@ -433,7 +445,7 @@ const actionHandler = (command: HandlerCommand) => {
       >
     </ElCol>
   </ElRow>
-  <ElTabs>
+  <ElTabs v-if="codeRepoDataList.length > 0">
     <ElTabPane :label="t('coderepo.all')">
       <ElTable style="width: 100%" :data="codeRepoDataList">
         <ElTableColumn prop="name" :label="t('coderepo.name')" width="350">

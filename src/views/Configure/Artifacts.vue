@@ -14,6 +14,7 @@ import {
   Search
 } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
+import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
 import { isEmpty } from '@/utils/is'
 import { getOrganizationsApi } from '@/api/common'
@@ -468,7 +469,17 @@ function isFirstTabInit(a: ArtifactType): boolean {
 </script>
 
 <template>
-  <ElRow justify="space-between">
+  <Error
+    v-if="artifactTypes.length == 0"
+    type="artifactrepo_empty"
+    @error-click="
+      () => {
+        dlgForCreate = true
+        bindDialogVisible = true
+      }
+    "
+  />
+  <ElRow justify="space-between" v-if="artifactTypes.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.artifacts') }}</span>
@@ -488,6 +499,7 @@ function isFirstTabInit(a: ArtifactType): boolean {
     </ElCol>
   </ElRow>
   <ElTabs
+    v-if="artifactTypes.length > 0"
     class="artifact-tabs"
     tab-position="left"
     @tab-change="repoSelected"
