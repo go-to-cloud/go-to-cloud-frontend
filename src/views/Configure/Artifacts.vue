@@ -552,7 +552,9 @@ function isFirstTabInit(a: ArtifactType): boolean {
             <ElTableColumn fixed prop="name" :label="t('artifacts.docker.list')" width="250">
               <template #default="scope">
                 <ElLink :underline="false"
-                  >{{ scope.row.name }} <ElIcon style="left: 5px"><CopyDocument /></ElIcon
+                  >{{ scope.row.name }}
+                  <ElTooltip placement="right" :content="t('artifacts.docker.copy_latest_image')">
+                    <ElIcon style="left: 5px"><CopyDocument /></ElIcon> </ElTooltip
                 ></ElLink>
               </template>
             </ElTableColumn>
@@ -580,7 +582,7 @@ function isFirstTabInit(a: ArtifactType): boolean {
               width="160"
             >
               <template #default="scope">
-                <ElLink type="info" :underline="false">{{ scope.row.publishCounter }}</ElLink>
+                <ElLink type="info" :underline="false">{{ scope.row.tags.length }}</ElLink>
               </template>
             </ElTableColumn>
             <ElTableColumn fixed="right" prop="id" :label="t('artifacts.docker.action')" width="80">

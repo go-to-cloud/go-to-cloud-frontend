@@ -10,11 +10,11 @@ export type CodeRepoData = {
   token: string
 }
 export type ArtifactRepoItem = {
-  id: number
+  hashId: string
   name: string
   latestVersion: string
   publishedAt: string
-  publishCounter: number
+  tags: string[]
 }
 export type ArtifactRepoData = {
   id: number
