@@ -25,7 +25,7 @@ import {
   testingRepoApi,
   updateRepoApi
 } from '@/api/configure/artifact'
-import { ArtifactRepoData } from '@/api/configure/types'
+import { ArtifactRepoData, ArtifactRepoItem } from '@/api/configure/types'
 import { ElMessageBox } from 'element-plus/es'
 
 const bindDialogVisible = ref(false)
@@ -39,12 +39,13 @@ const dlgForCreate = ref(true)
 
 const selectedRepoTab = ref('-1')
 const repoSelected = async (name: string) => {
-  // TODO: 如果选中项的item为空，则执行，否则不执行(利用缓存）
   const artifact = artifactTypes.value[Number(name)]
-  const artifactId = artifact.Id
-  await getRepoItemApi(artifactId).then((resp) => {
-    console.log('++++++++++', resp)
-  })
+  if (artifact.Items === null) {
+    const artifactId = artifact.Id
+    await getRepoItemApi(artifactId).then((resp) => {
+      artifact.Items = resp
+    })
+  }
 }
 
 const removeRepo = async (repoId: number) => {
@@ -179,15 +180,7 @@ const getArtifactRepoList = async (params?: any) => {
         RepoName: resp[i].name,
         IsSecurity: resp[i].isSecurity,
         Type: resp[i].type,
-        Items: [],
-        // Items: [
-        //   {
-        //     name: 'Hello',
-        //     latestVersion: 'latest',
-        //     publishedAt: '2022-01-01',
-        //     publishCounter: 3
-        //   }
-        // ],
+        Items: null,
         Data: resp[i]
       })
     }
@@ -316,7 +309,7 @@ interface ArtifactType {
   RepoName: string
   IsSecurity: boolean
   Type: ArtifactRepoType
-  Items: Array<any> | null
+  Items: Array<ArtifactRepoItem> | null
   Data: ArtifactRepoData | null
 }
 
@@ -443,6 +436,16 @@ const actionHandler = (command: HandlerCommand) => {
       }
       break
     case 'refresh':
+      let i = 0
+      for (; i < artifactTypes.value.length; i++) {
+        if (artifactTypes.value[i].Id === command.id) {
+          artifactTypes.value[i].Items = null
+          break
+        }
+      }
+      console.log(i)
+
+      repoSelected(i + '')
       break
     case 'remove':
       ElMessageBox.confirm(t('artifacts.removeConfirm'), t('common.confirmMsgTitle'), {

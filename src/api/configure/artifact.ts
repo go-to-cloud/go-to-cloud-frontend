@@ -1,5 +1,6 @@
 import {
   ArtifactRepoData,
+  ArtifactRepoItem,
   RemoveRepoResult,
   RepoCreationSubmitResult,
   TestingResult
@@ -47,8 +48,8 @@ export const removeRepoApi = async (params: number): Promise<RemoveRepoResult> =
   return res && res.data && res.data.data
 }
 
-export const getRepoItemApi = async (params: number): Promise<RemoveRepoResult> => {
-  const res = await request.get<IResponse<RemoveRepoResult>>({
+export const getRepoItemApi = async (params: number): Promise<ArtifactRepoItem[]> => {
+  const res = await request.get<IResponse<ArtifactRepoItem[]>>({
     url: '/configure/artifact/' + params
   })
   return res && res.data && res.data.data
