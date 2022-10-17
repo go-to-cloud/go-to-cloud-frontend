@@ -405,19 +405,15 @@ const actionHandler = (command: HandlerCommand) => {
     }
   }
 }
+
+function errorClick() {
+  dlgForCreate.value = true
+  bindDialogVisible.value = true
+}
 </script>
 
 <template>
-  <Error
-    type="coderepo_empty"
-    @error-click="
-      () => {
-        dlgForCreate = true
-        bindDialogVisible = true
-      }
-    "
-    v-if="codeRepoDataList.length == 0"
-  />
+  <Error type="coderepo_empty" @error-click="errorClick" v-if="codeRepoDataList.length == 0" />
   <ElRow justify="space-between" v-if="codeRepoDataList.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>

@@ -119,7 +119,6 @@ export default {
   },
   router: {
     login: 'Login',
-    dashboard: 'Dashboard',
     analysis: 'Analysis',
     workplace: 'Workplace',
     projects: 'Projects',
@@ -263,7 +262,17 @@ export default {
   k8s: {
     bind: 'Bind K8S Cluster',
     name: 'Cluster Name',
-    kubeconfig: 'KubeConfig'
+    kubeconfig: 'KubeConfig',
+    testingPassed: 'K8S Cluster Testing Passed',
+    testingFailed: 'K8S Cluster Testing Failed',
+    bindSuccess: 'K8S Cluster Bind Success',
+    bindFailure: 'K8S Cluster Bind Failure',
+    updateSuccess: 'K8S Cluster Update Success',
+    updateFailure: 'K8S Cluster Update Failure',
+    at_least_one_org: 'At least On Organization',
+    updatedAt: 'Imported On',
+    remove: 'Remove K8S Cluster',
+    removeConfirm: 'Bind cluster will be removed. Continue?'
   },
   formDemo: {
     input: 'Input',

@@ -2,10 +2,20 @@
 import { ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Error } from '@/components/Error'
-import { ElButton, FormInstance, FormRules } from 'element-plus'
+import { ElButton, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
 import { isEmpty } from '@/utils/is'
 import { Org } from '@/api/common/types'
+import { ElMessage } from 'element-plus/es'
+import {
+  bindK8sApi,
+  getK8sRepoApi,
+  removeK8sApi,
+  testingK8sApi,
+  updateK8sApi
+} from '@/api/configure/deploy'
+import { getOrganizationsApi } from '@/api/common'
+import { K8sRepoData } from '@/api/configure/types'
 
 const { t } = useI18n()
 
@@ -19,6 +29,31 @@ const clusterDetailForm = ref({
   remark: '',
   orgs: ref(Array<number>())
 })
+
+interface Params {
+  pageIndex?: number
+  pageSize?: number
+}
+
+const Organizations = ref<Array<Org>>(new Array<Org>())
+
+const getOrganizations = async () => {
+  await getOrganizationsApi().then((resp) => {
+    if (resp!) {
+      clusterDetailForm.value.orgs = new Array<number>()
+      Organizations.value = new Array<Org>()
+      for (let entry of resp.entries()) {
+        Organizations.value.push({
+          id: Number(entry[0]),
+          name: entry[1]
+        })
+        clusterDetailForm.value.orgs.push(Number(entry[0]))
+      }
+    }
+  })
+}
+
+getOrganizations()
 
 const clusterDetailFormRule = ref<FormRules>({
   name: [
@@ -48,9 +83,21 @@ const clusterDetailFormRule = ref<FormRules>({
     }
   ]
 })
-const clusterList = ref<Array<number>>([])
 
-const getClusterList = async (params?: any) => {}
+const k8sDataList = ref<K8sRepoData[]>([])
+
+const getClusterList = async (params?: Params) => {
+  await getK8sRepoApi(
+    params || {
+      pageIndex: 1,
+      pageSize: 20
+    }
+  ).then((resp) => {
+    k8sDataList.value = resp
+  })
+}
+
+getClusterList()
 
 function resetForm() {
   clusterDetailForm.value = {
@@ -60,6 +107,44 @@ function resetForm() {
     remark: '',
     orgs: []
   }
+}
+
+const removeRepo = async (repoId: number) => {
+  await removeK8sApi(repoId).then((resp) => {
+    if (resp.success) {
+      getClusterList()
+    }
+  })
+}
+const testing = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    await testingK8sApi(clusterDetailForm.value)
+      .then((resp) => {
+        resp.success
+          ? ElMessage({
+              type: 'success',
+              message: t('k8s.testingPassed'),
+              showClose: true,
+              center: true
+            })
+          : ElMessage({
+              type: 'error',
+              message: t('k8s.testingFailed'),
+              showClose: true,
+              center: true,
+              grouping: true
+            })
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'error',
+          message: t('k8s.testingFailed'),
+          showClose: true,
+          center: true
+        })
+      })
+  })
 }
 const close = (formEl: FormInstance | undefined) => {
   if (!formEl) return
@@ -72,6 +157,36 @@ const submit = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate(async (valid, fields) => {
     if (valid) {
+      await bindK8sApi(clusterDetailForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            getClusterList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('k8s.bindSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('k8s.bindFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('k8s.bindFailure'),
+            showClose: true,
+            center: true
+          })
+        })
     }
   })
 }
@@ -80,22 +195,83 @@ const save = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate(async (valid, fields) => {
     if (valid) {
+      await updateK8sApi(clusterDetailForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            getClusterList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('k8s.updateSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('k8s.updateFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('k8s.updateFailure'),
+            showClose: true,
+            center: true
+          })
+        })
     }
   })
+}
+
+interface HandlerCommand {
+  id: number
+  cmd: string
+  form: K8sRepoData
+}
+const actionHandler = (command: HandlerCommand) => {
+  switch (command.cmd) {
+    case 'del': {
+      ElMessageBox.confirm(t('k8s.removeConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        removeRepo(command.id)
+      })
+      break
+    }
+    case 'view': {
+      dlgForCreate.value = false
+      bindDialogVisible.value = true
+      let orgIds: Array<number> = []
+      for (let i = 0; i < command.form.orgLites.length; i++) {
+        orgIds.push(command.form.orgLites[i].orgId)
+      }
+      clusterDetailForm.value = {
+        id: command.form.id,
+        name: command.form.name,
+        kubeconfig: command.form.kubeconfig,
+        remark: command.form.remark,
+        orgs: orgIds
+      }
+      break
+    }
+  }
+}
+function errorClick() {
+  dlgForCreate.value = true
+  bindDialogVisible.value = true
 }
 </script>
 
 <template>
-  <Error
-    v-if="clusterList.length === 0"
-    type="k8srepo_empty"
-    @error-click="
-      () => {
-        dlgForCreate = true
-        bindDialogVisible = true
-      }
-    "
-  />
+  <Error v-if="k8sDataList.length === 0" type="k8srepo_empty" @error-click="errorClick" />
 
   <Dialog
     v-model="bindDialogVisible"

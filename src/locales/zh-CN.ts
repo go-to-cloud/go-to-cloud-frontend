@@ -123,11 +123,11 @@ export default {
     workplace: '工作台',
     projects: '项目',
     coderepo: '代码仓库',
-    artifacts: '制品仓库',
-    k8s: '部署环境',
     pipelines: '流水线',
     approach: '方案管理',
     configure: '配置',
+    artifacts: '制品仓库',
+    k8s: '部署环境',
     monitor: '应用监控',
     authorization: '账户管理',
     user: '用户管理',
@@ -262,7 +262,17 @@ export default {
   k8s: {
     bind: '绑定K8S集群',
     name: '集群名称',
-    kubeconfig: 'KubeConfig'
+    kubeconfig: 'KubeConfig',
+    testingPassed: 'K8S集群连接成功',
+    testingFailed: 'K8S集群连接失败',
+    bindSuccess: 'K8S集群绑定成功',
+    bindFailure: 'K8S集群绑定失败',
+    updateSuccess: 'K8S集群更新成功',
+    updateFailure: 'K8S集群更新失败',
+    at_least_one_org: '至少选择一个组织',
+    updatedAt: '导入日期',
+    remove: '移除K8S集群',
+    removeConfirm: '即将移除K8S集群绑定关系，是否继续？'
   },
   formDemo: {
     input: '输入框',

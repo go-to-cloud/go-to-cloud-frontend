@@ -1,3 +1,11 @@
+export type K8sRepoData = {
+  id: number
+  name: string
+  orgLites: Array<OrgLite>
+  remark: string
+  updatedAt: string
+  kubeconfig: string
+}
 export type CodeRepoData = {
   id: number
   name: string
