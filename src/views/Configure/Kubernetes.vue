@@ -16,6 +16,7 @@ import {
 } from '@/api/configure/deploy'
 import { getOrganizationsApi } from '@/api/common'
 import { K8sRepoData } from '@/api/configure/types'
+import { Connection, Delete, Expand, MoreFilled, Search } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 
@@ -272,7 +273,84 @@ function errorClick() {
 
 <template>
   <Error v-if="k8sDataList.length === 0" type="k8srepo_empty" @error-click="errorClick" />
-
+  <ElRow justify="space-between" v-if="k8sDataList.length > 0">
+    <ElCol :span="18">
+      <ElSpace wrap>
+        <span class="header_title">{{ t('router.coderepo') }}</span>
+        <ElDivider direction="vertical" />
+        <ElInput v-model="keywords" :placeholder="t('k8s.name')" :suffix-icon="Search" clearable />
+      </ElSpace>
+    </ElCol>
+    <ElCol :span="6" style="text-align: right">
+      <ElButton
+        :icon="Connection"
+        type="primary"
+        @click="
+          () => {
+            dlgForCreate = true
+            bindDialogVisible = true
+          }
+        "
+        >{{ t('k8s.bind') }}</ElButton
+      >
+    </ElCol>
+  </ElRow>
+  <ElTabs v-if="k8sDataList.length > 0">
+    <ElTabPane :label="t('k8s.all')">
+      <ElTable style="width: 100%" :data="k8sDataList">
+        <ElTableColumn prop="name" :label="t('k8s.name')" width="350">
+          <template #default="scope">
+            <ElSpace>
+              <Icon
+                :icon="GetIcon2(scope.row.origin)[0]"
+                :color="GetIcon2(scope.row.origin)[1]"
+                width="24"
+                height="24"
+              /><span>{{ scope.row.name }}</span>
+            </ElSpace>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="t('k8s.orgs')" prop="orgLites">
+          <template #default="scope">
+            <ElSpace>
+              <ElTag
+                style="cursor: default"
+                v-for="item in scope.row.orgLites"
+                :key="item.orgId"
+                :closable="false"
+                >{{ item.orgName }}</ElTag
+              >
+            </ElSpace></template
+          >
+        </ElTableColumn>
+        <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
+        <ElTableColumn prop="updatedAt" :label="t('k8s.updatedAt')" width="200" />
+        <ElTableColumn fixed="right" prop="id" :label="t('k8s.action')" width="80">
+          <template #default="scope">
+            <ElDropdown @command="actionHandler">
+              <span class="el-dropdown-link">
+                <ElButton :icon="MoreFilled" circle />
+              </span>
+              <template #dropdown>
+                <ElDropdownMenu>
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'view', form: scope.row }">
+                    <ElLink :icon="Expand" :underline="false">
+                      {{ t('common.viewDetail') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                    <ElLink :icon="Delete" :underline="false" type="danger">
+                      {{ t('coderepo.remove') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                </ElDropdownMenu>
+              </template>
+            </ElDropdown>
+          </template>
+        </ElTableColumn>
+      </ElTable>
+    </ElTabPane>
+  </ElTabs>
   <Dialog
     v-model="bindDialogVisible"
     :title="t('k8s.bind')"
@@ -314,7 +392,7 @@ function errorClick() {
         <ElCol :span="18">
           <ElFormItem :label="t('k8s.kubeconfig')">
             <ElInput
-              :autosize="{ minRows: 8, maxRows: 12 }"
+              :autosize="{ minRows: 6, maxRows: 9 }"
               v-model="clusterDetailForm.kubeconfig"
               show-word-limit
               type="textarea"
