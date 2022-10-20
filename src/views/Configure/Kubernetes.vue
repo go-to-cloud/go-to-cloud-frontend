@@ -301,12 +301,7 @@ function errorClick() {
         <ElTableColumn prop="name" :label="t('k8s.name')" width="350">
           <template #default="scope">
             <ElSpace>
-              <Icon
-                :icon="GetIcon2(scope.row.origin)[0]"
-                :color="GetIcon2(scope.row.origin)[1]"
-                width="24"
-                height="24"
-              /><span>{{ scope.row.name }}</span>
+              <span>{{ scope.row.name }}</span>
             </ElSpace>
           </template>
         </ElTableColumn>
@@ -323,6 +318,7 @@ function errorClick() {
             </ElSpace></template
           >
         </ElTableColumn>
+        <ElTableColumn prop="serverVersion" :label="t('k8s.serverVer')" width="150" />
         <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
         <ElTableColumn prop="updatedAt" :label="t('k8s.updatedAt')" width="200" />
         <ElTableColumn fixed="right" prop="id" :label="t('k8s.action')" width="80">
@@ -340,7 +336,7 @@ function errorClick() {
                   </ElDropdownItem>
                   <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
                     <ElLink :icon="Delete" :underline="false" type="danger">
-                      {{ t('coderepo.remove') }}
+                      {{ t('k8s.remove') }}
                     </ElLink>
                   </ElDropdownItem>
                 </ElDropdownMenu>

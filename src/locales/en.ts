@@ -266,6 +266,7 @@ export default {
     all: 'All K8s Cluster',
     orgs: 'Organizations',
     action: 'Actions',
+    serverVer: 'K8s Cluster Version',
     testingPassed: 'K8S Cluster Testing Passed',
     testingFailed: 'K8S Cluster Testing Failed',
     bindSuccess: 'K8S Cluster Bind Success',

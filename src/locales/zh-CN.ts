@@ -266,6 +266,7 @@ export default {
     all: '全部集群',
     orgs: '所属组织',
     action: '操作',
+    serverVer: '集群版本',
     testingPassed: 'K8S集群连接成功',
     testingFailed: 'K8S集群连接失败',
     bindSuccess: 'K8S集群绑定成功',

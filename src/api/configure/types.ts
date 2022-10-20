@@ -5,6 +5,7 @@ export type K8sRepoData = {
   remark: string
   updatedAt: string
   kubeconfig: string
+  serverVersion: string
 }
 export type CodeRepoData = {
   id: number
