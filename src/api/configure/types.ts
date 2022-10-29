@@ -1,3 +1,10 @@
+export enum ScmType {
+  Gitlab = 0,
+  Github = 1,
+  Gitee = 2,
+  Gitea = 3
+}
+
 export type K8sRepoData = {
   id: number
   name: string

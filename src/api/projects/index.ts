@@ -1,11 +1,17 @@
 import { useAxios } from '@/hooks/web/useAxios'
 import type { ProjectData } from './types'
+import { BindCodeRepoGroup } from './types'
 
 const request = useAxios()
 
 export const getProjectsApi = async (params: any): Promise<IResponse> => {
   const res = await request.get({ url: '/projects/list', params })
   return res && res.data
+}
+
+export const getBindCodeRepoGroupApi = async (): Promise<BindCodeRepoGroup[]> => {
+  const res = await request.get({ url: '/projects/coderepo' })
+  return res && res.data && res.data.data
 }
 
 export const saveTableApi = async (data: Partial<ProjectData>): Promise<IResponse> => {

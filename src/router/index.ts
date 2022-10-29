@@ -8,6 +8,22 @@ const { t } = useI18n()
 
 export const constantRouterMap: AppRouteRecordRaw[] = [
   {
+    path: '/projects/artifacts/:id',
+    component: () => import('@/views/Projects/Artifacts/Index.vue'),
+    name: 'ProjectCode',
+    meta: {
+      hidden: true
+    }
+  },
+  {
+    path: '/projects/codes/:id',
+    component: () => import('@/views/Projects/Codes/Index.vue'),
+    name: 'ProjectCode',
+    meta: {
+      hidden: true
+    }
+  },
+  {
     path: '/',
     component: Layout,
     redirect: '/dashboard/workplace',

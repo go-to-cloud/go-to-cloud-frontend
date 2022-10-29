@@ -203,7 +203,14 @@ export default {
     desc: '描述',
     all: '全部项目',
     archived: '归档项目',
-    create: '新建项目'
+    create: '新建项目',
+    toolset: {
+      code: '代码仓库',
+      ci: '持续集成',
+      cd: '持续部署',
+      delivery: '持续交付',
+      artifact: '制品仓库'
+    }
   },
   coderepo: {
     name: '仓库名称',
@@ -226,7 +233,11 @@ export default {
     at_least_one_org: '至少选择一个组织',
     updatedAt: '导入日期',
     remove: '移除代码仓库',
-    removeConfirm: '即将移除代码仓库绑定关系，是否继续？'
+    removeConfirm: '即将移除代码仓库绑定关系，是否继续？',
+    git: {
+      name: '代码仓库',
+      import: '导入代码仓库'
+    }
   },
   artifacts: {
     name: '制品仓库名称',

@@ -1,21 +1,17 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { Table } from '@/components/Table'
 import { getProjectsApi } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
 import { ref } from 'vue'
 import { ElButton } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
+import Icon from '@/components/Icon/src/Icon.vue'
+import { useRouter } from 'vue-router'
+
+const { push } = useRouter()
 
 const keywords = ref('')
-
-interface Params {
-  pageIndex?: number
-  pageSize?: number
-}
-
 const { t } = useI18n()
-
 const columns: TableColumn[] = [
   {
     field: 'name',
@@ -32,10 +28,14 @@ const columns: TableColumn[] = [
     label: t('project.action')
   }
 ]
-
 const loading = ref(true)
 
 let projectDataList = ref<ProjectData[]>([])
+
+interface Params {
+  pageIndex?: number
+  pageSize?: number
+}
 
 const getProjectList = async (params?: Params) => {
   const res = await getProjectsApi(
@@ -94,6 +94,10 @@ const tableData = [
     tag: 'Office'
   }
 ]
+
+const toolsetClicked = (type: string, id: number) => {
+  push('/projects/' + type + '/' + id)
+}
 </script>
 
 <template>
@@ -116,7 +120,41 @@ const tableData = [
   </ElRow>
   <ElTabs>
     <ElTabPane :label="t('project.all')">
-      <Table :columns="columns" :data="projectDataList" :loading="loading" />
+      <ElTable :data="projectDataList">
+        <ElTableColumn prop="name" :label="t('project.name')" width="450" />
+        <ElTableColumn prop="id" :label="t('project.modules')" width="300">
+          <template #default="scope">
+            <ElSpace>
+              <ElTooltip :content="t('project.toolset.code')">
+                <ElLink @click="toolsetClicked('codes', scope.row.id)" :underline="false">
+                  <Icon class="toolset" icon="mdi:code-braces-box" />
+                </ElLink>
+              </ElTooltip>
+              <ElTooltip :content="t('project.toolset.ci')">
+                <ElLink @click="toolsetClicked('ci', scope.row.id)" :underline="false">
+                  <Icon class="toolset" icon="ant-design:ci-circle-filled" />
+                </ElLink>
+              </ElTooltip>
+              <ElTooltip v-if="false" :content="t('project.toolset.delivery')">
+                <ElLink @click="toolsetClicked('delivery', scope.row.id)" :underline="false">
+                  <Icon class="toolset" icon="mdi:truck-delivery" />
+                </ElLink>
+              </ElTooltip>
+              <ElTooltip :content="t('project.toolset.cd')">
+                <ElLink @click="toolsetClicked('cd', scope.row.id)" :underline="false">
+                  <Icon class="toolset" icon="ic:round-rocket-launch" />
+                </ElLink>
+              </ElTooltip>
+              <ElTooltip :content="t('project.toolset.artifact')">
+                <ElLink @click="toolsetClicked('artifacts', scope.row.id)" :underline="false">
+                  <Icon class="toolset" icon="cib:azure-artifacts" />
+                </ElLink>
+              </ElTooltip>
+            </ElSpace>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn prop="action" :label="t('project.modules')" width="300" />
+      </ElTable>
     </ElTabPane>
     <ElTabPane :label="t('project.archived')">
       <el-table :data="tableData" style="width: 100%">
@@ -142,5 +180,10 @@ const tableData = [
   font-size: 18px;
   font-weight: 500;
   color: var(--el-text-color-primary);
+}
+
+.toolset {
+  cursor: pointer;
+  margin-top: 3px;
 }
 </style>

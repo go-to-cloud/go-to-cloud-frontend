@@ -9,7 +9,7 @@ import {
   updateRepoApi
 } from '@/api/configure/coderepo'
 import { getOrganizationsApi } from '@/api/common'
-import { CodeRepoData } from '@/api/configure/types'
+import { CodeRepoData, ScmType } from '@/api/configure/types'
 import { ElButton, ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { Error } from '@/components/Error'
 import { Dialog } from '@/components/Dialog'
@@ -75,13 +75,6 @@ const columns: TableColumn[] = [
     label: t('coderepo.action')
   }
 ]
-
-enum ScmType {
-  Gitlab = 0,
-  Github = 1,
-  Gitee = 2,
-  Gitea = 3
-}
 
 const codeRepoTypeHover = ref(0)
 
@@ -165,23 +158,8 @@ const codeRepoDetailFormRule = ref<FormRules>({
   ]
 })
 
-function GetIcon2(scmType: ScmType) {
+function GetIcon(scmType: ScmType) {
   switch (scmType) {
-    case ScmType.Gitlab:
-      return ['logos:gitlab', null]
-    case ScmType.Github:
-      return ['ant-design:github-outlined', '#24292F']
-    case ScmType.Gitee:
-      return ['simple-icons:gitee', '#B7312D']
-    case ScmType.Gitea:
-      return ['simple-icons:gitea', '#528321']
-    default:
-      return [ScmType.Gitlab, null]
-  }
-}
-
-function GetIcon(codeRepo: CodeRepoType) {
-  switch (codeRepo.Type) {
     case ScmType.Gitlab:
       return ['logos:gitlab', null]
     case ScmType.Github:
@@ -448,8 +426,8 @@ function errorClick() {
           <template #default="scope">
             <ElSpace>
               <Icon
-                :icon="GetIcon2(scope.row.origin)[0]"
-                :color="GetIcon2(scope.row.origin)[1]"
+                :icon="GetIcon(scope.row.origin)[0]"
+                :color="GetIcon(scope.row.origin)[1]"
                 width="24"
                 height="24"
               /><span>{{ scope.row.name }}</span>
@@ -537,7 +515,12 @@ function errorClick() {
                   : 'radio-sel-hover-disabled'
               "
             >
-              <Icon :icon="GetIcon(type)[0]" :color="GetIcon(type)[1]" width="44" height="44" />
+              <Icon
+                :icon="GetIcon(type.Type)[0]"
+                :color="GetIcon(type.Type)[1]"
+                width="44"
+                height="44"
+              />
               {{ type.RepoName }}
               <div
                 :class="type.Type === codeRepoDetailForm.origin ? 'radio-sel-selected' : ''"

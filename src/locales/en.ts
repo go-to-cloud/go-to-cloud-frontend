@@ -203,7 +203,14 @@ export default {
     desc: 'description',
     all: 'All Projects',
     archived: 'Archived Projects',
-    create: 'New Project'
+    create: 'New Project',
+    toolset: {
+      code: 'Code Repository',
+      ci: 'Continuous Integration',
+      cd: 'Continuous Deployment',
+      delivery: 'Continuous Delivery',
+      artifact: 'Artifact Repository'
+    }
   },
   coderepo: {
     name: 'Repo Name',
@@ -226,7 +233,11 @@ export default {
     at_least_one_org: 'At least On Organization',
     updatedAt: 'Imported On',
     remove: 'Remove Code Repo',
-    removeConfirm: 'Bind repo will be removed. Continue?'
+    removeConfirm: 'Bind repo will be removed. Continue?',
+    git: {
+      name: 'Git Source',
+      import: 'Import Code'
+    }
   },
   artifacts: {
     name: 'Artifacts Repo Name',
