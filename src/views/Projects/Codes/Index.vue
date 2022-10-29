@@ -7,7 +7,7 @@ import { Delete, Expand, MoreFilled } from '@element-plus/icons-vue'
 import Dialog from '@/components/Dialog/src/Dialog.vue'
 import { FormInstance } from 'element-plus/es'
 import { getBindCodeRepoGroupApi } from '@/api/projects'
-import { BindCodeRepoGroup } from '@/api/projects/types'
+import { BindCodeRepoGroup, CodeRepoKVP } from '@/api/projects/types'
 
 const codeRepoDetailFormRef = ref<FormInstance>()
 const codeRepoDetailForm = ref({
@@ -24,10 +24,9 @@ const showImportGit = function () {
 const bindCodeRepoGroups = ref<BindCodeRepoGroup[]>([])
 
 const getBindCodeRepoGroups = async () => {
-  await getBindCodeRepoGroupApi().then((resp) => {
-    if (resp!) {
-      bindCodeRepoGroups.value = resp
-      console.log(resp)
+  await getBindCodeRepoGroupApi().then((dat) => {
+    if (dat!) {
+      bindCodeRepoGroups.value = dat
     }
   })
 }
@@ -58,6 +57,20 @@ const close = (formEl: FormInstance | undefined) => {
 const gitSourcesList = ref<GitSources[]>()
 
 const selectedGit = ref('')
+const githost = ref('')
+const combine_git_path = function (item: CodeRepoKVP) {
+  return item.namespace + ' / ' + item.label
+}
+const gitSelected = function (val: string) {
+  for (let i = 0; i < bindCodeRepoGroups.value!.length; i++) {
+    for (let j = 0; j < bindCodeRepoGroups.value[i].options!.length; j++) {
+      if (bindCodeRepoGroups.value[i].options[j].id === val) {
+        githost.value = bindCodeRepoGroups.value[i].label
+        return
+      }
+    }
+  }
+}
 </script>
 
 <template>
@@ -68,21 +81,27 @@ const selectedGit = ref('')
       label-position="top"
       :model="codeRepoDetailForm"
     >
-      <ElFormItem :label="t('coderepo.origin')">
-        <ElSelect v-model="selectedGit" placeholder="选择需要导入的代码仓库">
-          <ElOptionGroup
-            v-for="group in bindCodeRepoGroups"
-            :key="group.label"
-            :label="group.label"
+      <ElFormItem>
+        <ElSpace>
+          <ElSelect
+            @change="gitSelected"
+            v-model="selectedGit"
+            :placeholder="t('common.selectText')"
           >
-            <ElOption
-              v-for="item in group.options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </ElOptionGroup>
-        </ElSelect>
+            <template #prefix>{{ githost }}</template>
+            <ElOptionGroup v-for="group in bindCodeRepoGroups" :key="group.id" :label="group.label">
+              <ElOption
+                v-for="item in group.options"
+                :key="item.value"
+                :label="combine_git_path(item)"
+                :value="item.id"
+              />
+            </ElOptionGroup>
+          </ElSelect>
+          <ElButton type="primary"
+            ><ElSpace><Icon icon="uil:import" />{{ t('coderepo.git.import') }}</ElSpace></ElButton
+          ></ElSpace
+        >
       </ElFormItem>
       <template #footer>
         <span>

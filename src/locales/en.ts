@@ -214,7 +214,6 @@ export default {
   },
   coderepo: {
     name: 'Repo Name',
-    import: 'Import Git Repo',
     bind: 'Bind Repo',
     all: 'All Git Repo',
     origin: 'Repo Origin',

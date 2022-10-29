@@ -214,7 +214,6 @@ export default {
   },
   coderepo: {
     name: '仓库名称',
-    import: '导入仓库',
     bind: '绑定仓库',
     all: '全部仓库',
     origin: '仓库来源',

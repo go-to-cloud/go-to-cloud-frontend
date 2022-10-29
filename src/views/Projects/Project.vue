@@ -38,7 +38,7 @@ interface Params {
 }
 
 const getProjectList = async (params?: Params) => {
-  const res = await getProjectsApi(
+  const dat = await getProjectsApi(
     params || {
       pageIndex: 1,
       pageSize: 20
@@ -49,8 +49,8 @@ const getProjectList = async (params?: Params) => {
       loading.value = false
     })
 
-  if (res) {
-    projectDataList.value = res.data.data
+  if (dat) {
+    projectDataList.value = dat
   }
 }
 

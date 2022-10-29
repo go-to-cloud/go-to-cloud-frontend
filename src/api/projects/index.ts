@@ -4,9 +4,9 @@ import { BindCodeRepoGroup } from './types'
 
 const request = useAxios()
 
-export const getProjectsApi = async (params: any): Promise<IResponse> => {
+export const getProjectsApi = async (params: any): Promise<ProjectData[]> => {
   const res = await request.get({ url: '/projects/list', params })
-  return res && res.data
+  return res && res.data.data
 }
 
 export const getBindCodeRepoGroupApi = async (): Promise<BindCodeRepoGroup[]> => {
