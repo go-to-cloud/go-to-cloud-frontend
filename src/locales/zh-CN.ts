@@ -204,6 +204,11 @@ export default {
     all: '全部项目',
     archived: '归档项目',
     create: '新建项目',
+    createSuccess: '项目创建成功',
+    createFailure: '项目创建失败',
+    updateSuccess: '项目更新成功',
+    updateFailure: '项目更新失败',
+    at_least_one_org: '至少选择一个组织',
     toolset: {
       code: '代码仓库',
       ci: '持续集成',

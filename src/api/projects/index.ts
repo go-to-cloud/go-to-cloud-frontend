@@ -1,6 +1,6 @@
 import { useAxios } from '@/hooks/web/useAxios'
 import type { ProjectData } from './types'
-import { BindCodeRepoGroup } from './types'
+import { BindCodeRepoGroup, ProjectCreationSubmitResult } from './types'
 
 const request = useAxios()
 
@@ -11,6 +11,14 @@ export const getProjectsApi = async (params: any): Promise<ProjectData[]> => {
 
 export const getBindCodeRepoGroupApi = async (): Promise<BindCodeRepoGroup[]> => {
   const res = await request.get({ url: '/projects/coderepo' })
+  return res && res.data && res.data.data
+}
+
+export const createProjectApi = async (params: any): Promise<ProjectCreationSubmitResult> => {
+  const res = await request.post<IResponse<ProjectCreationSubmitResult>>({
+    url: '/projects',
+    data: params
+  })
   return res && res.data && res.data.data
 }
 

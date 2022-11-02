@@ -11,5 +11,11 @@ export type CodeRepoKVP = {
 export type BindCodeRepoGroup = {
   id: number
   label: string
+  host: string
   options: CodeRepoKVP[]
+}
+
+export type ProjectCreationSubmitResult = {
+  success: boolean
+  id: number
 }

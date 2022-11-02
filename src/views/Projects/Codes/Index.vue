@@ -61,6 +61,9 @@ const githost = ref('')
 const combine_git_path = function (item: CodeRepoKVP) {
   return item.namespace + ' / ' + item.label
 }
+const combine_group_host = function (group: BindCodeRepoGroup) {
+  return group.label + '(' + group.host + ')'
+}
 const gitSelected = function (val: string) {
   for (let i = 0; i < bindCodeRepoGroups.value!.length; i++) {
     for (let j = 0; j < bindCodeRepoGroups.value[i].options!.length; j++) {
@@ -89,7 +92,11 @@ const gitSelected = function (val: string) {
             :placeholder="t('common.selectText')"
           >
             <template #prefix>{{ githost }}</template>
-            <ElOptionGroup v-for="group in bindCodeRepoGroups" :key="group.id" :label="group.label">
+            <ElOptionGroup
+              v-for="group in bindCodeRepoGroups"
+              :key="group.id"
+              :label="combine_group_host(group)"
+            >
               <ElOption
                 v-for="item in group.options"
                 :key="item.value"

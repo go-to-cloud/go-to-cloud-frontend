@@ -1,15 +1,135 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { getProjectsApi } from '@/api/projects'
+import { createProjectApi, getProjectsApi } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
 import { ref } from 'vue'
-import { ElButton } from 'element-plus'
+import { ElButton, ElMessage, FormInstance } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 import Icon from '@/components/Icon/src/Icon.vue'
 import { useRouter } from 'vue-router'
+import { Org } from '@/api/common/types'
+import { getOrganizationsApi } from '@/api/common'
+import { updateRepoApi } from '@/api/configure/coderepo'
 
 const { push } = useRouter()
 
+const Organizations = ref<Array<Org>>(new Array<Org>())
+const getOrganizations = async () => {
+  await getOrganizationsApi().then((resp) => {
+    if (resp!) {
+      newProjectForm.value.org = -1
+      Organizations.value = new Array<Org>()
+      for (let entry of resp.entries()) {
+        Organizations.value.push({
+          id: Number(entry[0]),
+          name: entry[1]
+        })
+        if (newProjectForm.value.org < 0) {
+          newProjectForm.value.org = Number(entry[0])
+        }
+      }
+    }
+  })
+}
+
+getOrganizations()
+
+const dlgForCreate = ref(true)
+const bindDialogVisible = ref(false)
+const newProjectFormRef = ref<FormInstance>()
+const newProjectForm = ref({
+  id: 0,
+  name: '',
+  remark: '',
+  org: -1
+})
+const openDlg = (create: boolean) => {
+  dlgForCreate.value = create
+  bindDialogVisible.value = true
+}
+
+const submit = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      await createProjectApi(newProjectForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            getProjectList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('project.createSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('project.createFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('project.createFailure'),
+            showClose: true,
+            center: true
+          })
+        })
+    }
+  })
+}
+const save = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      await updateRepoApi(newProjectForm.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            getProjectList()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('project.updateSuccess'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('project.updateFailure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('project.updateFailure'),
+            showClose: true,
+            center: true
+          })
+        })
+    }
+  })
+}
+const close = (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  bindDialogVisible.value = false
+  resetForm()
+  getProjectList()
+}
+
+function resetForm() {}
 const keywords = ref('')
 const { t } = useI18n()
 const columns: TableColumn[] = [
@@ -98,9 +218,67 @@ const tableData = [
 const toolsetClicked = (type: string, id: number) => {
   push('/projects/' + type + '/' + id)
 }
+const ffv = ref(true)
 </script>
 
 <template>
+  <ElDialog
+    v-model="bindDialogVisible"
+    :title="t('project.create')"
+    @close="close(newProjectFormRef)"
+    height
+    :fullscreen="false"
+  >
+    <ElForm ref="newProjectFormRef" status-icon label-position="top" :model="newProjectForm">
+      <ElRow>
+        <ElCol :span="10">
+          <ElFormItem prop="name" :label="t('project.name')">
+            <ElInput
+              v-model="newProjectForm.name"
+              :label="t('project.name')"
+              :placeholder="t('common.inputText') + t('project.name')"
+            />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem prop="orgs" :label="t('common.organization')">
+            <ElSelect v-model="newProjectForm.orgs" style="width: 100%">
+              <ElOption
+                v-for="org in Organizations"
+                :key="org.id"
+                :label="org.name"
+                :value="org.id"
+              /> </ElSelect
+          ></ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem :label="t('common.remark')">
+            <ElInput
+              v-model="newProjectForm.remark"
+              show-word-limit
+              maxlength="200"
+              type="textarea"
+            />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+    </ElForm>
+    <template #footer>
+      <span>
+        <ElButton @click="close(newProjectFormRef)">{{ t('common.cancel') }}</ElButton>
+        <ElButton v-if="dlgForCreate" type="primary" @click="submit(newProjectFormRef)">{{
+          t('common.ok')
+        }}</ElButton>
+        <ElButton v-if="!dlgForCreate" type="primary" @click="save(newProjectFormRef)">{{
+          t('common.update')
+        }}</ElButton>
+      </span>
+    </template>
+  </ElDialog>
   <ElRow justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
@@ -115,7 +293,9 @@ const toolsetClicked = (type: string, id: number) => {
       </ElSpace>
     </ElCol>
     <ElCol :span="6" style="text-align: right">
-      <ElButton :icon="Plus" type="primary">{{ t('project.create') }}</ElButton>
+      <ElButton :icon="Plus" @click="openDlg(true)" type="primary">{{
+        t('project.create')
+      }}</ElButton>
     </ElCol>
   </ElRow>
   <ElTabs>
