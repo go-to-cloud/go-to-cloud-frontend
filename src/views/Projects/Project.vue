@@ -43,13 +43,13 @@ const newProjectFormRule = ref<FormRules>({
       trigger: 'blur'
     }
   ],
-  orgs: [
+  org: [
     {
       required: true,
       message: t('project.at_least_one_org'),
       trigger: 'blur',
       validator: (rule, value) => {
-        return (value as number) > 0
+        return (value as number) >= 0
       }
     }
   ]
@@ -59,7 +59,7 @@ const newProjectForm = ref({
   id: 0,
   name: '',
   remark: '',
-  org: -1
+  org: ref<number | null>()
 })
 const openDlg = (create: boolean) => {
   dlgForCreate.value = create
@@ -147,7 +147,9 @@ const close = (formEl: FormInstance | undefined) => {
   getProjectList()
 }
 
-function resetForm() {}
+function resetForm() {
+  newProjectForm.value = { id: 0, name: '', remark: '', org: null }
+}
 const keywords = ref('')
 const columns: TableColumn[] = [
   {
@@ -266,7 +268,7 @@ const ffv = ref(true)
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="orgs" :label="t('common.organization')">
+          <ElFormItem prop="org" :label="t('common.organization')">
             <ElSelect v-model="newProjectForm.org" style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
