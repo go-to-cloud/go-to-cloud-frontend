@@ -3,7 +3,7 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { createProjectApi, getProjectsApi } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
 import { ref } from 'vue'
-import { ElButton, ElMessage, FormInstance } from 'element-plus'
+import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 import Icon from '@/components/Icon/src/Icon.vue'
 import { useRouter } from 'vue-router'
@@ -11,22 +11,20 @@ import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 import { updateRepoApi } from '@/api/configure/coderepo'
 
+const { t } = useI18n()
 const { push } = useRouter()
 
 const Organizations = ref<Array<Org>>(new Array<Org>())
 const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
-      newProjectForm.value.org = -1
+      newProjectForm.value.org = null
       Organizations.value = new Array<Org>()
       for (let entry of resp.entries()) {
         Organizations.value.push({
           id: Number(entry[0]),
           name: entry[1]
         })
-        if (newProjectForm.value.org < 0) {
-          newProjectForm.value.org = Number(entry[0])
-        }
       }
     }
   })
@@ -36,6 +34,26 @@ getOrganizations()
 
 const dlgForCreate = ref(true)
 const bindDialogVisible = ref(false)
+
+const newProjectFormRule = ref<FormRules>({
+  name: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur'
+    }
+  ],
+  orgs: [
+    {
+      required: true,
+      message: t('project.at_least_one_org'),
+      trigger: 'blur',
+      validator: (rule, value) => {
+        return (value as number) > 0
+      }
+    }
+  ]
+})
 const newProjectFormRef = ref<FormInstance>()
 const newProjectForm = ref({
   id: 0,
@@ -131,7 +149,6 @@ const close = (formEl: FormInstance | undefined) => {
 
 function resetForm() {}
 const keywords = ref('')
-const { t } = useI18n()
 const columns: TableColumn[] = [
   {
     field: 'name',
@@ -229,7 +246,13 @@ const ffv = ref(true)
     height
     :fullscreen="false"
   >
-    <ElForm ref="newProjectFormRef" status-icon label-position="top" :model="newProjectForm">
+    <ElForm
+      ref="newProjectFormRef"
+      status-icon
+      label-position="top"
+      :model="newProjectForm"
+      :rules="newProjectFormRule"
+    >
       <ElRow>
         <ElCol :span="10">
           <ElFormItem prop="name" :label="t('project.name')">
@@ -244,7 +267,7 @@ const ffv = ref(true)
       <ElRow>
         <ElCol :span="18">
           <ElFormItem prop="orgs" :label="t('common.organization')">
-            <ElSelect v-model="newProjectForm.orgs" style="width: 100%">
+            <ElSelect v-model="newProjectForm.org" style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"

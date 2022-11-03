@@ -149,7 +149,7 @@ const codeRepoDetailFormRule = ref<FormRules>({
   orgs: [
     {
       required: true,
-      message: t('at_least_one_org'),
+      message: t('coderepo.at_least_one_org'),
       trigger: 'blur',
       validator: (rule, value) => {
         return (value as Array<Org>).length > 0
