@@ -209,6 +209,7 @@ export default {
     updateSuccess: 'Project Update Success',
     updateFailure: 'Project Update Failed',
     at_least_one_org: 'At least One Organization',
+    org: 'Belongs To',
     toolset: {
       code: 'Code Repository',
       ci: 'Continuous Integration',

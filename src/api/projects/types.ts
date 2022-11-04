@@ -1,6 +1,7 @@
 export type ProjectData = {
   id: number
   name: string
+  org: string
 }
 export type CodeRepoKVP = {
   value: string

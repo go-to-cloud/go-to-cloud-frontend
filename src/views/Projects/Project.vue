@@ -327,6 +327,7 @@ const ffv = ref(true)
     <ElTabPane :label="t('project.all')">
       <ElTable :data="projectDataList">
         <ElTableColumn prop="name" :label="t('project.name')" width="450" />
+        <ElTableColumn prop="org" :label="t('project.org')" width="500" />
         <ElTableColumn prop="id" :label="t('project.modules')" width="300">
           <template #default="scope">
             <ElSpace>

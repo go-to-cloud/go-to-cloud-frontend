@@ -209,6 +209,7 @@ export default {
     updateSuccess: '项目更新成功',
     updateFailure: '项目更新失败',
     at_least_one_org: '至少选择一个组织',
+    org: '所属组织',
     toolset: {
       code: '代码仓库',
       ci: '持续集成',
