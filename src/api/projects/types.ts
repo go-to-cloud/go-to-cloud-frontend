@@ -2,6 +2,8 @@ export type ProjectData = {
   id: number
   name: string
   org: string
+  orgId: number
+  remark: string
 }
 export type CodeRepoKVP = {
   value: string
@@ -19,4 +21,12 @@ export type BindCodeRepoGroup = {
 export type ProjectCreationSubmitResult = {
   success: boolean
   id: number
+}
+
+export type DeleteProjectResult = {
+  success: boolean
+}
+
+export type UpdateProjectResult = {
+  success: boolean
 }

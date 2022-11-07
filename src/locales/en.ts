@@ -210,6 +210,8 @@ export default {
     updateFailure: 'Project Update Failed',
     at_least_one_org: 'At least One Organization',
     org: 'Belongs To',
+    remove: 'Delete Project',
+    removeConfirm: 'Project will be deleted. Continue？',
     toolset: {
       code: 'Code Repository',
       ci: 'Continuous Integration',

@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { createProjectApi, getProjectsApi } from '@/api/projects'
+import {
+  createProjectApi,
+  deleteProjectApi,
+  getProjectsApi,
+  updateProjectApi
+} from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
 import { ref } from 'vue'
 import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import Icon from '@/components/Icon/src/Icon.vue'
 import { useRouter } from 'vue-router'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
-import { updateRepoApi } from '@/api/configure/coderepo'
+import { ElMessageBox } from 'element-plus/es'
 
 const { t } = useI18n()
 const { push } = useRouter()
@@ -19,6 +24,7 @@ const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
       newProjectForm.value.org = null
+      newProjectForm.value.orgId = null
       Organizations.value = new Array<Org>()
       for (let entry of resp.entries()) {
         Organizations.value.push({
@@ -43,7 +49,7 @@ const newProjectFormRule = ref<FormRules>({
       trigger: 'blur'
     }
   ],
-  org: [
+  orgId: [
     {
       required: true,
       message: t('project.at_least_one_org'),
@@ -59,7 +65,8 @@ const newProjectForm = ref({
   id: 0,
   name: '',
   remark: '',
-  org: ref<number | null>()
+  orgId: ref<number | null>(),
+  org: ref<string | null>()
 })
 const openDlg = (create: boolean) => {
   dlgForCreate.value = create
@@ -68,7 +75,7 @@ const openDlg = (create: boolean) => {
 
 const submit = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
-  await formEl.validate(async (valid, fields) => {
+  await formEl.validate(async (valid) => {
     if (valid) {
       await createProjectApi(newProjectForm.value)
         .then((resp) => {
@@ -105,9 +112,9 @@ const submit = async (formEl: FormInstance | undefined) => {
 }
 const save = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
-  await formEl.validate(async (valid, fields) => {
+  await formEl.validate(async (valid) => {
     if (valid) {
-      await updateRepoApi(newProjectForm.value)
+      await updateProjectApi(newProjectForm.value)
         .then((resp) => {
           if (resp.success) {
             bindDialogVisible.value = false
@@ -148,7 +155,7 @@ const close = (formEl: FormInstance | undefined) => {
 }
 
 function resetForm() {
-  newProjectForm.value = { id: 0, name: '', remark: '', org: null }
+  newProjectForm.value = { id: 0, name: '', remark: '', orgId: null, org: null }
 }
 const keywords = ref('')
 const columns: TableColumn[] = [
@@ -195,49 +202,51 @@ const getProjectList = async (params?: Params) => {
 
 getProjectList()
 
-const tableData = [
-  {
-    date: '2016-05-03',
-    name: 'Tom',
-    state: 'California',
-    city: 'Los Angeles',
-    address: 'No. 189, Grove St, Los Angeles',
-    zip: 'CA 90036',
-    tag: 'Home'
-  },
-  {
-    date: '2016-05-02',
-    name: 'Tom',
-    state: 'California',
-    city: 'Los Angeles',
-    address: 'No. 189, Grove St, Los Angeles',
-    zip: 'CA 90036',
-    tag: 'Office'
-  },
-  {
-    date: '2016-05-04',
-    name: 'Tom',
-    state: 'California',
-    city: 'Los Angeles',
-    address: 'No. 189, Grove St, Los Angeles',
-    zip: 'CA 90036',
-    tag: 'Home'
-  },
-  {
-    date: '2016-05-01',
-    name: 'Tom',
-    state: 'California',
-    city: 'Los Angeles',
-    address: 'No. 189, Grove St, Los Angeles',
-    zip: 'CA 90036',
-    tag: 'Office'
-  }
-]
-
 const toolsetClicked = (type: string, id: number) => {
   push('/projects/' + type + '/' + id)
 }
-const ffv = ref(true)
+
+interface HandlerCommand {
+  id: number
+  cmd: string
+  form: ProjectData
+}
+
+const deleteProject = async (repoId: number) => {
+  await deleteProjectApi(repoId).then((resp) => {
+    if (resp.success) {
+      getProjectList()
+    }
+  })
+}
+
+const actionHandler = (command: HandlerCommand) => {
+  switch (command.cmd) {
+    case 'del': {
+      ElMessageBox.confirm(t('project.removeConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        deleteProject(command.id)
+      })
+      break
+    }
+    case 'view': {
+      dlgForCreate.value = false
+      bindDialogVisible.value = true
+
+      newProjectForm.value = {
+        id: command.form.id,
+        name: command.form.name,
+        orgId: command.form.orgId,
+        org: command.form.org,
+        remark: command.form.remark
+      }
+      break
+    }
+  }
+}
 </script>
 
 <template>
@@ -268,8 +277,8 @@ const ffv = ref(true)
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="org" :label="t('common.organization')">
-            <ElSelect v-model="newProjectForm.org" style="width: 100%">
+          <ElFormItem prop="orgId" :label="t('common.organization')">
+            <ElSelect v-model="newProjectForm.orgId" style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"
@@ -327,7 +336,13 @@ const ffv = ref(true)
     <ElTabPane :label="t('project.all')">
       <ElTable :data="projectDataList">
         <ElTableColumn prop="name" :label="t('project.name')" width="450" />
-        <ElTableColumn prop="org" :label="t('project.org')" width="500" />
+        <ElTableColumn prop="org" :label="t('project.org')" width="300">
+          <template #default="scope">
+            <ElTag style="cursor: default" :closable="false">
+              {{ scope.row.org }}
+            </ElTag>
+          </template>
+        </ElTableColumn>
         <ElTableColumn prop="id" :label="t('project.modules')" width="300">
           <template #default="scope">
             <ElSpace>
@@ -359,24 +374,30 @@ const ffv = ref(true)
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="action" :label="t('project.modules')" width="300" />
+        <ElTableColumn prop="action" :label="t('project.action')" width="300">
+          <template #default="scope">
+            <ElDropdown @command="actionHandler">
+              <span class="el-dropdown-link">
+                <ElButton :icon="MoreFilled" circle />
+              </span>
+              <template #dropdown>
+                <ElDropdownMenu>
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'view', form: scope.row }">
+                    <ElLink :icon="Expand" :underline="false">
+                      {{ t('common.viewDetail') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                    <ElLink :icon="Delete" :underline="false" type="danger">
+                      {{ t('project.remove') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                </ElDropdownMenu>
+              </template>
+            </ElDropdown></template
+          >
+        </ElTableColumn>
       </ElTable>
-    </ElTabPane>
-    <ElTabPane :label="t('project.archived')">
-      <el-table :data="tableData" style="width: 100%">
-        <el-table-column fixed prop="date" label="Date" width="150" />
-        <el-table-column prop="name" label="Name" width="120" />
-        <el-table-column prop="state" label="State" width="120" />
-        <el-table-column prop="city" label="City" width="120" />
-        <el-table-column prop="address" label="Address" width="600" />
-        <el-table-column prop="zip" label="Zip" width="120" />
-        <el-table-column fixed="right" label="Operations" width="120">
-          <template #default>
-            <el-button link type="primary" size="small" @click="handleClick">Detail</el-button>
-            <el-button link type="primary" size="small">Edit</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
     </ElTabPane>
   </ElTabs>
 </template>

@@ -210,6 +210,8 @@ export default {
     updateFailure: '项目更新失败',
     at_least_one_org: '至少选择一个组织',
     org: '所属组织',
+    remove: '删除项目',
+    removeConfirm: '即将删除项目且不可恢复，是否继续？',
     toolset: {
       code: '代码仓库',
       ci: '持续集成',
