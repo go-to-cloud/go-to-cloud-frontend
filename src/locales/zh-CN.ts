@@ -204,6 +204,7 @@ export default {
     all: '全部项目',
     archived: '归档项目',
     create: '新建项目',
+    update: '更新项目',
     createSuccess: '项目创建成功',
     createFailure: '项目创建失败',
     updateSuccess: '项目更新成功',

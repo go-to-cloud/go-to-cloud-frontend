@@ -220,6 +220,12 @@ const deleteProject = async (repoId: number) => {
   })
 }
 
+const dlgTitle = (): string => {
+  if (dlgForCreate.value) return t('project.create')
+
+  return t('project.update')
+}
+
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'del': {
@@ -252,7 +258,7 @@ const actionHandler = (command: HandlerCommand) => {
 <template>
   <ElDialog
     v-model="bindDialogVisible"
-    :title="t('project.create')"
+    :title="dlgTitle()"
     @close="close(newProjectFormRef)"
     height
     :fullscreen="false"
@@ -278,7 +284,7 @@ const actionHandler = (command: HandlerCommand) => {
       <ElRow>
         <ElCol :span="18">
           <ElFormItem prop="orgId" :label="t('common.organization')">
-            <ElSelect v-model="newProjectForm.orgId" style="width: 100%">
+            <ElSelect v-model="newProjectForm.orgId" style="width: 100%" :disabled="!dlgForCreate">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"

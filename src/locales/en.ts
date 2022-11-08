@@ -204,6 +204,7 @@ export default {
     all: 'All Projects',
     archived: 'Archived Projects',
     create: 'New Project',
+    update: 'Update Project',
     createSuccess: 'Project Create Success',
     createFailure: 'Project Create Failed',
     updateSuccess: 'Project Update Success',
