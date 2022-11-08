@@ -8,7 +8,7 @@ import {
 } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
 import { ref } from 'vue'
-import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
+import { ElButton, ElDialog, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import Icon from '@/components/Icon/src/Icon.vue'
 import { useRouter } from 'vue-router'

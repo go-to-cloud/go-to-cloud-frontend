@@ -3,6 +3,7 @@ import type { ProjectData } from './types'
 import {
   BindCodeRepoGroup,
   DeleteProjectResult,
+  ImportSourceCodeResult,
   ProjectCreationSubmitResult,
   UpdateProjectResult
 } from './types'
@@ -42,6 +43,17 @@ export const updateProjectApi = async (params: any): Promise<UpdateProjectResult
   const res = await request.put<IResponse<UpdateProjectResult>>({
     url: '/projects',
     data: params
+  })
+  return res && res.data && res.data.data
+}
+
+export const importSourceCodeApi = async (
+  projectId: number,
+  url: string
+): Promise<UpdateProjectResult> => {
+  const res = await request.put<IResponse<ImportSourceCodeResult>>({
+    url: '/projects/' + projectId + '/import',
+    data: { url: url }
   })
   return res && res.data && res.data.data
 }

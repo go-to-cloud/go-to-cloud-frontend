@@ -30,3 +30,7 @@ export type DeleteProjectResult = {
 export type UpdateProjectResult = {
   success: boolean
 }
+
+export type ImportSourceCodeResult = {
+  success: boolean
+}
