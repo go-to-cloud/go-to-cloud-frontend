@@ -2,16 +2,15 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
 import { ElButton, ElDialog, FormInstance } from 'element-plus'
-import { GitSources } from '@/api/gitsources/types'
 import { ScmType } from '@/api/configure/types'
 import { Delete, Expand, MoreFilled } from '@element-plus/icons-vue'
-import { getBindCodeRepoGroupApi, importSourceCodeApi } from '@/api/projects'
-import Icon from '@/components/Icon/src/Icon.vue'
-import { BindCodeRepoGroup, CodeRepoKVP } from '@/api/projects/types'
+import { getBindCodeRepoGroupApi, getSourceCodeListApi, importSourceCodeApi } from '@/api/projects'
+import { Icon } from '@iconify/vue'
+import { BindCodeRepoGroup, CodeRepoKVP, ImportedSourceCodeResult } from '@/api/projects/types'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 
-const { query } = useRoute()
+const { path, params } = useRoute()
 const { push } = useRouter()
 const codeRepoDetailFormRef = ref<FormInstance>()
 const codeRepoDetailForm = ref({
@@ -36,6 +35,7 @@ const getBindCodeRepoGroups = async () => {
 }
 
 function GetIcon(scmType: ScmType) {
+  console.log(scmType)
   switch (scmType) {
     case ScmType.Gitlab:
       return ['logos:gitlab', null]
@@ -58,9 +58,15 @@ const close = (formEl: FormInstance | undefined) => {
   bindDialogVisible.value = false
 }
 
-const gitSourcesList = ref<GitSources[]>()
+const sourceCodeList = ref<ImportedSourceCodeResult[]>()
+const getSourceCodeList = async () => {
+  let projectId = Number(params.id)
+  await getSourceCodeListApi(projectId).then((dat) => {
+    sourceCodeList.value = dat
+  })
+}
 
-const selectedGit = ref('')
+const selectedGit = ref<CodeRepoKVP>()
 const gitHost = ref('')
 const combine_git_path = function (item: CodeRepoKVP) {
   return item.namespace + ' / ' + item.label
@@ -68,10 +74,10 @@ const combine_git_path = function (item: CodeRepoKVP) {
 const combine_group_host = function (group: BindCodeRepoGroup) {
   return group.label + '(' + group.host + ')'
 }
-const gitSelected = function (val: string) {
+const gitSelected = function (val: CodeRepoKVP) {
   for (let i = 0; i < bindCodeRepoGroups.value!.length; i++) {
     for (let j = 0; j < bindCodeRepoGroups.value[i].options!.length; j++) {
-      if (bindCodeRepoGroups.value[i].options[j].id === val) {
+      if (bindCodeRepoGroups.value[i].options[j].id === val.id) {
         gitHost.value = bindCodeRepoGroups.value[i].label
         return
       }
@@ -80,12 +86,13 @@ const gitSelected = function (val: string) {
 }
 
 const importSourceCode = async () => {
-  debugger
-  let projectId = Number(query.id as string)
-  await importSourceCodeApi(projectId, selectedGit.value).then((dat) => {
-    console.log(dat)
+  let projectId = Number(params.id)
+  await importSourceCodeApi(projectId, selectedGit.value!).then(async (dat) => {
+    await getSourceCodeList()
   })
 }
+
+getSourceCodeList()
 </script>
 
 <template>
@@ -108,7 +115,7 @@ const importSourceCode = async () => {
               v-for="item in group.options"
               :key="item.value"
               :label="combine_git_path(item)"
-              :value="item.value"
+              :value="item"
             />
           </ElOptionGroup>
         </ElSelect>
@@ -143,21 +150,29 @@ const importSourceCode = async () => {
       </ElCol>
     </ElRow>
 
-    <ElTable :data="gitSourcesList">
-      <ElTableColumn prop="name" :label="t('coderepo.git.name')">
+    <ElTable :data="sourceCodeList">
+      <ElTableColumn prop="url" :label="t('coderepo.git.name')">
         <template #default="scope">
           <ElSpace>
             <Icon
-              :icon="GetIcon(scope.row.origin)[0]"
-              :color="GetIcon(scope.row.origin)[1]"
+              :icon="GetIcon(scope.row.codeRepoOrigin)[0]"
+              :color="GetIcon(scope.row.codeRepoOrigin)[1]"
               width="24"
               height="24"
-            /><span>{{ scope.row.name }}</span>
+            /><span
+              ><ElLink :underline="false" target="_blank" :href="scope.row.url"
+                >{{ scope.row.url
+                }}<Icon
+                  width="24"
+                  height="24"
+                  icon="iconoir:open-new-window"
+                  class="el-icon--right" /></ElLink
+            ></span>
           </ElSpace>
         </template>
       </ElTableColumn>
-      <ElTableColumn prop="origin" :label="t('coderepo.origin')" />
-      <ElTableColumn prop="updatedAt" :label="t('coderepo.updatedAt')" width="200" />
+      <ElTableColumn prop="createdUser" :label="t('coderepo.origin')" />
+      <ElTableColumn prop="createdAt" :label="t('coderepo.updatedAt')" width="200" />
       <ElTableColumn fixed="right" prop="id" :label="t('common.action')">
         <template #default="scope">
           <ElDropdown @command="actionHandler">

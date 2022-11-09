@@ -2,7 +2,9 @@ import { useAxios } from '@/hooks/web/useAxios'
 import type { ProjectData } from './types'
 import {
   BindCodeRepoGroup,
+  CodeRepoKVP,
   DeleteProjectResult,
+  ImportedSourceCodeResult,
   ImportSourceCodeResult,
   ProjectCreationSubmitResult,
   UpdateProjectResult
@@ -49,11 +51,20 @@ export const updateProjectApi = async (params: any): Promise<UpdateProjectResult
 
 export const importSourceCodeApi = async (
   projectId: number,
-  url: string
+  body: CodeRepoKVP
 ): Promise<UpdateProjectResult> => {
-  const res = await request.put<IResponse<ImportSourceCodeResult>>({
+  const res = await request.post<IResponse<ImportSourceCodeResult>>({
     url: '/projects/' + projectId + '/import',
-    data: { url: url }
+    data: { url: body.value, codeRepoId: body.groupId }
+  })
+  return res && res.data && res.data.data
+}
+
+export const getSourceCodeListApi = async (
+  projectId: number
+): Promise<ImportedSourceCodeResult[]> => {
+  const res = await request.get<IResponse<ImportedSourceCodeResult[]>>({
+    url: '/projects/' + projectId + '/imported'
   })
   return res && res.data && res.data.data
 }

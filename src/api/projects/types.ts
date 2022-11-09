@@ -9,6 +9,7 @@ export type CodeRepoKVP = {
   value: string
   label: string
   namespace: string
+  groupId: number
   id: string
 }
 export type BindCodeRepoGroup = {
@@ -33,4 +34,12 @@ export type UpdateProjectResult = {
 
 export type ImportSourceCodeResult = {
   success: boolean
+}
+export type ImportedSourceCodeResult = {
+  codeRepoOrigin: string
+  codeRepoId: number
+  createdAt: string
+  createdBy: string
+  id: number
+  url: string
 }
