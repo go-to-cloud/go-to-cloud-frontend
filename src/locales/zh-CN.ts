@@ -210,9 +210,14 @@ export default {
     updateSuccess: '项目更新成功',
     updateFailure: '项目更新失败',
     at_least_one_org: '至少选择一个组织',
+    latest_ci: '最近一次构建时间',
+    updatedAt: '导入日期',
     org: '所属组织',
     remove: '删除项目',
     removeConfirm: '即将删除项目且不可恢复，是否继续？',
+    sourceCode: {
+      removeConfirm: '即将从项目中移除代码，是否继续？'
+    },
     toolset: {
       code: '代码仓库',
       ci: '持续集成',

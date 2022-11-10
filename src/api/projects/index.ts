@@ -3,12 +3,13 @@ import type { ProjectData } from './types'
 import {
   BindCodeRepoGroup,
   CodeRepoKVP,
-  DeleteProjectResult,
-  ImportedSourceCodeResult,
+  DeleteResult,
+  ImportedSourceCodeData,
   ImportSourceCodeResult,
   ProjectCreationSubmitResult,
-  UpdateProjectResult
+  UpdateResult
 } from './types'
+import { RemoveRepoResult } from '@/api/configure/types'
 
 const request = useAxios()
 
@@ -30,8 +31,8 @@ export const createProjectApi = async (params: any): Promise<ProjectCreationSubm
   return res && res.data && res.data.data
 }
 
-export const deleteProjectApi = async (params: number): Promise<DeleteProjectResult> => {
-  const res = await request.delete<IResponse<DeleteProjectResult>>({
+export const deleteProjectApi = async (params: number): Promise<DeleteResult> => {
+  const res = await request.delete<IResponse<DeleteResult>>({
     url: '/projects/' + params
   })
   if (res && res.data) {
@@ -41,8 +42,8 @@ export const deleteProjectApi = async (params: number): Promise<DeleteProjectRes
   }
 }
 
-export const updateProjectApi = async (params: any): Promise<UpdateProjectResult> => {
-  const res = await request.put<IResponse<UpdateProjectResult>>({
+export const updateProjectApi = async (params: any): Promise<UpdateResult> => {
+  const res = await request.put<IResponse<UpdateResult>>({
     url: '/projects',
     data: params
   })
@@ -52,7 +53,7 @@ export const updateProjectApi = async (params: any): Promise<UpdateProjectResult
 export const importSourceCodeApi = async (
   projectId: number,
   body: CodeRepoKVP
-): Promise<UpdateProjectResult> => {
+): Promise<UpdateResult> => {
   const res = await request.post<IResponse<ImportSourceCodeResult>>({
     url: '/projects/' + projectId + '/import',
     data: { url: body.value, codeRepoId: body.groupId }
@@ -62,9 +63,19 @@ export const importSourceCodeApi = async (
 
 export const getSourceCodeListApi = async (
   projectId: number
-): Promise<ImportedSourceCodeResult[]> => {
-  const res = await request.get<IResponse<ImportedSourceCodeResult[]>>({
+): Promise<ImportedSourceCodeData[]> => {
+  const res = await request.get<IResponse<ImportedSourceCodeData[]>>({
     url: '/projects/' + projectId + '/imported'
+  })
+  return res && res.data && res.data.data
+}
+
+export const removeSourceCodeApi = async (
+  projectId: number,
+  sourceCodeId: number
+): Promise<RemoveRepoResult> => {
+  const res = await request.delete<IResponse<DeleteResult>>({
+    url: '/projects/' + projectId + '/' + sourceCodeId
   })
   return res && res.data && res.data.data
 }

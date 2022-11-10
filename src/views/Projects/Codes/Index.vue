@@ -3,12 +3,18 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
 import { ElButton, ElDialog, FormInstance } from 'element-plus'
 import { ScmType } from '@/api/configure/types'
-import { Delete, Expand, MoreFilled } from '@element-plus/icons-vue'
-import { getBindCodeRepoGroupApi, getSourceCodeListApi, importSourceCodeApi } from '@/api/projects'
+import { Delete, MoreFilled } from '@element-plus/icons-vue'
+import {
+  getBindCodeRepoGroupApi,
+  getSourceCodeListApi,
+  importSourceCodeApi,
+  removeSourceCodeApi
+} from '@/api/projects'
 import { Icon } from '@iconify/vue'
-import { BindCodeRepoGroup, CodeRepoKVP, ImportedSourceCodeResult } from '@/api/projects/types'
+import { BindCodeRepoGroup, CodeRepoKVP, ImportedSourceCodeData } from '@/api/projects/types'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus/es'
 
 const { path, params } = useRoute()
 const { push } = useRouter()
@@ -58,7 +64,7 @@ const close = (formEl: FormInstance | undefined) => {
   bindDialogVisible.value = false
 }
 
-const sourceCodeList = ref<ImportedSourceCodeResult[]>()
+const sourceCodeList = ref<ImportedSourceCodeData[]>()
 const getSourceCodeList = async () => {
   let projectId = Number(params.id)
   await getSourceCodeListApi(projectId).then((dat) => {
@@ -90,6 +96,35 @@ const importSourceCode = async () => {
   await importSourceCodeApi(projectId, selectedGit.value!).then(async (dat) => {
     await getSourceCodeList()
   })
+}
+
+interface HandlerCommand {
+  id: number
+  cmd: string
+  form: ImportedSourceCodeData
+}
+
+const removeSourceCode = async (projectId: number, sourceCodeId: number) => {
+  await removeSourceCodeApi(projectId, sourceCodeId).then((resp) => {
+    if (resp.success) {
+      getSourceCodeList()
+    }
+  })
+}
+const actionHandler = (command: HandlerCommand) => {
+  switch (command.cmd) {
+    case 'del': {
+      ElMessageBox.confirm(t('project.sourceCode.removeConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        let projectId = Number(params.id)
+        removeSourceCode(projectId, command.id)
+      })
+      break
+    }
+  }
 }
 
 getSourceCodeList()
@@ -163,16 +198,16 @@ getSourceCodeList()
               ><ElLink :underline="false" target="_blank" :href="scope.row.url"
                 >{{ scope.row.url
                 }}<Icon
-                  width="24"
-                  height="24"
+                  width="20"
+                  height="20"
                   icon="iconoir:open-new-window"
                   class="el-icon--right" /></ElLink
             ></span>
           </ElSpace>
         </template>
       </ElTableColumn>
-      <ElTableColumn prop="createdUser" :label="t('coderepo.origin')" />
-      <ElTableColumn prop="createdAt" :label="t('coderepo.updatedAt')" width="200" />
+      <ElTableColumn prop="latestBuildAt" :label="t('project.latest_ci')" />
+      <ElTableColumn prop="updatedAt" :label="t('project.updatedAt')" width="200" />
       <ElTableColumn fixed="right" prop="id" :label="t('common.action')">
         <template #default="scope">
           <ElDropdown @command="actionHandler">
@@ -181,12 +216,7 @@ getSourceCodeList()
             </span>
             <template #dropdown>
               <ElDropdownMenu>
-                <ElDropdownItem :command="{ id: scope.row.id, cmd: 'view', form: scope.row }">
-                  <ElLink :icon="Expand" :underline="false">
-                    {{ t('common.viewDetail') }}
-                  </ElLink>
-                </ElDropdownItem>
-                <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                <ElDropdownItem :command="{ id: scope.row.id, cmd: 'del' }">
                   <ElLink :icon="Delete" :underline="false" type="danger">
                     {{ t('coderepo.remove') }}
                   </ElLink>

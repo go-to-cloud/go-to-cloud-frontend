@@ -210,9 +210,14 @@ export default {
     updateSuccess: 'Project Update Success',
     updateFailure: 'Project Update Failed',
     at_least_one_org: 'At least One Organization',
+    latest_ci: 'Latest Build',
     org: 'Belongs To',
+    updatedAt: 'Imported On',
     remove: 'Delete Project',
     removeConfirm: 'Project will be deleted. Continue？',
+    sourceCode: {
+      removeConfirm: 'Source Code will be remove from project. Continue?'
+    },
     toolset: {
       code: 'Code Repository',
       ci: 'Continuous Integration',

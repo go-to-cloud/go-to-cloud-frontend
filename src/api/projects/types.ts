@@ -24,22 +24,22 @@ export type ProjectCreationSubmitResult = {
   id: number
 }
 
-export type DeleteProjectResult = {
+export type DeleteResult = {
   success: boolean
 }
 
-export type UpdateProjectResult = {
+export type UpdateResult = {
   success: boolean
 }
 
 export type ImportSourceCodeResult = {
   success: boolean
 }
-export type ImportedSourceCodeResult = {
+export type ImportedSourceCodeData = {
   codeRepoOrigin: string
   codeRepoId: number
-  createdAt: string
-  createdBy: string
+  updatedAt: string
+  latestBuildAt: string
   id: number
   url: string
 }
