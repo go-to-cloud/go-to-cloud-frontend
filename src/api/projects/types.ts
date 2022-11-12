@@ -24,7 +24,7 @@ export type ProjectCreationSubmitResult = {
   id: number
 }
 
-export type DeleteResult = {
+export type DeleteProjectResult = {
   success: boolean
 }
 
@@ -42,4 +42,8 @@ export type ImportedSourceCodeData = {
   latestBuildAt: string
   id: number
   url: string
+}
+
+export type DeleteSourceCodeResult = {
+  result: boolean
 }

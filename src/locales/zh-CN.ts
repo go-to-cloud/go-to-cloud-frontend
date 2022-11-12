@@ -216,7 +216,12 @@ export default {
     remove: '删除项目',
     removeConfirm: '即将删除项目且不可恢复，是否继续？',
     sourceCode: {
-      removeConfirm: '即将从项目中移除代码，是否继续？'
+      removeConfirm: '即将从项目中移除代码，是否继续？',
+      importSuccess: '导入成功'
+    },
+    ci: {
+      plan: '构建计划',
+      new_plan: '创建构建计划'
     },
     toolset: {
       code: '代码仓库',

@@ -1,9 +1,9 @@
 import { useAxios } from '@/hooks/web/useAxios'
-import type { ProjectData } from './types'
+import type { DeleteSourceCodeResult, ProjectData } from './types'
 import {
   BindCodeRepoGroup,
   CodeRepoKVP,
-  DeleteResult,
+  DeleteProjectResult,
   ImportedSourceCodeData,
   ImportSourceCodeResult,
   ProjectCreationSubmitResult,
@@ -31,8 +31,8 @@ export const createProjectApi = async (params: any): Promise<ProjectCreationSubm
   return res && res.data && res.data.data
 }
 
-export const deleteProjectApi = async (params: number): Promise<DeleteResult> => {
-  const res = await request.delete<IResponse<DeleteResult>>({
+export const deleteProjectApi = async (params: number): Promise<DeleteProjectResult> => {
+  const res = await request.delete<IResponse<DeleteProjectResult>>({
     url: '/projects/' + params
   })
   if (res && res.data) {
@@ -74,8 +74,12 @@ export const removeSourceCodeApi = async (
   projectId: number,
   sourceCodeId: number
 ): Promise<RemoveRepoResult> => {
-  const res = await request.delete<IResponse<DeleteResult>>({
-    url: '/projects/' + projectId + '/' + sourceCodeId
+  const res = await request.delete<IResponse<DeleteSourceCodeResult>>({
+    url: '/projects/' + projectId + '/sourcecode/' + sourceCodeId
   })
-  return res && res.data && res.data.data
+  if (res && res.data && res.data.data) {
+    return { success: res.data.data.result }
+  } else {
+    return { success: false }
+  }
 }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
-import { ElButton, ElDialog, FormInstance } from 'element-plus'
+import { ElButton, ElDialog, ElMessage, FormInstance } from 'element-plus'
 import { ScmType } from '@/api/configure/types'
-import { Delete, MoreFilled } from '@element-plus/icons-vue'
+import { CircleCloseFilled, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
 import {
   getBindCodeRepoGroupApi,
   getSourceCodeListApi,
@@ -16,6 +16,7 @@ import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus/es'
 
+const { t } = useI18n()
 const { path, params } = useRoute()
 const { push } = useRouter()
 const codeRepoDetailFormRef = ref<FormInstance>()
@@ -41,7 +42,6 @@ const getBindCodeRepoGroups = async () => {
 }
 
 function GetIcon(scmType: ScmType) {
-  console.log(scmType)
   switch (scmType) {
     case ScmType.Gitlab:
       return ['logos:gitlab', null]
@@ -56,7 +56,6 @@ function GetIcon(scmType: ScmType) {
   }
 }
 
-const { t } = useI18n()
 const bindDialogVisible = ref(false)
 
 const close = (formEl: FormInstance | undefined) => {
@@ -65,6 +64,7 @@ const close = (formEl: FormInstance | undefined) => {
 }
 
 const sourceCodeList = ref<ImportedSourceCodeData[]>()
+
 const getSourceCodeList = async () => {
   let projectId = Number(params.id)
   await getSourceCodeListApi(projectId).then((dat) => {
@@ -95,6 +95,10 @@ const importSourceCode = async () => {
   let projectId = Number(params.id)
   await importSourceCodeApi(projectId, selectedGit.value!).then(async (dat) => {
     await getSourceCodeList()
+    ElMessage({
+      message: t('project.sourceCode.importSuccess'),
+      type: 'success'
+    })
   })
 }
 
@@ -105,9 +109,9 @@ interface HandlerCommand {
 }
 
 const removeSourceCode = async (projectId: number, sourceCodeId: number) => {
-  await removeSourceCodeApi(projectId, sourceCodeId).then((resp) => {
+  await removeSourceCodeApi(projectId, sourceCodeId).then(async (resp) => {
     if (resp.success) {
-      getSourceCodeList()
+      await getSourceCodeList()
     }
   })
 }
@@ -154,8 +158,11 @@ getSourceCodeList()
             />
           </ElOptionGroup>
         </ElSelect>
-        <ElButton @click="importSourceCode" type="primary"><Icon icon="uil:import" /></ElButton
-      ></ElSpace>
+        <ElButton @click="importSourceCode" type="primary"><Icon icon="uil:import" /></ElButton>
+        <ElButton @click="bindDialogVisible = false" :icon="CircleCloseFilled" type="danger"
+          >关闭</ElButton
+        ></ElSpace
+      >
       <template #footer>
         <span>
           <ElButton @click="close(codeRepoDetailFormRef)">{{ t('common.cancel') }}</ElButton>
@@ -168,11 +175,9 @@ getSourceCodeList()
     <ElRow justify="space-between">
       <ElCol :span="18">
         <ElSpace wrap>
-          <span class="header_title">{{ t('router.projects') }}</span>
-          <ElDivider direction="vertical" />
           <ElInput
-            v-model="keywords"
-            :placeholder="t('project.name')"
+            v-model="filterKeywords"
+            :placeholder="t('coderepo.name')"
             :suffix-icon="Search"
             clearable
           />
@@ -184,9 +189,8 @@ getSourceCodeList()
         >
       </ElCol>
     </ElRow>
-
     <ElTable :data="sourceCodeList">
-      <ElTableColumn prop="url" :label="t('coderepo.git.name')">
+      <ElTableColumn prop="url" min-width="60%" :label="t('coderepo.git.name')">
         <template #default="scope">
           <ElSpace>
             <Icon
@@ -194,14 +198,19 @@ getSourceCodeList()
               :color="GetIcon(scope.row.codeRepoOrigin)[1]"
               width="24"
               height="24"
-            /><span
-              ><ElLink :underline="false" target="_blank" :href="scope.row.url"
-                >{{ scope.row.url
-                }}<Icon
-                  width="20"
-                  height="20"
-                  icon="iconoir:open-new-window"
-                  class="el-icon--right" /></ElLink
+            /><span>
+              <ElTooltip effect="dark" :content="scope.row.url">
+                <ElLink
+                  style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap"
+                  :underline="false"
+                  target="_blank"
+                  :href="scope.row.url"
+                  >{{ scope.row.url
+                  }}<Icon
+                    width="20"
+                    height="20"
+                    icon="iconoir:open-new-window"
+                    class="el-icon--right" /></ElLink></ElTooltip
             ></span>
           </ElSpace>
         </template>

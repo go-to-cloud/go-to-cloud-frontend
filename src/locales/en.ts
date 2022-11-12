@@ -216,7 +216,12 @@ export default {
     remove: 'Delete Project',
     removeConfirm: 'Project will be deleted. Continue？',
     sourceCode: {
-      removeConfirm: 'Source Code will be remove from project. Continue?'
+      removeConfirm: 'Source Code will be remove from project. Continue?',
+      importSuccess: 'Import Success'
+    },
+    ci: {
+      plan: 'CI Plan',
+      new_plan: 'New Plan'
     },
     toolset: {
       code: 'Code Repository',
