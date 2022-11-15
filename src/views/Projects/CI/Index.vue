@@ -11,7 +11,10 @@ const { t } = useI18n()
 const { path, params } = useRoute()
 const { push } = useRouter()
 
-const tplDialogVisible = ref(true)
+const tplDialogVisible = ref(false)
+const showNewPlanDlg = () => {
+  tplDialogVisible.value = true
+}
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" fullscreen>
@@ -32,7 +35,7 @@ const tplDialogVisible = ref(true)
         </ElSpace>
       </ElCol>
       <ElCol :span="6" style="text-align: right">
-        <ElButton :icon="CirclePlus" @click="showImportGit" type="primary">
+        <ElButton :icon="CirclePlus" @click="showNewPlanDlg" type="primary">
           {{ t('project.ci.new_plan') }}</ElButton
         >
       </ElCol>
