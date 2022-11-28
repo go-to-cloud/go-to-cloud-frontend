@@ -17,8 +17,16 @@ const showNewPlanDlg = () => {
 }
 </script>
 <template>
-  <ElDialog v-model="tplDialogVisible" fullscreen>
-    <Tpl />
+  <ElDialog v-model="tplDialogVisible" title="构建计划" draggable>
+    <div style="height: 600px">
+      <ElScrollbar>
+        <Tpl />
+      </ElScrollbar>
+    </div>
+    <template #footer>
+      <el-button @click="dialogVisible = false">Cancel</el-button>
+      <el-button type="primary" @click="submit(newProjectFormRef)"> Confirm </el-button>
+    </template>
   </ElDialog>
   <ContentDetailWrap :title="t('project.toolset.ci')" @back="push('/projects/index')">
     <ElRow justify="space-between">
