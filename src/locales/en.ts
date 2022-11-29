@@ -221,7 +221,18 @@ export default {
     },
     ci: {
       plan: 'CI Plan',
-      new_plan: 'New Plan'
+      new_plan: 'New Plan',
+      plan_name: 'Plan Name',
+      code_repo_header: 'Code Repo',
+      code_repo: 'Git Address',
+      code_branch: 'Build Branch',
+      qa_header: 'QA',
+      unit_test: 'Unit Test',
+      lint_check: 'Lint',
+      artifact_header: 'Artifact',
+      dockerfile: 'Dockerfile',
+      artifact_repo: 'Artifact Repo',
+      stage_enable: 'Enable'
     },
     toolset: {
       code: 'Code Repository',

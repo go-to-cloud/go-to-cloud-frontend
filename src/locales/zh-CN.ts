@@ -221,7 +221,18 @@ export default {
     },
     ci: {
       plan: '构建计划',
-      new_plan: '创建构建计划'
+      new_plan: '创建构建计划',
+      plan_name: '计划名称',
+      code_repo_header: '代码仓库',
+      code_repo: 'Git地址',
+      code_branch: '构建分支',
+      qa_header: '代码质量',
+      unit_test: '单元测试',
+      lint_check: 'Lint检测',
+      artifact_header: '镜像制品',
+      dockerfile: 'Dockerfile',
+      artifact_repo: '制品仓库',
+      stage_enable: '启用'
     },
     toolset: {
       code: '代码仓库',

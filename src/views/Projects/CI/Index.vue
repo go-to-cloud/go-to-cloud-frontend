@@ -1,11 +1,23 @@
 <script setup lang="ts">
-import { ElButton } from 'element-plus'
+import { ElButton, ElCard } from 'element-plus'
 import { CirclePlus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { Tpl } from './components'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
+
+import { useIcon } from '@/hooks/web/useIcon'
+
+const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff' })
+const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff' })
+const t03 = useIcon({ icon: 'material-symbols:filter-3', color: '#3385ff' })
+const t04 = useIcon({ icon: 'material-symbols:filter-4', color: '#3385ff' })
+const t05 = useIcon({ icon: 'material-symbols:filter-5', color: '#3385ff' })
+const t06 = useIcon({ icon: 'material-symbols:filter-6', color: '#3385ff' })
+const t07 = useIcon({ icon: 'material-symbols:filter-7', color: '#3385ff' })
+const t08 = useIcon({ icon: 'material-symbols:filter-8', color: '#3385ff' })
+const t09 = useIcon({ icon: 'material-symbols:filter-9', color: '#3385ff' })
+const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff' })
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -15,17 +27,80 @@ const tplDialogVisible = ref(false)
 const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
+const formPlan = reactive({
+  name: '',
+  region: '',
+  type: ''
+})
+
+const useQA = ref(true)
+const useDeploy = ref(true)
+
+const submit = () => {
+  console.log(formPlan)
+}
 </script>
 <template>
-  <ElDialog v-model="tplDialogVisible" title="构建计划" draggable>
-    <div style="height: 600px">
+  <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
+    <div style="height: 500px">
       <ElScrollbar>
-        <Tpl />
+        <ElForm label-position="top" :model="formPlan">
+          <ElTimeline>
+            <ElTimelineItem size="large" :icon="t01" placement="top">
+              <ElCard>
+                <ElFormItem :label="t('project.ci.plan_name')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+              </ElCard> </ElTimelineItem
+            ><ElTimelineItem size="large" :icon="t02" placement="top">
+              <ElCard :header="t('project.ci.code_repo_header')">
+                <ElFormItem :label="t('project.ci.code_repo')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+                <ElFormItem :label="t('project.ci.code_branch')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+              </ElCard> </ElTimelineItem
+            ><ElTimelineItem size="large" :icon="t03" placement="top">
+              <ElCard>
+                <template #header>
+                  <div class="card-header">
+                    <span>{{ t('project.ci.qa_header') }}</span>
+                    <ElSwitch v-model="useQA" :active-text="t('project.ci.stage_enable')"
+                  /></div>
+                </template>
+                <ElFormItem :label="t('project.ci.unit_test')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+                <ElFormItem :label="t('project.ci.lint_check')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+              </ElCard> </ElTimelineItem
+            ><ElTimelineItem size="large" :icon="t04" placement="top">
+              <ElCard>
+                <template #header>
+                  <div class="card-header">
+                    <span>{{ t('project.ci.artifact_header') }}</span>
+                    <ElSwitch v-model="useDeploy" :active-text="t('project.ci.stage_enable')"
+                  /></div>
+                </template>
+                <ElFormItem :label="t('project.ci.dockerfile')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+                <ElFormItem :label="t('project.ci.artifact_repo')">
+                  <ElInput v-model="formPlan.name" />
+                </ElFormItem>
+              </ElCard> </ElTimelineItem
+            ><ElTimelineItem size="large" placement="top">
+              <ElSpace />
+            </ElTimelineItem>
+          </ElTimeline>
+        </ElForm>
       </ElScrollbar>
     </div>
     <template #footer>
-      <el-button @click="dialogVisible = false">Cancel</el-button>
-      <el-button type="primary" @click="submit(newProjectFormRef)"> Confirm </el-button>
+      <el-button @click="tplDialogVisible = false">关闭</el-button>
+      <el-button type="primary" @click="submit()"> 创建 </el-button>
     </template>
   </ElDialog>
   <ContentDetailWrap :title="t('project.toolset.ci')" @back="push('/projects/index')">
@@ -63,4 +138,10 @@ const showNewPlanDlg = () => {
   </ContentDetailWrap>
 </template>
 
-<style scoped></style>
+<style scoped>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
