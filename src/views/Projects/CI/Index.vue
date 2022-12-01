@@ -7,6 +7,8 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { reactive, ref } from 'vue'
 
 import { useIcon } from '@/hooks/web/useIcon'
+import { ImportedSourceCodeData } from '@/api/projects/types'
+import { useAxios } from '@/hooks/web/useAxios'
 
 const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff' })
 const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff' })
@@ -22,6 +24,7 @@ const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff' })
 const { t } = useI18n()
 const { path, params } = useRoute()
 const { push } = useRouter()
+const request = useAxios()
 
 const tplDialogVisible = ref(false)
 const showNewPlanDlg = () => {
@@ -29,13 +32,43 @@ const showNewPlanDlg = () => {
 }
 const formPlan = reactive({
   name: '',
-  region: '',
-  type: ''
+  source_code_id: '',
+  branch: '',
+  qa_enabled: true,
+  unit_test: '',
+  lint_check: '',
+  artifact_enabled: true,
+  dockerfile: '',
+  artifact_repo: ''
 })
 
-const useQA = ref(true)
-const useDeploy = ref(true)
+const getSourceCodeListApi = async (projectId: number): Promise<ImportedSourceCodeData[]> => {
+  const res = await request.get<IResponse<ImportedSourceCodeData[]>>({
+    url: '/projects/' + projectId + '/imported'
+  })
+  return res && res.data && res.data.data
+}
 
+const getBranchListApi = async (sourceCodeId: number): Promise<ImportedSourceCodeData[]> => {
+  const res = await request.get<IResponse<ImportedSourceCodeData[]>>({
+    url: '/projects/' + projectId + '/imported'
+  })
+  return res && res.data && res.data.data
+}
+const sourceCodeList = ref<ImportedSourceCodeData[]>()
+
+const getSourceCodeList = async () => {
+  let projectId = Number(params.id)
+  await getSourceCodeListApi(projectId).then((dat) => {
+    sourceCodeList.value = dat
+  })
+}
+
+getSourceCodeList()
+
+const gitSelected = function (val: string) {
+  console.log(val)
+}
 const submit = () => {
   console.log(formPlan)
 }
@@ -55,7 +88,18 @@ const submit = () => {
             ><ElTimelineItem size="large" :icon="t02" placement="top">
               <ElCard :header="t('project.ci.code_repo_header')">
                 <ElFormItem :label="t('project.ci.code_repo')">
-                  <ElInput v-model="formPlan.name" />
+                  <ElSelect
+                    v-model="formPlan.source_code_id"
+                    @change="gitSelected"
+                    :placeholder="t('common.selectText')"
+                  >
+                    <ElOption
+                      v-for="item in sourceCodeList"
+                      :key="item.id"
+                      :label="item.url"
+                      :value="item.id"
+                    />
+                  </ElSelect>
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.code_branch')">
                   <ElInput v-model="formPlan.name" />
@@ -66,7 +110,9 @@ const submit = () => {
                 <template #header>
                   <div class="card-header">
                     <span>{{ t('project.ci.qa_header') }}</span>
-                    <ElSwitch v-model="useQA" :active-text="t('project.ci.stage_enable')"
+                    <ElSwitch
+                      v-model="formPlan.qa_enabled"
+                      :active-text="t('project.ci.stage_enable')"
                   /></div>
                 </template>
                 <ElFormItem :label="t('project.ci.unit_test')">
@@ -81,7 +127,9 @@ const submit = () => {
                 <template #header>
                   <div class="card-header">
                     <span>{{ t('project.ci.artifact_header') }}</span>
-                    <ElSwitch v-model="useDeploy" :active-text="t('project.ci.stage_enable')"
+                    <ElSwitch
+                      v-model="formPlan.artifact_enabled"
+                      :active-text="t('project.ci.stage_enable')"
                   /></div>
                 </template>
                 <ElFormItem :label="t('project.ci.dockerfile')">
