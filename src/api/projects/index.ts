@@ -2,6 +2,7 @@ import { useAxios } from '@/hooks/web/useAxios'
 import type { DeleteSourceCodeResult, ProjectData } from './types'
 import {
   BindCodeRepoGroup,
+  BranchResult,
   CodeRepoKVP,
   DeleteProjectResult,
   ImportedSourceCodeData,
@@ -82,4 +83,14 @@ export const removeSourceCodeApi = async (
   } else {
     return { success: false }
   }
+}
+
+export const getBranchListApi = async (
+  projectId: number,
+  sourceCodeId: number
+): Promise<BranchResult> => {
+  const res = await request.get<IResponse<BranchResult>>({
+    url: '/projects/' + projectId + '/src/' + sourceCodeId
+  })
+  return res && res.data && res.data.data
 }

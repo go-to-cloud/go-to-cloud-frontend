@@ -7,8 +7,9 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { reactive, ref } from 'vue'
 
 import { useIcon } from '@/hooks/web/useIcon'
-import { ImportedSourceCodeData } from '@/api/projects/types'
+import { BranchDetail, ImportedSourceCodeData } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
+import { getBranchListApi, getSourceCodeListApi } from '@/api/projects'
 
 const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff' })
 const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff' })
@@ -42,19 +43,6 @@ const formPlan = reactive({
   artifact_repo: ''
 })
 
-const getSourceCodeListApi = async (projectId: number): Promise<ImportedSourceCodeData[]> => {
-  const res = await request.get<IResponse<ImportedSourceCodeData[]>>({
-    url: '/projects/' + projectId + '/imported'
-  })
-  return res && res.data && res.data.data
-}
-
-const getBranchListApi = async (sourceCodeId: number): Promise<ImportedSourceCodeData[]> => {
-  const res = await request.get<IResponse<ImportedSourceCodeData[]>>({
-    url: '/projects/' + projectId + '/imported'
-  })
-  return res && res.data && res.data.data
-}
 const sourceCodeList = ref<ImportedSourceCodeData[]>()
 
 const getSourceCodeList = async () => {
@@ -64,10 +52,17 @@ const getSourceCodeList = async () => {
   })
 }
 
+const branchList = ref<BranchDetail[]>()
+const getSourceCodeBranches = async (srcId: number) => {
+  let project = Number(params.id)
+  await getBranchListApi(project, srcId).then((dat) => {
+    branchList.value = dat.branches
+  })
+}
 getSourceCodeList()
 
-const gitSelected = function (val: string) {
-  console.log(val)
+const gitSelected = async function (val: string) {
+  await getSourceCodeBranches(Number(val))
 }
 const submit = () => {
   console.log(formPlan)
@@ -102,7 +97,14 @@ const submit = () => {
                   </ElSelect>
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.code_branch')">
-                  <ElInput v-model="formPlan.name" />
+                  <ElSelect v-model="formPlan.branch" :placeholder="t('common.selectText')">
+                    <ElOption
+                      v-for="item in branchList"
+                      :key="item.Path"
+                      :label="item.Name"
+                      :value="item.Path"
+                    />
+                  </ElSelect>
                 </ElFormItem>
               </ElCard> </ElTimelineItem
             ><ElTimelineItem size="large" :icon="t03" placement="top">

@@ -47,3 +47,12 @@ export type ImportedSourceCodeData = {
 export type DeleteSourceCodeResult = {
   result: boolean
 }
+
+export type BranchResult = {
+  branches: BranchDetail[]
+}
+export type BranchDetail = {
+  Name: string
+  Path: string
+  Sha: string
+}
