@@ -10,17 +10,19 @@ import { useIcon } from '@/hooks/web/useIcon'
 import { BranchDetail, ImportedSourceCodeData } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { getBranchListApi, getSourceCodeListApi } from '@/api/projects'
+import { UnitTest } from './Stage'
 
-const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff' })
-const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff' })
-const t03 = useIcon({ icon: 'material-symbols:filter-3', color: '#3385ff' })
-const t04 = useIcon({ icon: 'material-symbols:filter-4', color: '#3385ff' })
-const t05 = useIcon({ icon: 'material-symbols:filter-5', color: '#3385ff' })
-const t06 = useIcon({ icon: 'material-symbols:filter-6', color: '#3385ff' })
-const t07 = useIcon({ icon: 'material-symbols:filter-7', color: '#3385ff' })
-const t08 = useIcon({ icon: 'material-symbols:filter-8', color: '#3385ff' })
-const t09 = useIcon({ icon: 'material-symbols:filter-9', color: '#3385ff' })
-const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff' })
+const tsize = ref(24)
+const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tsize.value })
+const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff', size: tsize.value })
+const t03 = useIcon({ icon: 'material-symbols:filter-3', color: '#3385ff', size: tsize.value })
+const t04 = useIcon({ icon: 'material-symbols:filter-4', color: '#3385ff', size: tsize.value })
+const t05 = useIcon({ icon: 'material-symbols:filter-5', color: '#3385ff', size: tsize.value })
+const t06 = useIcon({ icon: 'material-symbols:filter-6', color: '#3385ff', size: tsize.value })
+const t07 = useIcon({ icon: 'material-symbols:filter-7', color: '#3385ff', size: tsize.value })
+const t08 = useIcon({ icon: 'material-symbols:filter-8', color: '#3385ff', size: tsize.value })
+const t09 = useIcon({ icon: 'material-symbols:filter-9', color: '#3385ff', size: tsize.value })
+const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff', size: tsize.value })
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -73,7 +75,8 @@ const submit = () => {
     <div style="height: 500px">
       <ElScrollbar>
         <ElForm label-position="top" :model="formPlan">
-          <ElTimeline>
+          <ElTimeline style="margin-top: 10px">
+            <UnitTest />
             <ElTimelineItem size="large" :icon="t01" placement="top">
               <ElCard>
                 <ElFormItem :label="t('project.ci.plan_name')">
