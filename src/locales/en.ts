@@ -220,6 +220,7 @@ export default {
       importSuccess: 'Import Success'
     },
     ci: {
+      build_env: 'Build Environment',
       plan: 'CI Plan',
       new_plan: 'New Plan',
       plan_name: 'Plan Name',
@@ -231,7 +232,7 @@ export default {
       lint_check: 'Lint',
       artifact_header: 'Artifact',
       dockerfile: 'Dockerfile',
-      artifact_repo: 'Artifact Repo',
+      artifact_repo_id: 'Artifact Repo',
       stage_enable: 'Enable'
     },
     toolset: {

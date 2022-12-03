@@ -56,3 +56,32 @@ export type BranchDetail = {
   Path: string
   Sha: string
 }
+
+export type BuildEnvItem = {
+  value: string
+  label: string
+}
+export type BuildEnvGroup = {
+  label: string
+  options: BuildEnvItem[]
+}
+
+export type BuildCmd = {
+  lintCheck: string
+  unitTest: string
+}
+
+export type BuildPlan = {
+  name: string
+  buildEnv: string
+  source_code_id: number | undefined
+  branch: string
+  qa_enabled: boolean
+  unit_test: string | undefined
+  lint_check: string | undefined
+  artifact_enabled: boolean
+  dockerfile: string | undefined
+  artifact_repo_id: number | undefined
+  deploy_enabled: boolean
+  remark: string | undefined
+}

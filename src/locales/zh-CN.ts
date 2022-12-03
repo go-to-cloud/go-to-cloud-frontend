@@ -220,6 +220,7 @@ export default {
       importSuccess: '导入成功'
     },
     ci: {
+      build_env: '构建环境',
       plan: '构建计划',
       new_plan: '创建构建计划',
       plan_name: '计划名称',
@@ -231,7 +232,7 @@ export default {
       lint_check: 'Lint检测',
       artifact_header: '镜像制品',
       dockerfile: 'Dockerfile',
-      artifact_repo: '制品仓库',
+      artifact_repo_id: '制品仓库',
       stage_enable: '启用'
     },
     toolset: {

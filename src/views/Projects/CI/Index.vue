@@ -4,25 +4,35 @@ import { CirclePlus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 
 import { useIcon } from '@/hooks/web/useIcon'
-import { BranchDetail, ImportedSourceCodeData } from '@/api/projects/types'
+import {
+  BranchDetail,
+  BuildEnvGroup,
+  BuildPlan,
+  ImportedSourceCodeData
+} from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
-import { getBranchListApi, getSourceCodeListApi } from '@/api/projects'
-import { UnitTest } from './Stage'
+import {
+  getBranchListApi,
+  getBuildCmdApi,
+  getBuildEnvsApi,
+  getSourceCodeListApi,
+  newBuildPlan
+} from '@/api/projects'
 
-const tsize = ref(24)
-const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tsize.value })
-const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff', size: tsize.value })
-const t03 = useIcon({ icon: 'material-symbols:filter-3', color: '#3385ff', size: tsize.value })
-const t04 = useIcon({ icon: 'material-symbols:filter-4', color: '#3385ff', size: tsize.value })
-const t05 = useIcon({ icon: 'material-symbols:filter-5', color: '#3385ff', size: tsize.value })
-const t06 = useIcon({ icon: 'material-symbols:filter-6', color: '#3385ff', size: tsize.value })
-const t07 = useIcon({ icon: 'material-symbols:filter-7', color: '#3385ff', size: tsize.value })
-const t08 = useIcon({ icon: 'material-symbols:filter-8', color: '#3385ff', size: tsize.value })
-const t09 = useIcon({ icon: 'material-symbols:filter-9', color: '#3385ff', size: tsize.value })
-const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff', size: tsize.value })
+const tSize = ref(24)
+const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tSize.value })
+const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff', size: tSize.value })
+const t03 = useIcon({ icon: 'material-symbols:filter-3', color: '#3385ff', size: tSize.value })
+const t04 = useIcon({ icon: 'material-symbols:filter-4', color: '#3385ff', size: tSize.value })
+const t05 = useIcon({ icon: 'material-symbols:filter-5', color: '#3385ff', size: tSize.value })
+const t06 = useIcon({ icon: 'material-symbols:filter-6', color: '#3385ff', size: tSize.value })
+const t07 = useIcon({ icon: 'material-symbols:filter-7', color: '#3385ff', size: tSize.value })
+const t08 = useIcon({ icon: 'material-symbols:filter-8', color: '#3385ff', size: tSize.value })
+const t09 = useIcon({ icon: 'material-symbols:filter-9', color: '#3385ff', size: tSize.value })
+const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff', size: tSize.value })
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -33,16 +43,19 @@ const tplDialogVisible = ref(false)
 const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
-const formPlan = reactive({
+const formPlan = ref<BuildPlan>({
   name: '',
-  source_code_id: '',
+  buildEnv: '',
+  source_code_id: undefined,
   branch: '',
   qa_enabled: true,
   unit_test: '',
   lint_check: '',
   artifact_enabled: true,
   dockerfile: '',
-  artifact_repo: ''
+  artifact_repo_id: undefined,
+  deploy_enabled: true,
+  remark: ''
 })
 
 const sourceCodeList = ref<ImportedSourceCodeData[]>()
@@ -63,11 +76,32 @@ const getSourceCodeBranches = async (srcId: number) => {
 }
 getSourceCodeList()
 
+const buildEnvList = ref<BuildEnvGroup[]>()
+const getBuildEnvList = async () => {
+  await getBuildEnvsApi().then((dat) => {
+    buildEnvList.value = dat
+  })
+}
+getBuildEnvList()
+
+const getBuildCmd = async (env: string) => {
+  await getBuildCmdApi(env).then((dat) => {
+    if (formPlan.value) {
+      formPlan.value.unit_test = dat.unitTest
+      formPlan.value.lint_check = dat.lintCheck
+    }
+  })
+}
+const buildEnvSelected = async function (val: string) {
+  await getBuildCmd(val)
+}
 const gitSelected = async function (val: string) {
   await getSourceCodeBranches(Number(val))
 }
-const submit = () => {
-  console.log(formPlan)
+const submit = async () => {
+  console.log(formPlan.value)
+  let projectId = Number(params.id)
+  await newBuildPlan(projectId, formPlan.value!)
 }
 </script>
 <template>
@@ -76,10 +110,32 @@ const submit = () => {
       <ElScrollbar>
         <ElForm label-position="top" :model="formPlan">
           <ElTimeline style="margin-top: 10px">
-            <UnitTest />
+            <ElTimelineItem size="large" placement="top">
+              <ElCard>
+                <ElFormItem :label="t('project.ci.build_env')">
+                  <ElSelect
+                    v-model="formPlan.buildEnv"
+                    @change="buildEnvSelected"
+                    :placeholder="t('common.selectText')"
+                  >
+                    <ElOptionGroup
+                      v-for="group in buildEnvList"
+                      :key="group.label"
+                      :label="group.label"
+                    >
+                      <ElOption
+                        v-for="item in group.options"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </ElOptionGroup> </ElSelect
+                ></ElFormItem>
+              </ElCard>
+            </ElTimelineItem>
             <ElTimelineItem size="large" :icon="t01" placement="top">
               <ElCard>
-                <ElFormItem :label="t('project.ci.plan_name')">
+                <ElFormItem required :show-message="false" :label="t('project.ci.plan_name')">
                   <ElInput v-model="formPlan.name" />
                 </ElFormItem>
               </ElCard> </ElTimelineItem
@@ -121,10 +177,10 @@ const submit = () => {
                   /></div>
                 </template>
                 <ElFormItem :label="t('project.ci.unit_test')">
-                  <ElInput v-model="formPlan.name" />
+                  <ElInput :disabled="!formPlan.qa_enabled" v-model="formPlan.unit_test" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.lint_check')">
-                  <ElInput v-model="formPlan.name" />
+                  <ElInput :disabled="!formPlan.qa_enabled" v-model="formPlan.lint_check" />
                 </ElFormItem>
               </ElCard> </ElTimelineItem
             ><ElTimelineItem size="large" :icon="t04" placement="top">

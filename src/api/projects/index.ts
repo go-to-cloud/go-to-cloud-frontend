@@ -3,6 +3,9 @@ import type { DeleteSourceCodeResult, ProjectData } from './types'
 import {
   BindCodeRepoGroup,
   BranchResult,
+  BuildCmd,
+  BuildEnvGroup,
+  BuildPlan,
   CodeRepoKVP,
   DeleteProjectResult,
   ImportedSourceCodeData,
@@ -10,7 +13,7 @@ import {
   ProjectCreationSubmitResult,
   UpdateResult
 } from './types'
-import { RemoveRepoResult } from '@/api/configure/types'
+import { RemoveRepoResult, RepoCreationSubmitResult } from '@/api/configure/types'
 
 const request = useAxios()
 
@@ -93,4 +96,25 @@ export const getBranchListApi = async (
     url: '/projects/' + projectId + '/src/' + sourceCodeId
   })
   return res && res.data && res.data.data
+}
+
+export const getBuildEnvsApi = async (): Promise<BuildEnvGroup[]> => {
+  const res = await request.get<IResponse<BuildEnvGroup[]>>({
+    url: '/configure/build/env'
+  })
+  return res && res.data && res.data.data
+}
+
+export const getBuildCmdApi = async (env: string): Promise<BuildCmd> => {
+  const res = await request.get<IResponse<BuildCmd>>({
+    url: '/configure/build/cmd?env=' + encodeURI(env)
+  })
+  return res && res.data && res.data.data
+}
+
+export const newBuildPlan = async (projectId: number, plan: BuildPlan) => {
+  await request.post<IResponse<RepoCreationSubmitResult>>({
+    url: '/projects/' + projectId + '/build/plan',
+    data: plan
+  })
 }
