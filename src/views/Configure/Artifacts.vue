@@ -26,8 +26,8 @@ import {
   testingRepoApi,
   updateRepoApi
 } from '@/api/configure/artifact'
-import { ArtifactRepoData, ArtifactRepoItem } from '@/api/configure/types'
 import { ElMessageBox } from 'element-plus/es'
+import { ArtifactRepoType, ArtifactType } from '@/api/configure/types'
 
 const bindDialogVisible = ref(false)
 
@@ -214,15 +214,6 @@ const artifactTypeHover = ref(0)
 const artifactTabHover = ref(0)
 const artifactTabSelected = ref(-1)
 
-enum ArtifactRepoType {
-  OSS = 0,
-  Docker = 1,
-  Nuget = 2,
-  Maven = 3,
-  Npm = 4,
-  S3 = 5
-}
-
 const artifactRepoFormRule = ref<FormRules>({
   name: [
     {
@@ -303,16 +294,6 @@ const IconNuget = 'vscode-icons:file-type-nuget'
 const IconMaven = 'vscode-icons:file-type-maven'
 const IconNpm = 'logos:npm-icon'
 const IconS3 = 'logos:aws-s3'
-
-interface ArtifactType {
-  Id: number
-  Enabled: boolean
-  RepoName: string
-  IsSecurity: boolean
-  Type: ArtifactRepoType
-  Items: Array<ArtifactRepoItem> | null
-  Data: ArtifactRepoData | null
-}
 
 function GetTypeName(artifact: ArtifactType) {
   switch (artifact.Type) {

@@ -14,6 +14,7 @@ export type K8sRepoData = {
   kubeconfig: string
   serverVersion: string
 }
+
 export type CodeRepoData = {
   id: number
   name: string
@@ -25,6 +26,25 @@ export type CodeRepoData = {
   updatedAt: string
   token: string
 }
+
+export enum ArtifactRepoType {
+  OSS = 0,
+  Docker = 1,
+  Nuget = 2,
+  Maven = 3,
+  Npm = 4,
+  S3 = 5
+}
+export type ArtifactType = {
+  Id: number
+  Enabled: boolean
+  RepoName: string
+  IsSecurity: boolean
+  Type: ArtifactRepoType
+  Items: Array<ArtifactRepoItem> | null
+  Data: ArtifactRepoData | null
+}
+
 export type ArtifactRepoItem = {
   hashId: string
   name: string

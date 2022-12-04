@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ElButton, ElCard } from 'element-plus'
+import { ElButton, ElCard, FormInstance, FormRules } from 'element-plus'
 import { CirclePlus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 
 import { useIcon } from '@/hooks/web/useIcon'
 import {
   BranchDetail,
   BuildEnvGroup,
   BuildPlan,
+  BuildPlanCard,
   ImportedSourceCodeData
 } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
@@ -18,9 +19,12 @@ import {
   getBranchListApi,
   getBuildCmdApi,
   getBuildEnvsApi,
+  getBuildPlansApi,
   getSourceCodeListApi,
   newBuildPlan
 } from '@/api/projects'
+import { getArtifactRepoApi } from '@/api/configure/artifact'
+import { ArtifactRepoData } from '@/api/configure/types'
 
 const tSize = ref(24)
 const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tSize.value })
@@ -43,7 +47,7 @@ const tplDialogVisible = ref(false)
 const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
-const formPlan = ref<BuildPlan>({
+const ruleForm = reactive<BuildPlan>({
   name: '',
   buildEnv: '',
   source_code_id: undefined,
@@ -56,6 +60,16 @@ const formPlan = ref<BuildPlan>({
   artifact_repo_id: undefined,
   deploy_enabled: true,
   remark: ''
+})
+
+const ruleFormRef = ref<FormInstance>()
+const rules = reactive<FormRules>({
+  'name:': [
+    {
+      required: true,
+      trigger: 'blur'
+    }
+  ]
 })
 
 const sourceCodeList = ref<ImportedSourceCodeData[]>()
@@ -84,11 +98,20 @@ const getBuildEnvList = async () => {
 }
 getBuildEnvList()
 
+const artifactTypes = ref<ArtifactRepoData[]>([])
+
+const getArtifactRepo = async () => {
+  await getArtifactRepoApi(params).then((resp) => {
+    artifactTypes.value = resp
+  })
+}
+getArtifactRepo()
+
 const getBuildCmd = async (env: string) => {
   await getBuildCmdApi(env).then((dat) => {
-    if (formPlan.value) {
-      formPlan.value.unit_test = dat.unitTest
-      formPlan.value.lint_check = dat.lintCheck
+    if (ruleForm) {
+      ruleForm.unit_test = dat.unitTest
+      ruleForm.lint_check = dat.lintCheck
     }
   })
 }
@@ -98,23 +121,37 @@ const buildEnvSelected = async function (val: string) {
 const gitSelected = async function (val: string) {
   await getSourceCodeBranches(Number(val))
 }
-const submit = async () => {
-  console.log(formPlan.value)
-  let projectId = Number(params.id)
-  await newBuildPlan(projectId, formPlan.value!)
+const submit = async (formEl: FormInstance) => {
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      let projectId = Number(params.id)
+      await newBuildPlan(projectId, ruleForm)
+      await getBuildPlans()
+      tplDialogVisible.value = false
+    }
+  })
 }
+
+const planCards = ref<BuildPlanCard[]>()
+const getBuildPlans = async () => {
+  let projectId = Number(params.id)
+  await getBuildPlansApi(projectId).then((dat) => {
+    planCards.value = dat
+  })
+}
+getBuildPlans()
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
     <div style="height: 500px">
       <ElScrollbar>
-        <ElForm label-position="top" :model="formPlan">
+        <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
           <ElTimeline style="margin-top: 10px">
             <ElTimelineItem size="large" placement="top">
               <ElCard>
                 <ElFormItem :label="t('project.ci.build_env')">
                   <ElSelect
-                    v-model="formPlan.buildEnv"
+                    v-model="ruleForm.buildEnv"
                     @change="buildEnvSelected"
                     :placeholder="t('common.selectText')"
                   >
@@ -135,15 +172,15 @@ const submit = async () => {
             </ElTimelineItem>
             <ElTimelineItem size="large" :icon="t01" placement="top">
               <ElCard>
-                <ElFormItem required :show-message="false" :label="t('project.ci.plan_name')">
-                  <ElInput v-model="formPlan.name" />
+                <ElFormItem :label="t('project.ci.plan_name')" prop="name">
+                  <ElInput v-model="ruleForm.name" />
                 </ElFormItem>
               </ElCard> </ElTimelineItem
             ><ElTimelineItem size="large" :icon="t02" placement="top">
               <ElCard :header="t('project.ci.code_repo_header')">
                 <ElFormItem :label="t('project.ci.code_repo')">
                   <ElSelect
-                    v-model="formPlan.source_code_id"
+                    v-model="ruleForm.source_code_id"
                     @change="gitSelected"
                     :placeholder="t('common.selectText')"
                   >
@@ -156,7 +193,7 @@ const submit = async () => {
                   </ElSelect>
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.code_branch')">
-                  <ElSelect v-model="formPlan.branch" :placeholder="t('common.selectText')">
+                  <ElSelect v-model="ruleForm.branch" :placeholder="t('common.selectText')">
                     <ElOption
                       v-for="item in branchList"
                       :key="item.Path"
@@ -172,15 +209,15 @@ const submit = async () => {
                   <div class="card-header">
                     <span>{{ t('project.ci.qa_header') }}</span>
                     <ElSwitch
-                      v-model="formPlan.qa_enabled"
+                      v-model="ruleForm.qa_enabled"
                       :active-text="t('project.ci.stage_enable')"
                   /></div>
                 </template>
                 <ElFormItem :label="t('project.ci.unit_test')">
-                  <ElInput :disabled="!formPlan.qa_enabled" v-model="formPlan.unit_test" />
+                  <ElInput :disabled="!ruleForm.qa_enabled" v-model="ruleForm.unit_test" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.lint_check')">
-                  <ElInput :disabled="!formPlan.qa_enabled" v-model="formPlan.lint_check" />
+                  <ElInput :disabled="!ruleForm.qa_enabled" v-model="ruleForm.lint_check" />
                 </ElFormItem>
               </ElCard> </ElTimelineItem
             ><ElTimelineItem size="large" :icon="t04" placement="top">
@@ -189,15 +226,26 @@ const submit = async () => {
                   <div class="card-header">
                     <span>{{ t('project.ci.artifact_header') }}</span>
                     <ElSwitch
-                      v-model="formPlan.artifact_enabled"
+                      v-model="ruleForm.artifact_enabled"
                       :active-text="t('project.ci.stage_enable')"
                   /></div>
                 </template>
                 <ElFormItem :label="t('project.ci.dockerfile')">
-                  <ElInput v-model="formPlan.name" />
+                  <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.dockerfile" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.artifact_repo')">
-                  <ElInput v-model="formPlan.name" />
+                  <ElSelect
+                    :disabled="!ruleForm.artifact_enabled"
+                    v-model="ruleForm.artifact_repo_id"
+                    :placeholder="t('common.selectText')"
+                  >
+                    <ElOption
+                      v-for="item in artifactTypes"
+                      :key="item.name"
+                      :label="item.name"
+                      :value="item.id"
+                    />
+                  </ElSelect>
                 </ElFormItem>
               </ElCard> </ElTimelineItem
             ><ElTimelineItem size="large" placement="top">
@@ -208,8 +256,8 @@ const submit = async () => {
       </ElScrollbar>
     </div>
     <template #footer>
-      <el-button @click="tplDialogVisible = false">关闭</el-button>
-      <el-button type="primary" @click="submit()"> 创建 </el-button>
+      <el-button @click="tplDialogVisible = false">{{ t('common.close') }}</el-button>
+      <el-button type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </el-button>
     </template>
   </ElDialog>
   <ContentDetailWrap :title="t('project.toolset.ci')" @back="push('/projects/index')">
@@ -234,14 +282,14 @@ const submit = async () => {
     </ElRow>
     <ElDivider />
     <ElSpace wrap :size="30">
-      <ElCard shadow="hover" v-for="i in 18" :key="i">
+      <ElCard shadow="hover" v-for="plan in planCards" :key="plan">
         <template #header>
           <div class="card-header">
-            <span>Card name</span>
+            <span>{{ plan.name }}</span>
             <el-button class="button" text>Operation button</el-button>
           </div>
         </template>
-        <div v-for="o in 4" :key="o" class="text item">{{ 'List item ' + o }}</div>
+        <div v-for="o in 4" :key="o" class="text item">{{ plan.lastBuildAt }}</div>
       </ElCard>
     </ElSpace>
   </ContentDetailWrap>

@@ -6,6 +6,7 @@ import {
   BuildCmd,
   BuildEnvGroup,
   BuildPlan,
+  BuildPlanCard,
   CodeRepoKVP,
   DeleteProjectResult,
   ImportedSourceCodeData,
@@ -117,4 +118,11 @@ export const newBuildPlan = async (projectId: number, plan: BuildPlan) => {
     url: '/projects/' + projectId + '/build/plan',
     data: plan
   })
+}
+
+export const getBuildPlansApi = async (projectId: number): Promise<BuildPlanCard[]> => {
+  const res = await request.get<IResponse<BuildPlanCard[]>>({
+    url: '/projects/' + projectId + '/build/plan'
+  })
+  return res && res.data && res.data.data
 }

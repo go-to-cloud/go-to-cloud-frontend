@@ -85,3 +85,7 @@ export type BuildPlan = {
   deploy_enabled: boolean
   remark: string | undefined
 }
+export type BuildPlanCard = BuildPlan & {
+  lastBuildAt: string | undefined
+  lastBuildResult: number
+}

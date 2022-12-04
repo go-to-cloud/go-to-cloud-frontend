@@ -56,7 +56,9 @@ export default {
     delCancel: '取消',
     delNoData: '请选择需要删除的数据',
     delSuccess: '删除成功',
-    confirmMsgTitle: '是否确认'
+    confirmMsgTitle: '是否确认',
+    close: '关闭',
+    submit: '提交'
   },
   error: {
     noPermission: `抱歉，您无权访问此页面。`,
@@ -232,7 +234,7 @@ export default {
       lint_check: 'Lint检测',
       artifact_header: '镜像制品',
       dockerfile: 'Dockerfile',
-      artifact_repo_id: '制品仓库',
+      artifact_repo: '制品仓库',
       stage_enable: '启用'
     },
     toolset: {

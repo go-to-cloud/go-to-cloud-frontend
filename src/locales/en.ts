@@ -56,7 +56,9 @@ export default {
     delCancel: 'Cancel',
     delNoData: 'Please select the data to delete',
     delSuccess: 'Deleted successfully',
-    confirmMsgTitle: 'Confirming'
+    confirmMsgTitle: 'Confirming',
+    close: 'Close',
+    submit: 'Submit'
   },
   error: {
     noPermission: `Sorry, you don't have permission to access this page.`,
@@ -232,7 +234,7 @@ export default {
       lint_check: 'Lint',
       artifact_header: 'Artifact',
       dockerfile: 'Dockerfile',
-      artifact_repo_id: 'Artifact Repo',
+      artifact_repo: 'Artifact Repo',
       stage_enable: 'Enable'
     },
     toolset: {
