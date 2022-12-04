@@ -125,6 +125,7 @@ export default {
     workplace: 'Workplace',
     projects: 'Projects',
     configure: 'Configure',
+    builders: 'Build Nodes',
     pipelines: 'Pipelines',
     approach: 'Approach',
     coderepo: 'Code Repository',

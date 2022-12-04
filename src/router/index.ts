@@ -134,6 +134,14 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       },
       {
+        path: 'builder',
+        component: () => import('@/views/Configure/Builders.vue'),
+        name: 'Builders',
+        meta: {
+          title: t('router.builders')
+        }
+      },
+      {
         path: 'artifacts',
         component: () => import('@/views/Configure/Artifacts.vue'),
         name: 'Artifacts',
@@ -151,26 +159,26 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
       }
     ]
   },
-  {
-    path: '/pipelines',
-    component: Layout,
-    name: 'Pipelines',
-    meta: {
-      title: t('router.pipelines'),
-      icon: 'ic:outline-webhook',
-      alwaysShow: true
-    },
-    children: [
-      {
-        path: 'pipeline',
-        component: () => import('@/views/Pipelines/Index.vue'),
-        name: 'Pipeline',
-        meta: {
-          title: t('router.approach')
-        }
-      }
-    ]
-  },
+  // {
+  //   path: '/pipelines',
+  //   component: Layout,
+  //   name: 'Pipelines',
+  //   meta: {
+  //     title: t('router.pipelines'),
+  //     icon: 'ic:outline-webhook',
+  //     alwaysShow: true
+  //   },
+  //   children: [
+  //     {
+  //       path: 'pipeline',
+  //       component: () => import('@/views/Pipelines/Index.vue'),
+  //       name: 'Pipeline',
+  //       meta: {
+  //         title: t('router.approach')
+  //       }
+  //     }
+  //   ]
+  // },
   {
     path: '/monitor',
     component: Layout,

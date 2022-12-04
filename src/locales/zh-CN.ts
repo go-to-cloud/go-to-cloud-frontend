@@ -125,6 +125,7 @@ export default {
     workplace: '工作台',
     projects: '项目',
     coderepo: '代码仓库',
+    builders: '构建节点',
     pipelines: '流水线',
     approach: '方案管理',
     configure: '配置',
