@@ -8,6 +8,7 @@ import {
   BuildPlan,
   BuildPlanCard,
   CodeRepoKVP,
+  DeletePlanResult,
   DeleteProjectResult,
   ImportedSourceCodeData,
   ImportSourceCodeResult,
@@ -125,4 +126,18 @@ export const getBuildPlansApi = async (projectId: number): Promise<BuildPlanCard
     url: '/projects/' + projectId + '/build/plan'
   })
   return res && res.data && res.data.data
+}
+
+export const deletePlanApi = async (
+  projectId: number,
+  planId: number
+): Promise<DeletePlanResult> => {
+  const res = await request.delete<IResponse<DeletePlanResult>>({
+    url: '/projects/' + projectId + '/build/plan/' + planId
+  })
+  if (res && res.data) {
+    return { success: res.data.code == '200' }
+  } else {
+    return { success: false }
+  }
 }

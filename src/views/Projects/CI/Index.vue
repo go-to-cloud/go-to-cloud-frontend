@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElButton, ElCard, FormInstance, FormRules } from 'element-plus'
-import { CirclePlus, Search } from '@element-plus/icons-vue'
+import { CirclePlus, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -16,6 +16,7 @@ import {
 } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import {
+  deletePlanApi,
   getBranchListApi,
   getBuildCmdApi,
   getBuildEnvsApi,
@@ -25,6 +26,7 @@ import {
 } from '@/api/projects'
 import { getArtifactRepoApi } from '@/api/configure/artifact'
 import { ArtifactRepoData } from '@/api/configure/types'
+import { ElMessageBox } from 'element-plus/es'
 
 const tSize = ref(24)
 const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tSize.value })
@@ -140,6 +142,63 @@ const getBuildPlans = async () => {
   })
 }
 getBuildPlans()
+
+const buildResultType = function (rlt: number): string {
+  switch (rlt) {
+    case 0:
+      return 'info'
+    case 1:
+      return 'success'
+    case 2:
+      return 'warning'
+    case 3:
+      return 'danger'
+  }
+  return ''
+}
+const buildResultText = function (rlt: number): string {
+  switch (rlt) {
+    // 1：成功；2：取消；3：失败；0：从未执行
+    case 0:
+      return t('project.ci.result.never')
+    case 1:
+      return t('project.ci.result.success')
+    case 2:
+      return t('project.ci.result.cancel')
+    case 3:
+      return t('project.ci.result.failed')
+  }
+  return ''
+}
+
+interface HandlerCommand {
+  id: number
+  cmd: string
+  form: BuildPlanCard
+}
+const actionHandler = (command: HandlerCommand) => {
+  switch (command.cmd) {
+    case 'del': {
+      ElMessageBox.confirm(t('project.ci.removeConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        deletePlan(command.id)
+      })
+      break
+    }
+  }
+}
+
+const deletePlan = async (planId: number) => {
+  let projectId = Number(params.id)
+  await deletePlanApi(projectId, planId).then(async (resp) => {
+    if (resp.success) {
+      await getBuildPlans()
+    }
+  })
+}
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
@@ -282,15 +341,78 @@ getBuildPlans()
     </ElRow>
     <ElDivider />
     <ElSpace wrap :size="30">
-      <ElCard shadow="hover" v-for="plan in planCards" :key="plan">
-        <template #header>
-          <div class="card-header">
-            <span>{{ plan.name }}</span>
-            <el-button class="button" text>Operation button</el-button>
-          </div>
-        </template>
-        <div v-for="o in 4" :key="o" class="text item">{{ plan.lastBuildAt }}</div>
-      </ElCard>
+      <ElTable :data="planCards" style="width: 100%">
+        <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
+        <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
+        <ElTableColumn fixed prop="branch" :label="t('project.ci.code_branch')" width="180" />
+        <ElTableColumn :label="t('project.ci.last_build')" width="160">
+          <template #default="scope">
+            <span v-if="scope.row.lastBuildResult != 0"
+              >{{ scope.row.lastBuildAt }} <ElDivider direction="vertical"
+            /></span>
+            <ElTag :type="buildResultType(scope.row.lastBuildResult)" effect="dark">{{
+              buildResultText(scope.row.lastBuildResult)
+            }}</ElTag>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="t('project.ci.steps')" width="160">
+          <template #default="scope">
+            <ElSpace>
+              <ElTooltip
+                v-if="scope.row.qa_enabled && scope.row.unit_test"
+                :content="t('project.ci.unit_test')"
+              >
+                <Icon class="toolset" icon="file-icons:test-generic" />
+              </ElTooltip>
+              <ElTooltip
+                v-if="scope.row.qa_enabled && scope.row.lint_check"
+                :content="t('project.ci.lint_check')"
+              >
+                <Icon class="toolset" icon="file-icons:commitlint" />
+              </ElTooltip>
+              <ElTooltip v-if="scope.row.artifact_enabled" :content="t('project.ci.artifact')">
+                <Icon class="toolset" icon="cib:azure-artifacts" />
+              </ElTooltip>
+            </ElSpace>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn fixed="right" prop="id" :label="t('common.action')" width="80">
+          <template #default="scope">
+            <ElDropdown @command="actionHandler">
+              <span class="el-dropdown-link">
+                <ElButton :icon="MoreFilled" circle />
+              </span>
+              <template #dropdown>
+                <ElDropdownMenu>
+                  <ElDropdownItem v-if="!scope.row.buildingNow">
+                    <ElLink :underline="false">
+                      <Icon icon="material-symbols:play-circle" />
+                      {{ t('project.ci.build_now') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem v-if="scope.row.buildingNow">
+                    <ElLink :underline="false">
+                      <Icon size="20" icon="typcn:cancel" />
+                      {{ t('project.ci.cancel_building') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem>
+                    <ElLink :underline="false">
+                      <Icon icon="icon-park-solid:history-query" />
+                      {{ t('project.ci.build_history') }}</ElLink
+                    >
+                  </ElDropdownItem>
+                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                    <ElLink :icon="Delete" :underline="false" type="danger">
+                      {{ t('project.ci.delete_plan') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                </ElDropdownMenu>
+              </template>
+            </ElDropdown>
+          </template>
+        </ElTableColumn>
+      </ElTable>
     </ElSpace>
   </ContentDetailWrap>
 </template>

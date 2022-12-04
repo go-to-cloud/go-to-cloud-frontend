@@ -235,7 +235,19 @@ export default {
       artifact_header: 'Artifact',
       dockerfile: 'Dockerfile',
       artifact_repo: 'Artifact Repo',
-      stage_enable: 'Enable'
+      stage_enable: 'Enable',
+      last_build: 'Last Build',
+      build_now: 'Build Now',
+      cancel_building: 'Stop Building',
+      build_history: 'Build History',
+      delete_plan: 'Delete Plan',
+      steps: 'Build Step',
+      result: {
+        never: 'Never',
+        success: 'Success',
+        failed: 'Failure'
+      },
+      removeConfirm: 'Build plan will be removed. Continue?'
     },
     toolset: {
       code: 'Code Repository',

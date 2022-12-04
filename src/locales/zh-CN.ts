@@ -235,7 +235,19 @@ export default {
       artifact_header: '镜像制品',
       dockerfile: 'Dockerfile',
       artifact_repo: '制品仓库',
-      stage_enable: '启用'
+      stage_enable: '启用',
+      last_build: '最近构建',
+      build_now: '立即构建',
+      cancel_building: '中止构建',
+      build_history: '构建历史',
+      delete_plan: '删除计划',
+      steps: '节点任务',
+      result: {
+        never: '从未执行',
+        success: '成功',
+        failed: '失败'
+      },
+      removeConfirm: '即将删除构建计划且不可恢复，是否继续？'
     },
     toolset: {
       code: '代码仓库',

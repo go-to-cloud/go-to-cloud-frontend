@@ -28,6 +28,10 @@ export type DeleteProjectResult = {
   success: boolean
 }
 
+export type DeletePlanResult = {
+  success: boolean
+}
+
 export type UpdateResult = {
   success: boolean
 }
@@ -72,6 +76,7 @@ export type BuildCmd = {
 }
 
 export type BuildPlan = {
+  id: number
   name: string
   buildEnv: string
   source_code_id: number | undefined
@@ -88,4 +93,5 @@ export type BuildPlan = {
 export type BuildPlanCard = BuildPlan & {
   lastBuildAt: string | undefined
   lastBuildResult: number
+  buildingNow: boolean
 }
