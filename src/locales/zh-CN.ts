@@ -65,7 +65,8 @@ export default {
     pageError: '抱歉，您访问的页面不存在。',
     networkError: '抱歉，服务器报告错误。',
     returnToHome: '返回首页',
-    repoEmpty: '暂无仓库数据，点击按钮去绑定一个仓库'
+    repoEmpty: '暂无仓库数据，点击按钮去绑定一个仓库',
+    builderEmpty: '暂无构建节点，点击按钮安装一个构建节点'
   },
   setting: {
     projectSetting: '项目配置',
@@ -283,6 +284,10 @@ export default {
       name: '代码仓库',
       import: '导入代码仓库'
     }
+  },
+  builder: {
+    name: '构建节点',
+    install: '安装构建节点'
   },
   artifacts: {
     name: '制品仓库名称',

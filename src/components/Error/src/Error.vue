@@ -54,6 +54,12 @@ const errorMap: {
     message: t('error.repoEmpty'),
     buttonText: t('k8s.bind'),
     width: 128
+  },
+  builder_empty: {
+    url: empty_repo,
+    message: t('error.builderEmpty'),
+    buttonText: t('builder.install'),
+    width: 128
   }
 }
 

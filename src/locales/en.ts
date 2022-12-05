@@ -65,7 +65,8 @@ export default {
     pageError: 'Sorry, the page you visited does not exist.',
     networkError: 'Sorry, the server reported an error.',
     returnToHome: 'Return to home',
-    repoEmpty: 'repository is empty, click button to bind one'
+    repoEmpty: 'repository is empty, click button to bind one',
+    builderEmpty: 'building node is empty, click button to create one'
   },
   setting: {
     projectSetting: 'Project setting',
@@ -283,6 +284,10 @@ export default {
       name: 'Git Source',
       import: 'Import Code'
     }
+  },
+  builder: {
+    name: 'Building Node',
+    install: 'Setup Build Node'
   },
   artifacts: {
     name: 'Artifacts Repo Name',

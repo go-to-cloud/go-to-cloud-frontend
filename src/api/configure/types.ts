@@ -83,3 +83,11 @@ export type RepoCreationSubmitResult = {
 export type RemoveRepoResult = {
   success: boolean
 }
+
+export type BuilderNodes = {
+  id: number
+  name: string
+  maxWorker: number
+  workspace: string // 工作空间，等同于k8s的namespace
+  agentEndpoint: string // 构建节点agent服务地址
+}
