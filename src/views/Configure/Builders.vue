@@ -2,24 +2,37 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
 import { ElButton, ElDivider } from 'element-plus'
-import { Connection, Search } from '@element-plus/icons-vue'
+import { Connection, InfoFilled, Search } from '@element-plus/icons-vue'
 import { Error } from '@/components/Error'
-import { BuilderNodes } from '@/api/configure/types'
+import { NewBuilderNodes } from '@/api/configure/types'
 
 const bindDialogVisible = ref(false)
 
 const { t } = useI18n()
 
-const builderNodes = ref<BuilderNodes[]>([])
+const builderNodes = ref<NewBuilderNodes[]>([])
 
 // TODO: 当前仅作为mock使用
 builderNodes.value.push({
   id: 1,
-  name: 'string',
+  name: null,
   maxWorker: 1,
-  workspace: 'string', // 工作空间，等同于k8s的namespace
-  agentEndpoint: 'string' // 构建节点agent服务地址
+  workspace: 'gotocloud-agent', // 工作空间，等同于k8s的namespace
+  kubeConfig: null
 })
+
+const newBuilderNode = ref<NewBuilderNodes>({
+  id: null,
+  name: null,
+  maxWorker: 1,
+  workspace: '', // 工作空间，等同于k8s的namespace
+  kubeConfig: null
+})
+
+const submit = function () {
+  console.log(newBuilderNode.value)
+  bindDialogVisible.value = false
+}
 </script>
 
 <template>
@@ -38,17 +51,70 @@ builderNodes.value.push({
     :fullscreen="false"
     :draggable="true"
   >
-    <ElForm label-position="top">
-      <ElFormItem label="节点名称">
-        <ElInput />
-      </ElFormItem>
-      <ElFormItem label="同时构建数量">
-        <ElInput />
-      </ElFormItem>
-      <ElFormItem label="节点配置（构建节点以客户端形式部署）">
-        <ElInput />
-      </ElFormItem>
-    </ElForm>
+    <ElTabs type="border-card">
+      <ElTabPane>
+        <template #label>
+          K8S
+          <ElTooltip :content="t('builder.introduce.install_on_k8s')">
+            <ElIcon style="cursor: pointer"><InfoFilled /></ElIcon>
+          </ElTooltip>
+        </template>
+        <ElForm label-position="top" :model="newBuilderNode">
+          <ElFormItem :label="t('builder.node_type.k8s.node_name')">
+            <ElInput v-model="newBuilderNode.name" />
+          </ElFormItem>
+          <ElFormItem :label="t('builder.node_type.k8s.max_worker')">
+            <ElInputNumber :min="1" controls-position="right" v-model="newBuilderNode.maxWorker" />
+          </ElFormItem>
+          <ElFormItem>
+            <template #label>
+              {{ t('builder.node_type.k8s.namespace') }}
+              <ElTooltip>
+                <template #content> {{ t('builder.introduce.what_is_namespace') }}</template>
+                <ElIcon style="cursor: pointer"><InfoFilled /></ElIcon>
+              </ElTooltip>
+            </template>
+            <ElInput placeholder="gotocloud-agent" v-model="newBuilderNode.workspace" />
+          </ElFormItem>
+          <ElFormItem>
+            <template #label>
+              KubeConfig
+              <ElTooltip>
+                <template #content> {{ t('builder.introduce.where_is_kubeconfig') }}</template>
+                <ElIcon style="cursor: pointer"><InfoFilled /></ElIcon>
+              </ElTooltip>
+            </template>
+            <ElInput
+              type="textarea"
+              v-model="newBuilderNode.kubeConfig"
+              :autosize="{ minRows: 6, maxRows: 9 }"
+            />
+          </ElFormItem>
+        </ElForm>
+      </ElTabPane>
+      <ElTabPane disabled>
+        <template #label>
+          Windows
+          <ElTooltip :content="t('builder.introduce.install_on_windows')">
+            <ElIcon style="cursor: pointer"><InfoFilled /></ElIcon>
+          </ElTooltip>
+        </template>
+      </ElTabPane>
+      <ElTabPane disabled>
+        <template #label>
+          Linux
+          <ElTooltip :content="t('builder.introduce.install_on_linux')">
+            <ElIcon style="cursor: pointer"><InfoFilled /></ElIcon>
+          </ElTooltip>
+        </template>
+      </ElTabPane>
+    </ElTabs>
+    <template #footer>
+      <span>
+        <ElButton @click="bindDialogVisible = false">{{ t('common.cancel') }}</ElButton>
+        <ElButton type="primary" @click="submit()">{{ t('common.install') }}</ElButton>
+      </span>
+    </template>
   </ElDialog>
   <ElRow justify="space-between" v-if="builderNodes.length > 0">
     <ElCol :span="18">

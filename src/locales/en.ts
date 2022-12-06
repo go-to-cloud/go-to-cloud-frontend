@@ -58,7 +58,8 @@ export default {
     delSuccess: 'Deleted successfully',
     confirmMsgTitle: 'Confirming',
     close: 'Close',
-    submit: 'Submit'
+    submit: 'Submit',
+    install: 'Install'
   },
   error: {
     noPermission: `Sorry, you don't have permission to access this page.`,
@@ -287,7 +288,22 @@ export default {
   },
   builder: {
     name: 'Building Node',
-    install: 'Setup Build Node'
+    install: 'Setup Build Node',
+    node_type: {
+      k8s: {
+        node_name: 'Node Name',
+        max_worker: 'Max Workers Number',
+        namespace: 'Namespace'
+      }
+    },
+    introduce: {
+      install_on_k8s: 'Install Builder Node on k8s as a Pod',
+      install_on_Windows: 'Install Builder Node on Windows, coming soon!',
+      install_on_Linux: 'Install Builder Node on Linux, coming soon!',
+      where_is_kubeconfig:
+        "try to find config in '$HOME/.kube', or '/etc/rancher/k3s' if it is k3s",
+      what_is_namespace: 'namespace in k8s, for agent pod works'
+    }
   },
   artifacts: {
     name: 'Artifacts Repo Name',

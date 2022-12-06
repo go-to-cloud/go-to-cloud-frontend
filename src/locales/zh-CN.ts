@@ -58,7 +58,8 @@ export default {
     delSuccess: '删除成功',
     confirmMsgTitle: '是否确认',
     close: '关闭',
-    submit: '提交'
+    submit: '提交',
+    install: '安装'
   },
   error: {
     noPermission: `抱歉，您无权访问此页面。`,
@@ -287,7 +288,22 @@ export default {
   },
   builder: {
     name: '构建节点',
-    install: '安装构建节点'
+    install: '安装构建节点',
+    node_type: {
+      k8s: {
+        node_name: '节点名称',
+        max_worker: '同时构建任务上限',
+        namespace: '名字空间'
+      }
+    },
+    introduce: {
+      install_on_k8s: '在k8s上部署构建节点，节点以pod方式运行',
+      install_on_windows: '在Windows上部署构建节点, 敬请期待!',
+      install_on_linux: 'Linux上部署构建节点, 敬请期待!',
+      where_is_kubeconfig:
+        'kubeconfig通常位于宿主机的$HOME/.kube目录, 如果是k3s，则位于/etc/rancher/k3s目录',
+      what_is_namespace: '即k8s的名字空间，构建节点的Pod运行在这个名字空间中'
+    }
   },
   artifacts: {
     name: '制品仓库名称',

@@ -84,10 +84,10 @@ export type RemoveRepoResult = {
   success: boolean
 }
 
-export type BuilderNodes = {
-  id: number
-  name: string
-  maxWorker: number
-  workspace: string // 工作空间，等同于k8s的namespace
-  agentEndpoint: string // 构建节点agent服务地址
+export interface NewBuilderNodes {
+  id: number | null
+  name: string | null
+  maxWorker: number | null
+  workspace: string | null // 工作空间，等同于k8s的namespace
+  kubeConfig: string | null
 }
