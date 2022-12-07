@@ -289,6 +289,8 @@ export default {
   builder: {
     name: 'Building Node',
     install: 'Setup Build Node',
+    install_success: 'Install success',
+    install_failure: 'Install failure, please try later, or check your kubeconfig',
     node_type: {
       k8s: {
         node_name: 'Node Name',

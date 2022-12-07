@@ -35,6 +35,7 @@ export enum ArtifactRepoType {
   Npm = 4,
   S3 = 5
 }
+
 export type ArtifactType = {
   Id: number
   Enabled: boolean
@@ -90,4 +91,5 @@ export interface NewBuilderNodes {
   maxWorker: number | null
   workspace: string | null // 工作空间，等同于k8s的namespace
   kubeConfig: string | null
+  orgs: [] | null
 }

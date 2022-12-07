@@ -289,6 +289,8 @@ export default {
   builder: {
     name: '构建节点',
     install: '安装构建节点',
+    install_success: '安装成功',
+    install_failure: '安装失败，请稍后再试，或者检查配置文件(kubeconfig）是否正确',
     node_type: {
       k8s: {
         node_name: '节点名称',
