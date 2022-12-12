@@ -4,8 +4,8 @@ import { ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Connection, InfoFilled, Search } from '@element-plus/icons-vue'
 import { Error } from '@/components/Error'
-import { NewBuilderNodes } from '@/api/configure/types'
-import { installBuilderNodeOnK8s } from '@/api/configure/builder'
+import { BuilderNodesOnk8s, NewBuilderNodes, Params } from '@/api/configure/types'
+import { getBuilderNodesOnK8sApi, installBuilderNodeOnK8s } from '@/api/configure/builder'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 
@@ -35,7 +35,6 @@ getOrganizations()
 
 // TODO: 当前仅作为mock使用
 builderNodes.value.push({
-  id: 1,
   name: null,
   maxWorker: 1,
   workspace: 'gotocloud-agent', // 工作空间，等同于k8s的namespace
@@ -45,7 +44,6 @@ builderNodes.value.push({
 
 const newBuilderNodeRef = ref<FormInstance>()
 const newBuilderNode = ref<NewBuilderNodes>({
-  id: null,
   name: null,
   maxWorker: 1,
   workspace: '', // 工作空间，等同于k8s的namespace
@@ -55,7 +53,6 @@ const newBuilderNode = ref<NewBuilderNodes>({
 
 function resetForm() {
   newBuilderNode.value = {
-    id: null,
     name: null,
     maxWorker: 1,
     workspace: '', // 工作空间，等同于k8s的namespace
@@ -64,7 +61,18 @@ function resetForm() {
   }
 }
 
-function getBuilderNodes() {}
+const builderNodesOnK8s = ref<BuilderNodesOnk8s[]>()
+const getBuilderNodes = async function (params?: Params) {
+  await getBuilderNodesOnK8sApi(
+    params || {
+      pageIndex: 1,
+      pageSize: 20
+    }
+  ).then((resp) => {
+    builderNodesOnK8s.value = resp
+  })
+}
+getBuilderNodes()
 
 const submit = async () => {
   if (!newBuilderNodeRef.value) return
@@ -278,5 +286,6 @@ const kubeconfig_demo =
       </ElButton>
     </ElCol>
   </ElRow>
+  <ElTabs v-if="builderNodes.length > 0" />
 </template>
 <style scoped></style>

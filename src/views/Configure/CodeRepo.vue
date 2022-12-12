@@ -9,7 +9,7 @@ import {
   updateRepoApi
 } from '@/api/configure/coderepo'
 import { getOrganizationsApi } from '@/api/common'
-import { CodeRepoData, ScmType } from '@/api/configure/types'
+import { CodeRepoData, Params, ScmType } from '@/api/configure/types'
 import { ElButton, ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { Error } from '@/components/Error'
 import { Dialog } from '@/components/Dialog'
@@ -18,11 +18,6 @@ import { Icon } from '@iconify/vue'
 import { Org } from '@/api/common/types'
 
 const bindDialogVisible = ref(false)
-
-interface Params {
-  pageIndex?: number
-  pageSize?: number
-}
 
 const Organizations = ref<Array<Org>>(new Array<Org>())
 

@@ -5,6 +5,11 @@ export enum ScmType {
   Gitea = 3
 }
 
+export interface Params {
+  pageIndex?: number
+  pageSize?: number
+}
+
 export type K8sRepoData = {
   id: number
   name: string
@@ -86,10 +91,15 @@ export type RemoveRepoResult = {
 }
 
 export interface NewBuilderNodes {
-  id: number | null
   name: string | null
   maxWorker: number | null
   workspace: string | null // 工作空间，等同于k8s的namespace
   kubeConfig: string | null
   orgs: [] | null
 }
+
+export type BuilderNodesOnk8s =
+  | {
+      id: number | null
+    }
+  | NewBuilderNodes
