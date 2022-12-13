@@ -57,7 +57,7 @@ const columns: TableColumn[] = [
   },
   {
     field: 'orgs',
-    label: t('coderepo.orgs'),
+    label: t('common.organization'),
     width: '200'
   },
   {
@@ -410,8 +410,8 @@ function errorClick() {
             bindDialogVisible = true
           }
         "
-        >{{ t('coderepo.bind') }}</ElButton
-      >
+        >{{ t('coderepo.bind') }}
+      </ElButton>
     </ElCol>
   </ElRow>
   <ElTabs v-if="codeRepoDataList.length > 0">
@@ -425,11 +425,12 @@ function errorClick() {
                 :color="GetIcon(scope.row.origin)[1]"
                 width="24"
                 height="24"
-              /><span>{{ scope.row.name }}</span>
+              />
+              <span>{{ scope.row.name }}</span>
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="t('coderepo.orgs')" prop="orgLites">
+        <ElTableColumn :label="t('common.organization')" prop="orgLites">
           <template #default="scope">
             <ElSpace>
               <ElTag
@@ -437,10 +438,10 @@ function errorClick() {
                 v-for="item in scope.row.orgLites"
                 :key="item.orgId"
                 :closable="false"
-                >{{ item.orgName }}</ElTag
-              >
-            </ElSpace></template
-          >
+                >{{ item.orgName }}
+              </ElTag>
+            </ElSpace>
+          </template>
         </ElTableColumn>
         <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
         <ElTableColumn prop="updatedAt" :label="t('coderepo.updatedAt')" width="200" />
@@ -533,8 +534,9 @@ function errorClick() {
                 :key="org.id"
                 :label="org.name"
                 :value="org.id"
-              /> </ElSelect
-          ></ElFormItem>
+              />
+            </ElSelect>
+          </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
@@ -543,7 +545,8 @@ function errorClick() {
             v-model="codeRepoDetailForm.isPublic"
             :inactive-text="t('visibility.private')"
             :active-text="t('visibility.public')"
-        /></ElFormItem>
+          />
+        </ElFormItem>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
@@ -552,9 +555,9 @@ function errorClick() {
               v-model="codeRepoDetailForm.url"
               :placeholder="t('common.inputText') + t('coderepo.url')"
             >
-              <template v-if="codeRepoDetailForm.origin === ScmType.Github" #prepend>{{
-                hostGithub
-              }}</template>
+              <template v-if="codeRepoDetailForm.origin === ScmType.Github" #prepend
+                >{{ hostGithub }}
+              </template>
               <template v-else-if="codeRepoDetailForm.origin === ScmType.Gitee" #prepend>
                 {{ hostGitee }}
               </template>
@@ -572,9 +575,11 @@ function errorClick() {
               v-model="codeRepoDetailForm.token"
               :placeholder="t('common.inputText') + t('coderepo.token')"
             >
-              <template #append
-                ><ElIcon><MagicStick /> </ElIcon
-              ></template>
+              <template #append>
+                <ElIcon>
+                  <MagicStick />
+                </ElIcon>
+              </template>
             </ElInput>
           </ElFormItem>
         </ElCol>

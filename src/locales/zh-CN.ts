@@ -217,7 +217,6 @@ export default {
     at_least_one_org: '至少选择一个组织',
     latest_ci: '最近一次构建时间',
     updatedAt: '导入日期',
-    org: '所属组织',
     remove: '删除项目',
     removeConfirm: '即将删除项目且不可恢复，是否继续？',
     sourceCode: {
@@ -266,7 +265,6 @@ export default {
     all: '全部仓库',
     origin: '仓库来源',
     type: '仓库类型',
-    orgs: '所属组织',
     action: '操作',
     url: '仓库地址',
     user: '用户名',
@@ -288,13 +286,23 @@ export default {
   },
   builder: {
     name: '构建节点',
+    node_name: '节点名称',
+    available_nodes_number: '可用节点数',
+    max_worker: '同时构建任务上限',
+    workload: '工作负载',
     install: '安装构建节点',
     install_success: '安装成功',
     install_failure: '安装失败，请稍后再试，或者检查配置文件(kubeconfig）是否正确',
+    uninstall: '卸载构建节点',
+    uninstall_confirm: '即将卸载构建节点，是否继续?',
+    uninstall_success: '卸载成功',
+    uninstall_failure: '卸载失败，请稍后再试',
+    update_success: '更新成功',
+    update_failure: '更新失败，请稍后再试',
+    all: '全部节点',
     node_type: {
+      name: '节点类型',
       k8s: {
-        node_name: '节点名称',
-        max_worker: '同时构建任务上限',
         namespace: '名字空间'
       }
     },
@@ -343,7 +351,6 @@ export default {
     name: '集群名称',
     kubeconfig: 'KubeConfig',
     all: '全部集群',
-    orgs: '所属组织',
     action: '操作',
     serverVer: '集群版本',
     testingPassed: 'K8S集群连接成功',

@@ -305,7 +305,7 @@ function errorClick() {
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="t('k8s.orgs')" prop="orgLites">
+        <ElTableColumn :label="t('common.organization')" prop="orgLites">
           <template #default="scope">
             <ElSpace>
               <ElTag

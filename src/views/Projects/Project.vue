@@ -342,7 +342,7 @@ const actionHandler = (command: HandlerCommand) => {
     <ElTabPane :label="t('project.all')">
       <ElTable :data="projectDataList">
         <ElTableColumn prop="name" :label="t('project.name')" width="450" />
-        <ElTableColumn prop="org" :label="t('project.org')" width="300">
+        <ElTableColumn prop="org" :label="t('common.organization')" width="300">
           <template #default="scope">
             <ElTag style="cursor: default" :closable="false">
               {{ scope.row.org }}

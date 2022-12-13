@@ -2,18 +2,22 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Connection, InfoFilled, Search } from '@element-plus/icons-vue'
+import { Connection, Delete, Expand, InfoFilled, MoreFilled, Search } from '@element-plus/icons-vue'
 import { Error } from '@/components/Error'
-import { BuilderNodesOnk8s, NewBuilderNodes, Params } from '@/api/configure/types'
-import { getBuilderNodesOnK8sApi, installBuilderNodeOnK8s } from '@/api/configure/builder'
+import { BuilderNodesOnk8s, NewBuilderNodes, NodeType, Params } from '@/api/configure/types'
+import {
+  getBuilderNodesOnK8sApi,
+  installBuilderNodeOnK8s,
+  uninstallBuildNodeApi,
+  updateBuildNodeApi
+} from '@/api/configure/builder'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
+import { ElMessageBox } from 'element-plus/es'
 
 const bindDialogVisible = ref(false)
 
 const { t } = useI18n()
-
-const builderNodes = ref<NewBuilderNodes[]>([])
 
 const Organizations = ref<Array<Org>>(new Array<Org>())
 
@@ -31,37 +35,52 @@ const getOrganizations = async () => {
   })
 }
 
-getOrganizations()
+function GetIcon(nodeType: NodeType) {
+  switch (nodeType) {
+    case NodeType.Docker:
+      return ['logos:docker-icon', null]
+    case NodeType.Windows:
+      return ['logos:microsoft-windows', null]
+    case NodeType.Linux:
+      return ['flat-color-icons:linux', null]
+    case NodeType.MacOS:
+      return ['wpf:macos', null]
+    case NodeType.K8s:
+    default:
+      return ['logos:kubernetes', null]
+  }
+}
 
-// TODO: 当前仅作为mock使用
-builderNodes.value.push({
-  name: null,
-  maxWorker: 1,
-  workspace: 'gotocloud-agent', // 工作空间，等同于k8s的namespace
-  kubeConfig: null,
-  orgs: null
-})
+getOrganizations()
 
 const newBuilderNodeRef = ref<FormInstance>()
 const newBuilderNode = ref<NewBuilderNodes>({
+  id: 0,
+  nodeType: 0,
   name: null,
-  maxWorker: 1,
-  workspace: '', // 工作空间，等同于k8s的namespace
+  maxWorkers: 1,
+  workspace: 'gotocloud-agent', // 工作空间，等同于k8s的namespace
   kubeConfig: null,
-  orgs: null
+  remark: null,
+  orgLites: [],
+  orgs: []
 })
 
 function resetForm() {
   newBuilderNode.value = {
+    id: 0,
+    nodeType: 0,
     name: null,
-    maxWorker: 1,
+    maxWorkers: 1,
     workspace: '', // 工作空间，等同于k8s的namespace
     kubeConfig: null,
-    orgs: null
+    remark: null,
+    orgLites: [],
+    orgs: []
   }
 }
 
-const builderNodesOnK8s = ref<BuilderNodesOnk8s[]>()
+const builderNodesOnK8s = ref<BuilderNodesOnk8s[]>([])
 const getBuilderNodes = async function (params?: Params) {
   await getBuilderNodesOnK8sApi(
     params || {
@@ -111,7 +130,43 @@ const submit = async () => {
     }
   })
 }
-
+const update = async () => {
+  if (!newBuilderNodeRef.value) return
+  await newBuilderNodeRef.value.validate(async (valid, fields) => {
+    if (valid) {
+      await updateBuildNodeApi(newBuilderNode.value)
+        .then((resp) => {
+          if (resp.success) {
+            bindDialogVisible.value = false
+            resetForm()
+            getBuilderNodes()
+          }
+          resp.success
+            ? ElMessage({
+                type: 'success',
+                message: t('builder.update_success'),
+                showClose: true,
+                center: true
+              })
+            : ElMessage({
+                type: 'error',
+                message: t('builder.update_failure'),
+                showClose: true,
+                center: true,
+                grouping: true
+              })
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'error',
+            message: t('builder.update_failure'),
+            showClose: true,
+            center: true
+          })
+        })
+    }
+  })
+}
 const newBuilderNodeRule = ref<FormRules>({
   name: [
     {
@@ -159,11 +214,72 @@ const kubeconfig_demo =
   '  user:\n' +
   '    client-certificate-data: REDACTED\n' +
   '    client-key-data: REDACTED'
+
+interface HandlerCommand {
+  id: number
+  cmd: string
+  form: BuilderNodesOnk8s
+}
+
+const uninstallBuilderNode = async (nodeId: number) => {
+  await uninstallBuildNodeApi(nodeId).then((resp) => {
+    if (resp.success) {
+      getBuilderNodes()
+      ElMessage({
+        showClose: true,
+        message: t('builder.uninstall_success'),
+        type: 'success'
+      })
+    } else {
+      ElMessage({
+        showClose: true,
+        message: t('builder.uninstall_failure'),
+        type: 'error'
+      })
+    }
+  })
+}
+
+const dlgForCreate = ref<boolean>(true)
+const actionHandler = (command: HandlerCommand) => {
+  switch (command.cmd) {
+    case 'del': {
+      ElMessageBox.confirm(t('builder.uninstall_confirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        uninstallBuilderNode(command.id)
+      })
+      break
+    }
+    case 'view': {
+      dlgForCreate.value = false
+      bindDialogVisible.value = true
+      let orgIds: Array<number> = []
+      for (let i = 0; i < command.form.orgLites.length; i++) {
+        orgIds.push(command.form.orgLites[i].orgId)
+      }
+      newBuilderNode.value = {
+        id: command.form.id,
+        name: command.form.name,
+        maxWorkers: command.form.maxWorkers,
+        workspace: command.form.workspace,
+        kubeConfig: command.form.kubeConfig,
+        remark: command.form.remark,
+        orgs: orgIds,
+        nodeType: command.form.nodeType,
+        orgLites: command.form.orgLites
+      }
+      break
+    }
+  }
+}
 </script>
 
 <template>
   <Error
-    v-if="builderNodes.length === 0"
+    v-if="builderNodesOnK8s.length === 0"
     type="builder_empty"
     @error-click="
       () => {
@@ -193,8 +309,8 @@ const kubeconfig_demo =
           ref="newBuilderNodeRef"
           :rules="newBuilderNodeRule"
         >
-          <ElFormItem :label="t('builder.node_type.k8s.node_name')" prop="name">
-            <ElInput v-model="newBuilderNode.name" />
+          <ElFormItem :label="t('builder.node_name')" prop="name">
+            <ElInput :disabled="!dlgForCreate" v-model="newBuilderNode.name" />
           </ElFormItem>
           <ElFormItem prop="orgs" :label="t('common.organization')">
             <ElSelect multiple v-model="newBuilderNode.orgs" style="width: 100%">
@@ -203,10 +319,11 @@ const kubeconfig_demo =
                 :key="org.id"
                 :label="org.name"
                 :value="org.id"
-              /> </ElSelect
-          ></ElFormItem>
-          <ElFormItem :label="t('builder.node_type.k8s.max_worker')">
-            <ElInputNumber :min="1" controls-position="right" v-model="newBuilderNode.maxWorker" />
+              />
+            </ElSelect>
+          </ElFormItem>
+          <ElFormItem :label="t('builder.max_worker')">
+            <ElInputNumber :min="1" controls-position="right" v-model="newBuilderNode.maxWorkers" />
           </ElFormItem>
           <ElFormItem prop="workspace">
             <template #label>
@@ -218,7 +335,11 @@ const kubeconfig_demo =
                 </ElIcon>
               </ElTooltip>
             </template>
-            <ElInput placeholder="gotocloud-agent" v-model="newBuilderNode.workspace" />
+            <ElInput
+              placeholder="gotocloud-agent"
+              :disabled="!dlgForCreate"
+              v-model="newBuilderNode.workspace"
+            />
           </ElFormItem>
           <ElFormItem prop="kubeconfig">
             <template #label>
@@ -233,8 +354,19 @@ const kubeconfig_demo =
             <ElInput
               type="textarea"
               :placeholder="kubeconfig_demo"
+              :disabled="!dlgForCreate"
               v-model="newBuilderNode.kubeConfig"
-              :autosize="{ minRows: 6, maxRows: 9 }"
+              :autosize="{ minRows: 3, maxRows: 6 }"
+            />
+          </ElFormItem>
+          <ElFormItem prop="remark">
+            <template #label>
+              {{ t('common.remark') }}
+            </template>
+            <ElInput
+              type="textarea"
+              v-model="newBuilderNode.remark"
+              :autosize="{ minRows: 3, maxRows: 6 }"
             />
           </ElFormItem>
         </ElForm>
@@ -263,11 +395,16 @@ const kubeconfig_demo =
     <template #footer>
       <span>
         <ElButton @click="bindDialogVisible = false">{{ t('common.cancel') }}</ElButton>
-        <ElButton type="primary" @click="submit()">{{ t('common.install') }}</ElButton>
+        <ElButton v-if="dlgForCreate" type="primary" @click="submit()">{{
+          t('common.install')
+        }}</ElButton>
+        <ElButton v-if="!dlgForCreate" type="primary" @click="update()">{{
+          t('common.update')
+        }}</ElButton>
       </span>
     </template>
   </ElDialog>
-  <ElRow justify="space-between" v-if="builderNodes.length > 0">
+  <ElRow justify="space-between" v-if="builderNodesOnK8s.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.builders') }}</span>
@@ -286,6 +423,67 @@ const kubeconfig_demo =
       </ElButton>
     </ElCol>
   </ElRow>
-  <ElTabs v-if="builderNodes.length > 0" />
+  <ElTabs v-if="builderNodesOnK8s.length > 0">
+    <ElTabPane :label="t('builder.all')">
+      <ElTable style="width: 100%" :data="builderNodesOnK8s">
+        <ElTableColumn prop="name" :label="t('builder.node_name')" width="350">
+          <template #default="scope">
+            <ElSpace>
+              <Icon
+                :icon="GetIcon(scope.row.nodeType)[0]"
+                :color="GetIcon(scope.row.nodeType)[1]"
+                width="24"
+                height="24"
+              />
+              <span>{{ scope.row.name }}</span>
+            </ElSpace>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn prop="remark" :label="t('builder.workload')" width="300">
+          <template #default="scope">
+            {{ t('builder.available_nodes_number') }}: {{ scope.row.currentWorkers }} /
+            {{ scope.row.maxWorkers }}
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="t('common.organization')" prop="orgLites">
+          <template #default="scope">
+            <ElSpace>
+              <ElTag
+                style="cursor: default"
+                v-for="item in scope.row.orgLites"
+                :key="item.orgId"
+                :closable="false"
+                >{{ item.orgName }}
+              </ElTag>
+            </ElSpace>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
+        <ElTableColumn fixed="right" prop="id" :label="t('coderepo.action')" width="80">
+          <template #default="scope">
+            <ElDropdown @command="actionHandler">
+              <span class="el-dropdown-link">
+                <ElButton :icon="MoreFilled" circle />
+              </span>
+              <template #dropdown>
+                <ElDropdownMenu>
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'view', form: scope.row }">
+                    <ElLink :icon="Expand" :underline="false">
+                      {{ t('common.viewDetail') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                    <ElLink :icon="Delete" :underline="false" type="danger">
+                      {{ t('builder.uninstall') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                </ElDropdownMenu>
+              </template>
+            </ElDropdown>
+          </template>
+        </ElTableColumn>
+      </ElTable>
+    </ElTabPane>
+  </ElTabs>
 </template>
 <style scoped></style>
