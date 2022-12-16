@@ -116,14 +116,14 @@ export const getBuildCmdApi = async (env: string): Promise<BuildCmd> => {
 
 export const newBuildPlan = async (projectId: number, plan: BuildPlan) => {
   await request.post<IResponse<RepoCreationSubmitResult>>({
-    url: '/projects/' + projectId + '/build/plan',
+    url: '/projects/' + projectId + '/pipeline',
     data: plan
   })
 }
 
 export const getBuildPlansApi = async (projectId: number): Promise<BuildPlanCard[]> => {
   const res = await request.get<IResponse<BuildPlanCard[]>>({
-    url: '/projects/' + projectId + '/build/plan'
+    url: '/projects/' + projectId + '/pipeline'
   })
   return res && res.data && res.data.data
 }
@@ -133,7 +133,7 @@ export const deletePlanApi = async (
   planId: number
 ): Promise<DeletePlanResult> => {
   const res = await request.delete<IResponse<DeletePlanResult>>({
-    url: '/projects/' + projectId + '/build/plan/' + planId
+    url: '/projects/' + projectId + '/pipeline/' + planId
   })
   if (res && res.data) {
     return { success: res.data.code == '200' }
