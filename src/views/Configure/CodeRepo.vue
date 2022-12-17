@@ -77,6 +77,7 @@ interface CodeRepoType {
   RepoName: string
   Type: ScmType
   Items: Array<any> | null
+  Enabled: boolean
 }
 
 const codeRepoDetailFormRef = ref<FormInstance>()
@@ -105,24 +106,25 @@ function resetForm() {
 }
 
 function isUrl(url) {
-  const pattern =
-    '^(https|http)://' +
-    "(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?" + //user:password@
-    '(([0-9]{1,3}.){3}[0-9]{1,3}' + // ip
-    '|' + // or
-    "([0-9a-z_!~*'()-]+.)*" + // domain
-    '([0-9a-z][0-9a-z-]{0,61})?[0-9a-z].' + // sub domain
-    '[a-z]{2,6})' + // first level domain- .com and etc
-    '(:[0-9]{1,4})?' + // port
-    '((/?)|' + // a slash isn't required if there is no file name
-    "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$"
+  // const pattern =
+  //   '^(https|http)://' +
+  //   "(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?" + //user:password@
+  //   '(([0-9]{1,3}.){3}[0-9]{1,3}' + // ip
+  //   '|' + // or
+  //   "([0-9a-z_!~*'()-]+.)*" + // domain
+  //   '([0-9a-z][0-9a-z-]{0,61})?[0-9a-z].' + // sub domain
+  //   '[a-z]{2,6})' + // first level domain- .com and etc
+  //   '(:[0-9]{1,4})?' + // port
+  //   '((/?)|' + // a slash isn't required if there is no file name
+  //   "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$"
 
   if (codeRepoDetailForm.value.origin === ScmType.Github) {
     url = hostGithub + url
   } else if (codeRepoDetailForm.value.origin === ScmType.Gitee) {
     url = hostGitee + url
   }
-  return new RegExp(pattern).test(url)
+  return url.startsWith('http://') || url.startsWith('https://')
+  // return new RegExp(pattern).test(url)
 }
 
 const codeRepoDetailFormRule = ref<FormRules>({
@@ -172,22 +174,26 @@ const supportedCodeRepoTypes: Array<CodeRepoType> = [
   {
     RepoName: 'Gitlab',
     Type: ScmType.Gitlab,
-    Items: null
-  },
-  {
-    RepoName: 'Github',
-    Type: ScmType.Github,
-    Items: null
-  },
-  {
-    RepoName: 'Gitee',
-    Type: ScmType.Gitee,
-    Items: null
+    Items: null,
+    Enabled: true
   },
   {
     RepoName: 'Gitea',
     Type: ScmType.Gitea,
-    Items: null
+    Items: null,
+    Enabled: true
+  },
+  {
+    RepoName: 'Github',
+    Type: ScmType.Github,
+    Items: null,
+    Enabled: false
+  },
+  {
+    RepoName: 'Gitee',
+    Type: ScmType.Gitee,
+    Items: null,
+    Enabled: false
   }
 ]
 
@@ -503,12 +509,14 @@ function errorClick() {
               :key="type.Type"
               @mouseover="codeRepoTypeHover = type.Type"
               @mouseleave="codeRepoTypeHover = -1"
-              @click="codeRepoDetailForm.origin = type.Type"
+              @click="type.Enabled ? (codeRepoDetailForm.origin = type.Type) : true"
               class="radio-sel"
               :class="
                 type.Type === codeRepoTypeHover || type.Type === codeRepoDetailForm.origin
-                  ? 'radio-sel-hover'
-                  : 'radio-sel-hover-disabled'
+                  ? type.Enabled
+                    ? 'radio-sel-hover'
+                    : 'radio-sel-hover-disabled'
+                  : ''
               "
             >
               <Icon
@@ -543,6 +551,7 @@ function errorClick() {
         <ElFormItem :label="t('coderepo.type')">
           <ElSwitch
             v-model="codeRepoDetailForm.isPublic"
+            disabled
             :inactive-text="t('visibility.private')"
             :active-text="t('visibility.public')"
           />
