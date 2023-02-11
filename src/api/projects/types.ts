@@ -32,6 +32,10 @@ export type DeletePlanResult = {
   success: boolean
 }
 
+export type StartBuildPlanResult = {
+  success: boolean
+}
+
 export type UpdateResult = {
   success: boolean
 }

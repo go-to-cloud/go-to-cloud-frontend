@@ -22,7 +22,8 @@ import {
   getBuildEnvsApi,
   getBuildPlansApi,
   getSourceCodeListApi,
-  newBuildPlan
+  newBuildPlan,
+  startBuildPlanApi
 } from '@/api/projects'
 import { getArtifactRepoApi } from '@/api/configure/artifact'
 import { ArtifactRepoData } from '@/api/configure/types'
@@ -188,12 +189,25 @@ const actionHandler = (command: HandlerCommand) => {
       })
       break
     }
+    case 'building': {
+      startBuildPlan(command.id)
+      break
+    }
   }
 }
 
 const deletePlan = async (planId: number) => {
   let projectId = Number(params.id)
   await deletePlanApi(projectId, planId).then(async (resp) => {
+    if (resp.success) {
+      await getBuildPlans()
+    }
+  })
+}
+
+const startBuildPlan = async (planId: number) => {
+  let projectId = Number(params.id)
+  await startBuildPlanApi(projectId, planId).then(async (resp) => {
     if (resp.success) {
       await getBuildPlans()
     }
@@ -384,7 +398,10 @@ const deletePlan = async (planId: number) => {
               </span>
               <template #dropdown>
                 <ElDropdownMenu>
-                  <ElDropdownItem v-if="!scope.row.buildingNow">
+                  <ElDropdownItem
+                    v-if="!scope.row.buildingNow"
+                    :command="{ id: scope.row.id, cmd: 'building' }"
+                  >
                     <ElLink :underline="false">
                       <Icon icon="material-symbols:play-circle" />
                       {{ t('project.ci.build_now') }}

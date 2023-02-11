@@ -13,6 +13,7 @@ import {
   ImportedSourceCodeData,
   ImportSourceCodeResult,
   ProjectCreationSubmitResult,
+  StartBuildPlanResult,
   UpdateResult
 } from './types'
 import { RemoveRepoResult, RepoCreationSubmitResult } from '@/api/configure/types'
@@ -134,6 +135,20 @@ export const deletePlanApi = async (
 ): Promise<DeletePlanResult> => {
   const res = await request.delete<IResponse<DeletePlanResult>>({
     url: '/projects/' + projectId + '/pipeline/' + planId
+  })
+  if (res && res.data) {
+    return { success: res.data.code == '200' }
+  } else {
+    return { success: false }
+  }
+}
+
+export const startBuildPlanApi = async (
+  projectId: number,
+  planId: number
+): Promise<StartBuildPlanResult> => {
+  const res = await request.post<IResponse<StartBuildPlanResult>>({
+    url: '/projects/' + projectId + '/pipeline/' + planId + '/build'
   })
   if (res && res.data) {
     return { success: res.data.code == '200' }
