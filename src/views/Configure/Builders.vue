@@ -284,6 +284,7 @@ const actionHandler = (command: HandlerCommand) => {
     @error-click="
       () => {
         bindDialogVisible = true
+        dlgForCreate = true
       }
     "
   />
