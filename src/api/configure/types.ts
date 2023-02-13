@@ -111,5 +111,5 @@ export interface NewBuilderNodes {
 }
 
 export type BuilderNodesOnk8s = NewBuilderNodes & {
-  currentWorkers: number | null
+  availableWorkers: number | null
 }

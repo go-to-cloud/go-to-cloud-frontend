@@ -287,9 +287,10 @@ export default {
   builder: {
     name: '构建节点',
     node_name: '节点名称',
-    available_nodes_number: '可用节点数',
+    available_nodes_number: '空闲任务数',
     max_worker: '同时构建任务上限',
     workload: '工作负载',
+    node_status: '节点状态',
     install: '安装构建节点',
     install_success: '安装成功',
     install_failure: '安装失败，请稍后再试，或者检查配置文件(kubeconfig）是否正确',

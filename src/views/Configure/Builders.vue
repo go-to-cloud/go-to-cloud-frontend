@@ -442,9 +442,12 @@ const actionHandler = (command: HandlerCommand) => {
         </ElTableColumn>
         <ElTableColumn prop="remark" :label="t('builder.workload')" width="300">
           <template #default="scope">
-            {{ t('builder.available_nodes_number') }}: {{ scope.row.currentWorkers }} /
+            {{ t('builder.available_nodes_number') }}: {{ scope.row.availableWorkers }} /
             {{ scope.row.maxWorkers }}
           </template>
+        </ElTableColumn>
+        <ElTableColumn prop="pod_status" :label="t('builder.node_status')" width="300">
+          n个指示灯
         </ElTableColumn>
         <ElTableColumn :label="t('common.organization')" prop="orgLites">
           <template #default="scope">
