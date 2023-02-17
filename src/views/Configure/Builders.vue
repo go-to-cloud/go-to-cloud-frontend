@@ -12,7 +12,7 @@ import {
   updateBuildNodeApi
 } from '@/api/configure/builder'
 import { Org } from '@/api/common/types'
-import { getOrganizationsApi } from '@/api/common'
+import { getAvailableNodesApi, getOrganizationsApi } from '@/api/common'
 import { ElMessageBox } from 'element-plus/es'
 
 const bindDialogVisible = ref(false)
@@ -26,8 +26,8 @@ class autoRefreshNodes {
 
   startTimer() {
     this.intervalId = setInterval(() => {
-      // 执行需要重复执行的代码
-    }, 1000) // 1秒钟执行一次
+      refreshNodes()
+    }, 5000)
   }
 
   stopTimer() {
@@ -38,6 +38,19 @@ class autoRefreshNodes {
   }
 }
 new autoRefreshNodes().startTimer()
+
+const refreshNodes = async () => {
+  await getAvailableNodesApi().then((resp) => {
+    if (resp!) {
+      for (let i = 0; i < builderNodesOnK8s.value.length; i++) {
+        const v = builderNodesOnK8s.value[i]
+        if (v && v.id) {
+          v.availableWorkers = resp.get(v.id) ?? 0
+        }
+      }
+    }
+  })
+}
 const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {

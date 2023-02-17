@@ -15,3 +15,14 @@ export const getOrganizationsApi = async (): Promise<Map<string, string>> => {
 
   return obj == null ? obj : new Map(Object.entries(obj))
 }
+
+// 获取可用节点
+export const getAvailableNodesApi = async (): Promise<Map<number, number>> => {
+  const res = await request.get({
+    url: '/configure/builder/nodes/k8s/available'
+  })
+
+  const obj = res && res.data && res.data.data && res.data.data.orgs
+
+  return obj == null ? obj : new Map(Object.entries(obj))
+}
