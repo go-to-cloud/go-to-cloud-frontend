@@ -37,15 +37,17 @@ class autoRefreshNodes {
     }
   }
 }
-new autoRefreshNodes().startTimer()
 
 const refreshNodes = async () => {
   await getAvailableNodesApi().then((resp) => {
     if (resp!) {
       for (let i = 0; i < builderNodesOnK8s.value.length; i++) {
         const v = builderNodesOnK8s.value[i]
-        if (v && v.id) {
-          v.availableWorkers = resp.get(v.id) ?? 0
+        for (let entry of resp.entries()) {
+          if (v.id == entry[0]) {
+            v.availableWorkers = entry[1]
+            break
+          }
         }
       }
     }
@@ -82,6 +84,8 @@ function GetIcon(nodeType: NodeType) {
 }
 
 getOrganizations()
+new autoRefreshNodes().startTimer()
+refreshNodes()
 
 const newBuilderNodeRef = ref<FormInstance>()
 const newBuilderNode = ref<NewBuilderNodes>({

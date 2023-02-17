@@ -22,7 +22,6 @@ export const getAvailableNodesApi = async (): Promise<Map<number, number>> => {
     url: '/configure/builder/nodes/k8s/available'
   })
 
-  const obj = res && res.data && res.data.data && res.data.data.orgs
-
+  const obj = res && res.data && res.data.data
   return obj == null ? obj : new Map(Object.entries(obj))
 }
