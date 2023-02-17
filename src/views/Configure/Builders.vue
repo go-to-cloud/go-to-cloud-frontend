@@ -21,6 +21,23 @@ const { t } = useI18n()
 
 const Organizations = ref<Array<Org>>(new Array<Org>())
 
+class autoRefreshNodes {
+  intervalId: any | null = null
+
+  startTimer() {
+    this.intervalId = setInterval(() => {
+      // 执行需要重复执行的代码
+    }, 1000) // 1秒钟执行一次
+  }
+
+  stopTimer() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    }
+  }
+}
+new autoRefreshNodes().startTimer()
 const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
     if (resp!) {
