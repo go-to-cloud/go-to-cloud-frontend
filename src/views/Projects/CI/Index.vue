@@ -4,7 +4,7 @@ import { CirclePlus, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 
 import { useIcon } from '@/hooks/web/useIcon'
 import {
@@ -23,6 +23,7 @@ import {
   getBuildPlansApi,
   getSourceCodeListApi,
   newBuildPlan,
+  refreshPipelineApi,
   startBuildPlanApi
 } from '@/api/projects'
 import { getArtifactRepoApi } from '@/api/configure/artifact'
@@ -51,6 +52,7 @@ const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
 const ruleForm = reactive<BuildPlan>({
+  pipeline: 0,
   name: '',
   buildEnv: '',
   source_code_id: undefined,
@@ -91,7 +93,6 @@ const getSourceCodeBranches = async (srcId: number) => {
     branchList.value = dat.branches
   })
 }
-getSourceCodeList()
 
 const buildEnvList = ref<BuildEnvGroup[]>()
 const getBuildEnvList = async () => {
@@ -99,7 +100,6 @@ const getBuildEnvList = async () => {
     buildEnvList.value = dat
   })
 }
-getBuildEnvList()
 
 const artifactTypes = ref<ArtifactRepoData[]>([])
 
@@ -108,7 +108,6 @@ const getArtifactRepo = async () => {
     artifactTypes.value = resp
   })
 }
-getArtifactRepo()
 
 const getBuildCmd = async (env: string) => {
   await getBuildCmdApi(env).then((dat) => {
@@ -142,8 +141,19 @@ const getBuildPlans = async () => {
     planCards.value = dat
   })
 }
-getBuildPlans()
 
+const buildResultEffect = function (rlt: number): string {
+  switch (rlt) {
+    case 1:
+    case 2:
+    case 3:
+      return 'dark'
+    case 0:
+    case 99:
+      return 'light'
+  }
+  return 'dark'
+}
 const buildResultType = function (rlt: number): string {
   switch (rlt) {
     case 0:
@@ -154,6 +164,8 @@ const buildResultType = function (rlt: number): string {
       return 'warning'
     case 3:
       return 'danger'
+    case 99:
+      return 'success'
   }
   return ''
 }
@@ -168,6 +180,8 @@ const buildResultText = function (rlt: number): string {
       return t('project.ci.result.cancel')
     case 3:
       return t('project.ci.result.failed')
+    case 99:
+      return t('project.ci.result.building')
   }
   return ''
 }
@@ -213,6 +227,56 @@ const startBuildPlan = async (planId: number) => {
     }
   })
 }
+
+class autoRefreshPipeline {
+  intervalId: NodeJS.Timer | null = null
+
+  startTimer() {
+    this.intervalId = setInterval(() => {
+      refreshPipelines()
+    }, 5000)
+  }
+
+  stopTimer() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    }
+  }
+}
+
+const pipelineRefresh = ref<autoRefreshPipeline>()
+
+const refreshPipelines = async () => {
+  let projectId = Number(params.id)
+  await refreshPipelineApi(projectId).then((resp) => {
+    if (resp! && planCards!) {
+      for (let i = 0; i < planCards.value!.length; i++) {
+        console.log(planCards.value![i])
+      }
+      for (let i = 0; i < resp.length; i++) {
+        let m = planCards.value?.find((r) => r.id == resp[i].id)
+        if (m!) {
+          if (m.lastBuildResult != resp[i].lastBuildResult) {
+          }
+          m.lastBuildResult = resp[i].lastBuildResult
+        }
+      }
+    }
+  })
+}
+onMounted(() => {
+  getSourceCodeList()
+  getBuildEnvList()
+  getArtifactRepo()
+  getBuildPlans()
+  pipelineRefresh.value = new autoRefreshPipeline()
+  pipelineRefresh.value.startTimer()
+  refreshPipelines()
+})
+onUnmounted(() => {
+  pipelineRefresh.value!.stopTimer()
+})
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
@@ -359,14 +423,16 @@ const startBuildPlan = async (planId: number) => {
         <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
         <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
         <ElTableColumn fixed prop="branch" :label="t('project.ci.code_branch')" width="180" />
-        <ElTableColumn :label="t('project.ci.last_build')" width="160">
+        <ElTableColumn :label="t('project.ci.last_build')" width="300">
           <template #default="scope">
             <span v-if="scope.row.lastBuildResult != 0"
               >{{ scope.row.lastBuildAt }} <ElDivider direction="vertical"
             /></span>
-            <ElTag :type="buildResultType(scope.row.lastBuildResult)" effect="dark">{{
-              buildResultText(scope.row.lastBuildResult)
-            }}</ElTag>
+            <ElTag
+              :type="buildResultType(scope.row.lastBuildResult)"
+              :effect="buildResultEffect(scope.row.lastBuildResult)"
+              >{{ buildResultText(scope.row.lastBuildResult) }}</ElTag
+            >
           </template>
         </ElTableColumn>
         <ElTableColumn :label="t('project.ci.steps')" width="160">

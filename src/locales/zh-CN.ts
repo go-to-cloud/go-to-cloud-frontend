@@ -247,7 +247,8 @@ export default {
       result: {
         never: '从未执行',
         success: '成功',
-        failed: '失败'
+        failed: '失败',
+        building: '正在构建'
       },
       removeConfirm: '即将删除构建计划且不可恢复，是否继续？'
     },

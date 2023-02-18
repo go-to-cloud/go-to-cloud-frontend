@@ -247,7 +247,8 @@ export default {
       result: {
         never: 'Never',
         success: 'Success',
-        failed: 'Failure'
+        failed: 'Failure',
+        building: 'Building'
       },
       removeConfirm: 'Build plan will be removed. Continue?'
     },

@@ -156,3 +156,10 @@ export const startBuildPlanApi = async (
     return { success: false }
   }
 }
+
+export const refreshPipelineApi = async (projectId: number): Promise<BuildPlanCard[]> => {
+  const res = await request.get<IResponse<BuildPlanCard[]>>({
+    url: '/projects/' + projectId + '/pipeline/state'
+  })
+  return res && res.data && res.data.data
+}
