@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Connection, Delete, Expand, InfoFilled, MoreFilled, Search } from '@element-plus/icons-vue'
-import { Error } from '@/components/Error'
 import { BuilderNodesOnk8s, NewBuilderNodes, NodeType, Params } from '@/api/configure/types'
 import {
   getBuilderNodesOnK8sApi,
@@ -16,13 +14,22 @@ import { getAvailableNodesApi, getOrganizationsApi } from '@/api/common'
 import { ElMessageBox } from 'element-plus/es'
 
 const bindDialogVisible = ref(false)
-
 const { t } = useI18n()
 
 const Organizations = ref<Array<Org>>(new Array<Org>())
 
+const nodeRefresh = ref<autoRefreshNodes>()
+onMounted(() => {
+  nodeRefresh.value = new autoRefreshNodes()
+  getOrganizations()
+  nodeRefresh.value.startTimer()
+  refreshNodes()
+})
+onUnmounted(() => {
+  nodeRefresh.value!.stopTimer()
+})
 class autoRefreshNodes {
-  intervalId: any | null = null
+  intervalId: NodeJS.Timer | null = null
 
   startTimer() {
     this.intervalId = setInterval(() => {
@@ -82,10 +89,6 @@ function GetIcon(nodeType: NodeType) {
       return ['logos:kubernetes', null]
   }
 }
-
-getOrganizations()
-new autoRefreshNodes().startTimer()
-refreshNodes()
 
 const newBuilderNodeRef = ref<FormInstance>()
 const newBuilderNode = ref<NewBuilderNodes>({
