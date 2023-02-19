@@ -90,6 +90,7 @@ export type BuildPlan = {
   lint_check: string | undefined
   artifact_enabled: boolean
   dockerfile: string | undefined
+  image_name: string | undefined
   artifact_repo_id: number | undefined
   deploy_enabled: boolean
   remark: string | undefined

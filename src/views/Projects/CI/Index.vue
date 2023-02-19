@@ -52,7 +52,7 @@ const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
 const ruleForm = reactive<BuildPlan>({
-  pipeline: 0,
+  id: 0,
   name: '',
   buildEnv: '',
   source_code_id: undefined,
@@ -62,6 +62,7 @@ const ruleForm = reactive<BuildPlan>({
   lint_check: '',
   artifact_enabled: true,
   dockerfile: '',
+  image_name: '',
   artifact_repo_id: undefined,
   deploy_enabled: true,
   remark: ''
@@ -69,10 +70,34 @@ const ruleForm = reactive<BuildPlan>({
 
 const ruleFormRef = ref<FormInstance>()
 const rules = reactive<FormRules>({
-  'name:': [
+  name: [
     {
       required: true,
-      trigger: 'blur'
+      trigger: 'blur',
+      message: t('common.required')
+    }
+  ],
+  dockerfile: [
+    {
+      required: true,
+      trigger: 'blur',
+      message: t('common.required'),
+      validator: (rule, value) => {
+        if (!ruleForm.artifact_enabled) return true
+        return value.trim().length > 0
+      }
+    }
+  ],
+  image_name: [
+    {
+      required: true,
+      trigger: 'blur',
+      message: t('project.ci.artifact_name_rule'),
+      validator: (rule, value) => {
+        if (!ruleForm.artifact_enabled) return true
+        const reg = new RegExp('^[a-z][a-z0-9]*([-_.][a-z0-9]+)*$')
+        return reg.test(value)
+      }
     }
   ]
 })
@@ -367,8 +392,11 @@ onUnmounted(() => {
                       :active-text="t('project.ci.stage_enable')"
                   /></div>
                 </template>
-                <ElFormItem :label="t('project.ci.dockerfile')">
+                <ElFormItem :label="t('project.ci.dockerfile')" prop="dockerfile">
                   <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.dockerfile" />
+                </ElFormItem>
+                <ElFormItem :label="t('project.ci.artifact_name')" prop="image_name">
+                  <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.image_name" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.artifact_repo')">
                   <ElSelect

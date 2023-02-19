@@ -237,6 +237,8 @@ export default {
       artifact_header: 'Artifact',
       dockerfile: 'Dockerfile',
       artifact_repo: 'Artifact Repo',
+      artifact_name: 'Image Name',
+      artifact_name_rule: 'Image name not match the rule, a-z, 0-9, . _ - only',
       stage_enable: 'Enable',
       last_build: 'Last Build',
       build_now: 'Build Now',

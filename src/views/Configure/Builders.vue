@@ -2,6 +2,7 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
+import { Delete, Expand, MoreFilled, Search } from '@element-plus/icons-vue'
 import { BuilderNodesOnk8s, NewBuilderNodes, NodeType, Params } from '@/api/configure/types'
 import {
   getBuilderNodesOnK8sApi,
