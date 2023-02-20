@@ -478,7 +478,7 @@ onUnmounted(() => {
               >
                 <Icon class="toolset" icon="file-icons:commitlint" />
               </ElTooltip>
-              <ElTooltip v-if="scope.row.artifact_enabled" :content="t('project.ci.artifact')">
+              <ElTooltip v-if="scope.row.artifact_enabled" :content="t('project.toolset.artifact')">
                 <Icon class="toolset" icon="cib:azure-artifacts" />
               </ElTooltip>
             </ElSpace>
