@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
 import {
@@ -40,12 +40,16 @@ const dlgForCreate = ref(true)
 
 const selectedRepoTab = ref('-1')
 const repoSelected = async (name: string) => {
-  const artifact = artifactTypes.value[Number(name)]
-  if (artifact.Items === null) {
-    const artifactId = artifact.Id
-    await getRepoItemApi(artifactId).then((resp) => {
-      artifact.Items = resp
-    })
+  for (let i = 0; i < artifactTypes.value.length; i++) {
+    if (artifactTypes.value[i].Id + '' == name) {
+      const artifact = artifactTypes.value[i]
+      if (artifact.Items === null) {
+        const artifactId = artifact.Id
+        await getRepoItemApi(artifactId).then((resp) => {
+          artifact.Items = resp
+        })
+      }
+    }
   }
 }
 
@@ -171,7 +175,7 @@ const close = (formEl: FormInstance | undefined) => {
 const artifactTypes = ref<Array<ArtifactType>>([])
 
 const getArtifactRepoList = async (params?: any) => {
-  await getArtifactRepoApi(params).then((resp) => {
+  await getArtifactRepoApi(params).then(async (resp) => {
     artifactTypes.value = new Array<ArtifactType>()
 
     for (let i = 0; i < resp.length; i++) {
@@ -187,11 +191,10 @@ const getArtifactRepoList = async (params?: any) => {
     }
     if (resp.length > 0 && selectedRepoTab.value === '-1') {
       selectedRepoTab.value = '0'
+      await repoSelected(artifactTypes.value.at(0)!.Id + '')
     }
   })
 }
-
-getArtifactRepoList()
 
 const getOrganizations = async () => {
   await getOrganizationsApi().then((resp) => {
@@ -209,7 +212,6 @@ const getOrganizations = async () => {
   })
 }
 
-getOrganizations()
 const artifactTypeHover = ref(0)
 const artifactTabHover = ref(0)
 const artifactTabSelected = ref(-1)
@@ -447,6 +449,11 @@ function isFirstTabInit(a: ArtifactType): boolean {
     a.Id === artifactTabSelected.value
   )
 }
+
+onMounted(() => {
+  getOrganizations()
+  getArtifactRepoList()
+})
 </script>
 
 <template>
