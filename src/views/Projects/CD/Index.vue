@@ -422,7 +422,7 @@ onUnmounted(() => {
       <el-button type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </el-button>
     </template>
   </ElDialog>
-  <ContentDetailWrap :title="t('project.toolset.ci')" @back="push('/projects/index')">
+  <ContentDetailWrap :title="t('project.toolset.cd')" @back="push('/projects/index')">
     <ElRow justify="space-between">
       <ElCol :span="18">
         <ElSpace wrap>
@@ -430,7 +430,7 @@ onUnmounted(() => {
           <ElDivider direction="vertical" />
           <ElInput
             v-model="filterKeywords"
-            :placeholder="t('project.ci.plan')"
+            :placeholder="t('project.cd.plan')"
             :suffix-icon="Search"
             clearable
           />
@@ -438,14 +438,14 @@ onUnmounted(() => {
       </ElCol>
       <ElCol :span="6" style="text-align: right">
         <ElButton :icon="CirclePlus" @click="showNewPlanDlg" type="primary">
-          {{ t('project.ci.new_plan') }}</ElButton
+          {{ t('project.cd.new_plan') }}</ElButton
         >
       </ElCol>
     </ElRow>
     <ElDivider />
     <ElSpace wrap :size="30">
       <ElTable :data="planCards" style="width: 100%">
-        <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
+        <ElTableColumn fixed prop="name" :label="t('project.cd.plan_name')" width="250" />
         <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
         <ElTableColumn fixed prop="branch" :label="t('project.ci.code_branch')" width="180" />
         <ElTableColumn :label="t('project.ci.last_build')" width="300">

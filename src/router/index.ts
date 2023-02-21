@@ -24,6 +24,14 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     }
   },
   {
+    path: '/projects/cd/:id',
+    component: () => import('@/views/Projects/CD/Index.vue'),
+    name: 'ProjectCD',
+    meta: {
+      hidden: true
+    }
+  },
+  {
     path: '/projects/codes/:id',
     component: () => import('@/views/Projects/Codes/Index.vue'),
     name: 'ProjectCode',

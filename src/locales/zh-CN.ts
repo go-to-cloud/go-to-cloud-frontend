@@ -254,6 +254,36 @@ export default {
       },
       removeConfirm: '即将删除构建计划且不可恢复，是否继续？'
     },
+    cd: {
+      plan: '部署方案',
+      new_plan: '创建部署方案',
+      plan_name: '应用名称',
+      code_repo_header: '代码仓库',
+      code_repo: 'Git地址',
+      code_branch: '构建分支',
+      qa_header: '代码质量',
+      unit_test: '单元测试',
+      lint_check: 'Lint检测',
+      artifact_header: '镜像制品',
+      dockerfile: 'Dockerfile',
+      artifact_repo: '制品仓库',
+      artifact_name: '制品名称',
+      artifact_name_rule: '镜像名称只允许小写字母、数字以及. _ -',
+      stage_enable: '启用',
+      last_build: '最近构建',
+      build_now: '立即构建',
+      cancel_building: '中止构建',
+      build_history: '构建历史',
+      delete_plan: '删除计划',
+      steps: '节点任务',
+      result: {
+        never: '从未执行',
+        success: '成功',
+        failed: '失败',
+        building: '正在构建'
+      },
+      removeConfirm: '即将删除构建计划且不可恢复，是否继续？'
+    },
     toolset: {
       code: '代码仓库',
       ci: '持续集成',

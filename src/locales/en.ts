@@ -254,6 +254,36 @@ export default {
       },
       removeConfirm: 'Build plan will be removed. Continue?'
     },
+    cd: {
+      plan: 'CD Plan',
+      new_plan: 'New Plan',
+      app_name: 'App Name',
+      code_repo_header: 'Code Repo',
+      code_repo: 'Git Address',
+      code_branch: 'Build Branch',
+      qa_header: 'QA',
+      unit_test: 'Unit Test',
+      lint_check: 'Lint',
+      artifact_header: 'Artifact',
+      dockerfile: 'Dockerfile',
+      artifact_repo: 'Artifact Repo',
+      artifact_name: 'Image Name',
+      artifact_name_rule: 'Image name not match the rule, a-z, 0-9, . _ - only',
+      stage_enable: 'Enable',
+      last_build: 'Last Build',
+      build_now: 'Build Now',
+      cancel_building: 'Stop Building',
+      build_history: 'Build History',
+      delete_plan: 'Delete Plan',
+      steps: 'Build Step',
+      result: {
+        never: 'Never',
+        success: 'Success',
+        failed: 'Failure',
+        building: 'Building'
+      },
+      removeConfirm: 'Build plan will be removed. Continue?'
+    },
     toolset: {
       code: 'Code Repository',
       ci: 'Continuous Integration',
