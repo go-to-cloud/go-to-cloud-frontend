@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ElButton, ElCard, FormInstance, FormRules } from 'element-plus'
-import { CirclePlus, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
+import { ElButton, FormInstance, FormRules } from 'element-plus'
+import { CirclePlus, Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
+import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
@@ -29,6 +30,43 @@ import {
 import { getArtifactRepoApi } from '@/api/configure/artifact'
 import { ArtifactRepoData } from '@/api/configure/types'
 import { ElMessageBox } from 'element-plus/es'
+
+const namespaces = ref<string[]>([])
+const namespacesPair = ref<TextValuePair[]>([])
+const formSize = ref('default')
+
+interface KeyValuePair {
+  key: string
+  value: string
+}
+interface TextValuePair {
+  text: string
+  value: string
+}
+
+interface DeploymentData {
+  name: string
+  namespace: string
+}
+
+const nsFilterHandler = (
+  value: string,
+  row: DeploymentData,
+  column: TableColumnCtx<DeploymentData>
+) => {
+  const property = column['property']
+  return row.namespace === value
+}
+
+const ports = reactive<{ portMapping: KeyValuePair[] }>({
+  portMapping: [
+    {
+      key: '80',
+      value: '80'
+    }
+  ]
+})
+////////////////////////////////////////
 
 const tSize = ref(24)
 const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tSize.value })
@@ -301,125 +339,182 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
+  <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
     <div style="height: 500px">
       <ElScrollbar>
         <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
-          <ElTimeline style="margin-top: 10px">
-            <ElTimelineItem size="large" placement="top">
-              <ElCard>
-                <ElFormItem :label="t('project.ci.build_env')">
-                  <ElSelect
-                    v-model="ruleForm.buildEnv"
-                    @change="buildEnvSelected"
-                    :placeholder="t('common.selectText')"
+          <ElFormItem label="名字空间" prop="namespace">
+            <ElSelect v-model="ruleForm.namespace" placeholder="选择名字空间">
+              <Eloption v-for="item in namespaces" :key="item" :label="item" :value="item" />
+            </ElSelect>
+          </ElFormItem>
+          <ElFormItem label="制品名称" prop="artifact">
+            <ElAutocomplete
+              v-model="ruleForm.artifact"
+              placeholder="输入制品名称"
+              :fetch-suggestions="queryArtifacts"
+              :trigger-on-focus="false"
+              @select="artifactSelected"
+            />
+          </ElFormItem>
+          <ElFormItem label="镜像版本" prop="version">
+            <ElSelect
+              v-model="ruleForm.version"
+              class="inline-input w-50"
+              placeholder="输入部署版本"
+            >
+              <ElOption
+                v-for="item in ruleForm.versions"
+                :key="item.value"
+                :label="item.value"
+                :value="item.value"
+              />
+            </ElSelect>
+          </ElFormItem>
+          <ElFormItem label="副本数量" prop="replicate">
+            <ElInputNumber v-model="ruleForm.replicate" :min="1" :max="20" />
+          </ElFormItem>
+          <ElFormItem label="端口映射" prop="count">
+            <ElSpace direction="vertical" :size="10">
+              <ElFormItem v-for="port in ports.portMapping" :key="port.key">
+                <ElCol :span="8">
+                  <ElInput
+                    class="w-50 m-2"
+                    :controls="false"
+                    v-model="port.key"
+                    :min="1"
+                    :max="65535"
+                    oninput="value=value.replace(/\D/g,'')"
+                    placeholder="80"
                   >
-                    <ElOptionGroup
-                      v-for="group in buildEnvList"
-                      :key="group.label"
-                      :label="group.label"
-                    >
-                      <ElOption
-                        v-for="item in group.options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                      />
-                    </ElOptionGroup> </ElSelect
-                ></ElFormItem>
-              </ElCard>
-            </ElTimelineItem>
-            <ElTimelineItem size="large" :icon="t01" placement="top">
-              <ElCard>
-                <ElFormItem :label="t('project.ci.plan_name')" prop="name">
-                  <ElInput v-model="ruleForm.name" />
-                </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" :icon="t02" placement="top">
-              <ElCard :header="t('project.ci.code_repo_header')">
-                <ElFormItem :label="t('project.ci.code_repo')">
-                  <ElSelect
-                    v-model="ruleForm.source_code_id"
-                    @change="gitSelected"
-                    :placeholder="t('common.selectText')"
+                    <template #prepend>服务端口</template>
+                  </ElInput>
+                </ElCol>
+                <ElCol class="text-center" :span="1" />
+                <ElCol :span="8">
+                  <ElInput class="w-50 m-2" :controls="false" v-model="port.value" placeholder="80">
+                    <template #prepend>容器端口</template>
+                  </ElInput>
+                </ElCol>
+                <ElCol :span="2">
+                  <ElButton
+                    type="primary"
+                    :icon="Plus"
+                    plain
+                    style="margin-left: 10px"
+                    circle
+                    @click="addPorts"
+                  />
+                </ElCol>
+                <ElCol :span="2">
+                  <ElButton
+                    v-if="ports.portMapping.length <= 1"
+                    disabled
+                    type="danger"
+                    :icon="Delete"
+                    plain
+                    style="margin-left: 10px"
+                    circle
+                  />
+                  <ElButton
+                    v-if="ports.portMapping.length > 1"
+                    type="danger"
+                    :icon="Delete"
+                    plain
+                    style="margin-left: 10px"
+                    circle
+                    @click="removePort(index)"
+                  />
+                </ElCol>
+              </ElFormItem>
+            </ElSpace>
+          </ElFormItem>
+
+          <ElFormItem label="资源配置">
+            <ElSpace direction="vertical" style="align-items: flex-start">
+              <ElSwitch v-model="enableLimit" />
+              <ElFormItem v-if="enableLimit">
+                <ElCol :span="9">
+                  <ElInput
+                    v-model="ruleForm.cpuRequest"
+                    :controls="false"
+                    placeholder="1000"
+                    oninput="value=value.replace(/\D/g,'')"
                   >
-                    <ElOption
-                      v-for="item in sourceCodeList"
-                      :key="item.id"
-                      :label="item.url"
-                      :value="item.id"
-                    />
-                  </ElSelect>
-                </ElFormItem>
-                <ElFormItem :label="t('project.ci.code_branch')">
-                  <ElSelect v-model="ruleForm.branch" :placeholder="t('common.selectText')">
-                    <ElOption
-                      v-for="item in branchList"
-                      :key="item.Path"
-                      :label="item.Name"
-                      :value="item.Path"
-                    />
-                  </ElSelect>
-                </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" :icon="t03" placement="top">
-              <ElCard>
-                <template #header>
-                  <div class="card-header">
-                    <span>{{ t('project.ci.qa_header') }}</span>
-                    <ElSwitch
-                      v-model="ruleForm.qa_enabled"
-                      :active-text="t('project.ci.stage_enable')"
-                  /></div>
-                </template>
-                <ElFormItem :label="t('project.ci.unit_test')">
-                  <ElInput :disabled="!ruleForm.qa_enabled" v-model="ruleForm.unit_test" />
-                </ElFormItem>
-                <ElFormItem :label="t('project.ci.lint_check')">
-                  <ElInput :disabled="!ruleForm.qa_enabled" v-model="ruleForm.lint_check" />
-                </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" :icon="t04" placement="top">
-              <ElCard>
-                <template #header>
-                  <div class="card-header">
-                    <span>{{ t('project.ci.artifact_header') }}</span>
-                    <ElSwitch
-                      v-model="ruleForm.artifact_enabled"
-                      :active-text="t('project.ci.stage_enable')"
-                  /></div>
-                </template>
-                <ElFormItem :label="t('project.ci.dockerfile')" prop="dockerfile">
-                  <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.dockerfile" />
-                </ElFormItem>
-                <ElFormItem :label="t('project.ci.artifact_name')" prop="image_name">
-                  <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.image_name" />
-                </ElFormItem>
-                <ElFormItem :label="t('project.ci.artifact_repo')">
-                  <ElSelect
-                    :disabled="!ruleForm.artifact_enabled"
-                    v-model="ruleForm.artifact_repo_id"
-                    :placeholder="t('common.selectText')"
+                    <template #prepend>CPU资源</template>
+                  </ElInput>
+                </ElCol>
+                <ElCol :span="1" />
+                <ElCol :span="9">
+                  <ElInput
+                    v-model="ruleForm.cpuLimits"
+                    :controls="false"
+                    placeholder="2000"
+                    oninput="value=value.replace(/\D/g,'')"
                   >
-                    <ElOption
-                      v-for="item in artifactTypes"
-                      :key="item.name"
-                      :label="item.name"
-                      :value="item.id"
-                    />
-                  </ElSelect>
-                </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" placement="top">
-              <ElSpace />
-            </ElTimelineItem>
-          </ElTimeline>
+                    <template #prepend>CPU限制</template>
+                  </ElInput>
+                </ElCol>
+              </ElFormItem>
+              <ElFormItem v-if="enableLimit">
+                <ElCol :span="9">
+                  <ElInput
+                    v-model="ruleForm.memRequest"
+                    :controls="false"
+                    placeholder="500"
+                    oninput="value=value.replace(/\D/g,'')"
+                  >
+                    <template #prepend>内存资源</template>
+                  </ElInput>
+                </ElCol>
+                <ElCol :span="1" />
+                <ElCol :span="9">
+                  <ElInput
+                    v-model="ruleForm.memLimits"
+                    :controls="false"
+                    placeholder="2000"
+                    oninput="value=value.replace(/\D/g,'')"
+                  >
+                    <template #prepend>内存限制</template>
+                  </ElInput>
+                </ElCol>
+              </ElFormItem>
+            </ElSpace>
+          </ElFormItem>
+
+          <ElFormItem label="健康检查">
+            <ElCol :span="9">
+              <ElInput
+                v-model="ruleForm.healthcheck"
+                placeholder="健康检查"
+                :formatter="(value) => `/ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                :parser="(value) => value.replace(/\/\s?|(,*)/g, '')"
+              />
+            </ElCol>
+            <ElCol class="text-center" :span="1" />
+            <ElCol :span="9">
+              <ElFormItem prop="date2">
+                <ElInput
+                  v-model="ruleForm.healthcheckPort"
+                  :controls="false"
+                  label="服务端口"
+                  placeholder="80"
+                >
+                  <template #prepend>服务端口</template>
+                </ElInput>
+              </ElFormItem>
+            </ElCol>
+          </ElFormItem>
+          <ElFormItem>
+            <ElButton type="primary" @click="submitForm(ruleFormRef)">提交 </ElButton>
+            <ElButton @click="resetForm">重置</ElButton>
+          </ElFormItem>
         </ElForm>
       </ElScrollbar>
     </div>
     <template #footer>
-      <el-button @click="tplDialogVisible = false">{{ t('common.close') }}</el-button>
-      <el-button type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </el-button>
+      <ElButton @click="tplDialogVisible = false">{{ t('common.close') }}</ElButton>
+      <ElButton type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </ElButton>
     </template>
   </ElDialog>
   <ContentDetailWrap :title="t('project.toolset.cd')" @back="push('/projects/index')">
@@ -430,7 +525,7 @@ onUnmounted(() => {
           <ElDivider direction="vertical" />
           <ElInput
             v-model="filterKeywords"
-            :placeholder="t('project.cd.plan')"
+            :placeholder="t('project.cd.app_name')"
             :suffix-icon="Search"
             clearable
           />
@@ -438,50 +533,38 @@ onUnmounted(() => {
       </ElCol>
       <ElCol :span="6" style="text-align: right">
         <ElButton :icon="CirclePlus" @click="showNewPlanDlg" type="primary">
-          {{ t('project.cd.new_plan') }}</ElButton
+          {{ t('project.cd.new_app') }}</ElButton
         >
       </ElCol>
     </ElRow>
     <ElDivider />
     <ElSpace wrap :size="30">
       <ElTable :data="planCards" style="width: 100%">
-        <ElTableColumn fixed prop="name" :label="t('project.cd.plan_name')" width="250" />
-        <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
-        <ElTableColumn fixed prop="branch" :label="t('project.ci.code_branch')" width="180" />
-        <ElTableColumn :label="t('project.ci.last_build')" width="300">
+        <ElTableColumn fixed prop="name" :label="t('project.cd.app_name')" width="250" />
+        <ElTableColumn
+          fixed
+          prop="buildEnv"
+          :label="t('project.cd.namespace')"
+          width="180"
+          :filters="namespacesPair"
+          :filter-method="nsFilterHandler"
+        />
+        <ElTableColumn fixed prop="branch" :label="t('project.cd.instance')" width="120">
           <template #default="scope">
-            <span v-if="scope.row.lastBuildResult != 0"
-              >{{ scope.row.lastBuildAt }} <ElDivider direction="vertical"
-            /></span>
-            <ElTag
-              :type="buildResultType(scope.row.lastBuildResult)"
-              :effect="buildResultEffect(scope.row.lastBuildResult)"
-              >{{ buildResultText(scope.row.lastBuildResult) }}</ElTag
-            >
+            {{ scope.row.runningPods }} / {{ scope.row.totalPods }}
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="t('project.ci.steps')" width="160">
+        <ElTableColumn :label="t('project.cd.ops')" width="120">
           <template #default="scope">
-            <ElSpace>
-              <ElTooltip
-                v-if="scope.row.qa_enabled && scope.row.unit_test"
-                :content="t('project.ci.unit_test')"
-              >
-                <Icon class="toolset" icon="file-icons:test-generic" />
-              </ElTooltip>
-              <ElTooltip
-                v-if="scope.row.qa_enabled && scope.row.lint_check"
-                :content="t('project.ci.lint_check')"
-              >
-                <Icon class="toolset" icon="file-icons:commitlint" />
-              </ElTooltip>
-              <ElTooltip v-if="scope.row.artifact_enabled" :content="t('project.toolset.artifact')">
-                <Icon class="toolset" icon="cib:azure-artifacts" />
-              </ElTooltip>
-            </ElSpace>
+            <ElButton link type="primary" size="small" @click="scale(scope.row)">{{
+              t('project.cd.scale')
+            }}</ElButton>
+            <ElButton link type="primary" size="small" @click="restart(scope.row)"
+              >{{ t('project.cd.restart') }}
+            </ElButton>
           </template>
         </ElTableColumn>
-        <ElTableColumn fixed="right" prop="id" :label="t('common.action')" width="80">
+        <ElTableColumn :label="t('project.cd.action')" fixed="right" width="120" align="center">
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">
@@ -489,30 +572,27 @@ onUnmounted(() => {
               </span>
               <template #dropdown>
                 <ElDropdownMenu>
-                  <ElDropdownItem
-                    v-if="!scope.row.buildingNow"
-                    :command="{ id: scope.row.id, cmd: 'building' }"
-                  >
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'detail' }">
                     <ElLink :underline="false">
-                      <Icon icon="material-symbols:play-circle" />
-                      {{ t('project.ci.build_now') }}
+                      <Icon :icon="Expand" />
+                      {{ t('project.cd.detail') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem v-if="scope.row.buildingNow">
+                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'building' }">
                     <ElLink :underline="false">
-                      <Icon size="20" icon="typcn:cancel" />
-                      {{ t('project.ci.cancel_building') }}
+                      <Icon icon="material-symbols:play-circle" />
+                      {{ t('project.cd.redeploy') }}
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem>
                     <ElLink :underline="false">
                       <Icon icon="icon-park-solid:history-query" />
-                      {{ t('project.ci.build_history') }}</ElLink
+                      {{ t('project.cd.rollback') }}</ElLink
                     >
                   </ElDropdownItem>
                   <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
                     <ElLink :icon="Delete" :underline="false" type="danger">
-                      {{ t('project.ci.delete_plan') }}
+                      {{ t('project.cd.delete') }}
                     </ElLink>
                   </ElDropdownItem>
                 </ElDropdownMenu>
