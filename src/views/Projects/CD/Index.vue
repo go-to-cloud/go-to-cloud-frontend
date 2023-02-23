@@ -6,8 +6,6 @@ import { TableColumnCtx } from 'element-plus/es/components/table/src/table-colum
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
-
-import { useIcon } from '@/hooks/web/useIcon'
 import {
   BranchDetail,
   BuildEnvGroup,
@@ -66,19 +64,6 @@ const ports = reactive<{ portMapping: KeyValuePair[] }>({
     }
   ]
 })
-////////////////////////////////////////
-
-const tSize = ref(24)
-const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tSize.value })
-const t02 = useIcon({ icon: 'material-symbols:filter-2', color: '#3385ff', size: tSize.value })
-const t03 = useIcon({ icon: 'material-symbols:filter-3', color: '#3385ff', size: tSize.value })
-const t04 = useIcon({ icon: 'material-symbols:filter-4', color: '#3385ff', size: tSize.value })
-const t05 = useIcon({ icon: 'material-symbols:filter-5', color: '#3385ff', size: tSize.value })
-const t06 = useIcon({ icon: 'material-symbols:filter-6', color: '#3385ff', size: tSize.value })
-const t07 = useIcon({ icon: 'material-symbols:filter-7', color: '#3385ff', size: tSize.value })
-const t08 = useIcon({ icon: 'material-symbols:filter-8', color: '#3385ff', size: tSize.value })
-const t09 = useIcon({ icon: 'material-symbols:filter-9', color: '#3385ff', size: tSize.value })
-const t10 = useIcon({ icon: 'material-symbols:filter-10', color: '#3385ff', size: tSize.value })
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -89,6 +74,8 @@ const tplDialogVisible = ref(false)
 const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
+////////////////////////////////////////
+
 const ruleForm = reactive<BuildPlan>({
   id: 0,
   name: '',
