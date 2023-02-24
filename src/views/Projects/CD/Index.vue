@@ -6,32 +6,19 @@ import { TableColumnCtx } from 'element-plus/es/components/table/src/table-colum
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
-import {
-  BranchDetail,
-  BuildEnvGroup,
-  BuildPlan,
-  BuildPlanCard,
-  ImportedSourceCodeData
-} from '@/api/projects/types'
+import { BuildPlanCard } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
-import {
-  deletePlanApi,
-  getBranchListApi,
-  getBuildCmdApi,
-  getBuildEnvsApi,
-  getBuildPlansApi,
-  getSourceCodeListApi,
-  newBuildPlan,
-  refreshPipelineApi,
-  startBuildPlanApi
-} from '@/api/projects'
-import { getArtifactRepoApi } from '@/api/configure/artifact'
-import { ArtifactRepoData } from '@/api/configure/types'
-import { ElMessageBox } from 'element-plus/es'
 
+const { t } = useI18n()
+const { path, params } = useRoute()
+const { push } = useRouter()
+const request = useAxios()
+const podsNumber = ref<number>()
 const namespaces = ref<string[]>([])
 const namespacesPair = ref<TextValuePair[]>([])
 const formSize = ref('default')
+const enableLimit = ref(false)
+const deploymentsData = ref<DeploymentData[]>([])
 
 interface KeyValuePair {
   key: string
@@ -65,176 +52,82 @@ const ports = reactive<{ portMapping: KeyValuePair[] }>({
   ]
 })
 
-const { t } = useI18n()
-const { path, params } = useRoute()
-const { push } = useRouter()
-const request = useAxios()
+const addPorts = () => {
+  ports.portMapping.push({
+    key: '',
+    value: ''
+  })
+}
+const removePort = (index: number) => {
+  if (ports.portMapping.length > 1) {
+    ports.portMapping.splice(index, 1)
+  }
+}
 
 const tplDialogVisible = ref(false)
-const showNewPlanDlg = () => {
+const showNewDeploymentDlg = () => {
+  ports.portMapping = [
+    {
+      key: '80',
+      value: '80'
+    }
+  ]
   tplDialogVisible.value = true
 }
-////////////////////////////////////////
 
-const ruleForm = reactive<BuildPlan>({
-  id: 0,
-  name: '',
-  buildEnv: '',
-  source_code_id: undefined,
-  branch: '',
-  qa_enabled: true,
-  unit_test: '',
-  lint_check: '',
-  artifact_enabled: true,
-  dockerfile: '',
-  image_name: '',
-  artifact_repo_id: undefined,
-  deploy_enabled: true,
-  remark: ''
+const ruleForm = reactive({
+  namespace: '',
+  artifactId: 0,
+  artifact: [],
+  version: '',
+  versions: [],
+  replicate: 1,
+  healthcheck: '/healthz',
+  healthcheckPort: 80,
+  enableLimit: enableLimit,
+  cpuLimits: 1000,
+  cpuRequest: 500,
+  memLimits: 2000,
+  memRequest: 200,
+  ports: ports.portMapping,
+  isAutoDeploy: true
 })
 
 const ruleFormRef = ref<FormInstance>()
 const rules = reactive<FormRules>({
-  name: [
-    {
-      required: true,
-      trigger: 'blur',
-      message: t('common.required')
-    }
-  ],
-  dockerfile: [
-    {
-      required: true,
-      trigger: 'blur',
-      message: t('common.required'),
-      validator: (rule, value) => {
-        if (!ruleForm.artifact_enabled) return true
-        return value.trim().length > 0
-      }
-    }
-  ],
-  image_name: [
-    {
-      required: true,
-      trigger: 'blur',
-      message: t('project.ci.artifact_name_rule'),
-      validator: (rule, value) => {
-        if (!ruleForm.artifact_enabled) return true
-        const reg = new RegExp('^[a-z][a-z0-9]*([-_.][a-z0-9]+)*$')
-        return reg.test(value)
-      }
-    }
-  ]
+  namespace: [{ required: true, message: '请选择名字空间', trigger: 'blur' }],
+  artifact: [{ required: true, message: '请选择镜像', trigger: 'blur' }],
+  version: [{ required: true, message: '请选择镜像版本', trigger: 'blur' }]
 })
 
-const sourceCodeList = ref<ImportedSourceCodeData[]>()
-
-const getSourceCodeList = async () => {
+const getDeploymentList = async () => {
   let projectId = Number(params.id)
-  await getSourceCodeListApi(projectId).then((dat) => {
-    sourceCodeList.value = dat
+  const deployments = await request.get({
+    url: '/projects/' + projectId + '/deploy/apps'
   })
+  deploymentsData.value = deployments.data.data
 }
 
-const branchList = ref<BranchDetail[]>()
-const getSourceCodeBranches = async (srcId: number) => {
-  let project = Number(params.id)
-  await getBranchListApi(project, srcId).then((dat) => {
-    branchList.value = dat.branches
+const getNamespaces = async () => {
+  let projectId = Number(params.id)
+  const ns = await request.get({
+    url: '/projects/' + projectId + '/deploy/apps'
   })
+  deploymentsData.value = deployments.data.data
 }
 
-const buildEnvList = ref<BuildEnvGroup[]>()
-const getBuildEnvList = async () => {
-  await getBuildEnvsApi().then((dat) => {
-    buildEnvList.value = dat
-  })
-}
-
-const artifactTypes = ref<ArtifactRepoData[]>([])
-
-const getArtifactRepo = async () => {
-  await getArtifactRepoApi(params).then((resp) => {
-    artifactTypes.value = resp
-  })
-}
-
-const getBuildCmd = async (env: string) => {
-  await getBuildCmdApi(env).then((dat) => {
-    if (ruleForm) {
-      ruleForm.unit_test = dat.unitTest
-      ruleForm.lint_check = dat.lintCheck
-    }
-  })
-}
-const buildEnvSelected = async function (val: string) {
-  await getBuildCmd(val)
-}
-const gitSelected = async function (val: string) {
-  await getSourceCodeBranches(Number(val))
-}
 const submit = async (formEl: FormInstance) => {
   await formEl.validate(async (valid, fields) => {
     if (valid) {
       let projectId = Number(params.id)
-      await newBuildPlan(projectId, ruleForm)
-      await getBuildPlans()
+      // await newBuildPlan(projectId, ruleForm)
+      // await getBuildPlans()
       tplDialogVisible.value = false
     }
   })
 }
 
 const planCards = ref<BuildPlanCard[]>()
-const getBuildPlans = async () => {
-  let projectId = Number(params.id)
-  await getBuildPlansApi(projectId).then((dat) => {
-    planCards.value = dat
-  })
-}
-
-const buildResultEffect = function (rlt: number): string {
-  switch (rlt) {
-    case 1:
-    case 2:
-    case 3:
-      return 'dark'
-    case 0:
-    case 99:
-      return 'light'
-  }
-  return 'dark'
-}
-const buildResultType = function (rlt: number): string {
-  switch (rlt) {
-    case 0:
-      return 'info'
-    case 1:
-      return 'success'
-    case 2:
-      return 'warning'
-    case 3:
-      return 'danger'
-    case 99:
-      return 'success'
-  }
-  return ''
-}
-const buildResultText = function (rlt: number): string {
-  switch (rlt) {
-    // 1：成功；2：取消；3：失败；0：从未执行
-    case 0:
-      return t('project.ci.result.never')
-    case 1:
-      return t('project.ci.result.success')
-    case 2:
-      return t('project.ci.result.cancel')
-    case 3:
-      return t('project.ci.result.failed')
-    case 99:
-      return t('project.ci.result.building')
-  }
-  return ''
-}
 
 interface HandlerCommand {
   id: number
@@ -244,86 +137,26 @@ interface HandlerCommand {
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'del': {
-      ElMessageBox.confirm(t('project.ci.removeConfirm'), t('common.confirmMsgTitle'), {
-        confirmButtonText: t('common.ok'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning'
-      }).then(() => {
-        deletePlan(command.id)
-      })
+      // ElMessageBox.confirm(t('project.ci.removeConfirm'), t('common.confirmMsgTitle'), {
+      //   confirmButtonText: t('common.ok'),
+      //   cancelButtonText: t('common.cancel'),
+      //   type: 'warning'
+      // }).then(() => {
+      //   deletePlan(command.id)
+      // })
       break
     }
     case 'building': {
-      startBuildPlan(command.id)
+      // startBuildPlan(command.id)
       break
     }
   }
 }
 
-const deletePlan = async (planId: number) => {
-  let projectId = Number(params.id)
-  await deletePlanApi(projectId, planId).then(async (resp) => {
-    if (resp.success) {
-      await getBuildPlans()
-    }
-  })
-}
-
-const startBuildPlan = async (planId: number) => {
-  let projectId = Number(params.id)
-  await startBuildPlanApi(projectId, planId).then(async (resp) => {
-    if (resp.success) {
-      await getBuildPlans()
-    }
-  })
-}
-
-class autoRefreshPipeline {
-  intervalId: NodeJS.Timer | null = null
-
-  startTimer() {
-    this.intervalId = setInterval(() => {
-      refreshPipelines()
-    }, 5000)
-  }
-
-  stopTimer() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-      this.intervalId = null
-    }
-  }
-}
-
-const pipelineRefresh = ref<autoRefreshPipeline>()
-
-const refreshPipelines = async () => {
-  let projectId = Number(params.id)
-  await refreshPipelineApi(projectId).then((resp) => {
-    if (resp! && planCards!) {
-      for (let i = 0; i < resp.length; i++) {
-        let m = planCards.value?.find((r) => r.id == resp[i].id)
-        if (m!) {
-          if (m.lastBuildResult != resp[i].lastBuildResult) {
-          }
-          m.lastBuildResult = resp[i].lastBuildResult
-        }
-      }
-    }
-  })
-}
 onMounted(() => {
-  getSourceCodeList()
-  getBuildEnvList()
-  getArtifactRepo()
-  getBuildPlans()
-  pipelineRefresh.value = new autoRefreshPipeline()
-  pipelineRefresh.value.startTimer()
-  refreshPipelines()
+  getDeploymentList()
 })
-onUnmounted(() => {
-  pipelineRefresh.value!.stopTimer()
-})
+onUnmounted(() => {})
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
@@ -519,7 +352,7 @@ onUnmounted(() => {
         </ElSpace>
       </ElCol>
       <ElCol :span="6" style="text-align: right">
-        <ElButton :icon="CirclePlus" @click="showNewPlanDlg" type="primary">
+        <ElButton :icon="CirclePlus" @click="showNewDeploymentDlg" type="primary">
           {{ t('project.cd.new_app') }}</ElButton
         >
       </ElCol>
