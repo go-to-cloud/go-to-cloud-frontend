@@ -14,6 +14,7 @@ const { path, params } = useRoute()
 const { push } = useRouter()
 const request = useAxios()
 const podsNumber = ref<number>()
+const k8s = ref<KeyValuePair[]>([])
 const namespaces = ref<string[]>([])
 const namespacesPair = ref<TextValuePair[]>([])
 const formSize = ref('default')
@@ -21,8 +22,8 @@ const enableLimit = ref(false)
 const deploymentsData = ref<DeploymentData[]>([])
 
 interface KeyValuePair {
-  key: string
-  value: string
+  abc: number
+  def: string
 }
 interface TextValuePair {
   text: string
@@ -43,10 +44,10 @@ const nsFilterHandler = (
   return row.namespace === value
 }
 
-const ports = reactive<{ portMapping: KeyValuePair[] }>({
+const ports = reactive<{ portMapping: TextValuePair[] }>({
   portMapping: [
     {
-      key: '80',
+      text: '80',
       value: '80'
     }
   ]
@@ -54,7 +55,7 @@ const ports = reactive<{ portMapping: KeyValuePair[] }>({
 
 const addPorts = () => {
   ports.portMapping.push({
-    key: '',
+    text: '',
     value: ''
   })
 }
@@ -68,7 +69,7 @@ const tplDialogVisible = ref(false)
 const showNewDeploymentDlg = () => {
   ports.portMapping = [
     {
-      key: '80',
+      text: '80',
       value: '80'
     }
   ]
@@ -76,6 +77,7 @@ const showNewDeploymentDlg = () => {
 }
 
 const ruleForm = reactive({
+  k8s: '',
   namespace: '',
   artifactId: 0,
   artifact: [],
@@ -95,9 +97,23 @@ const ruleForm = reactive({
 
 const ruleFormRef = ref<FormInstance>()
 const rules = reactive<FormRules>({
-  namespace: [{ required: true, message: '请选择名字空间', trigger: 'blur' }],
-  artifact: [{ required: true, message: '请选择镜像', trigger: 'blur' }],
-  version: [{ required: true, message: '请选择镜像版本', trigger: 'blur' }]
+  namespace: [
+    { required: true, message: t('common.selectText') + t('project.cd.namespace'), trigger: 'blur' }
+  ],
+  artifact: [
+    {
+      required: true,
+      message: t('common.selectText') + t('project.cd.artifact_name'),
+      trigger: 'blur'
+    }
+  ],
+  version: [
+    {
+      required: true,
+      message: t('common.selectText') + t('project.cd.artifact_version'),
+      trigger: 'blur'
+    }
+  ]
 })
 
 const getDeploymentList = async () => {
@@ -108,6 +124,13 @@ const getDeploymentList = async () => {
   deploymentsData.value = deployments.data.data
 }
 
+const getK8sRepo = async () => {
+  let projectId = Number(params.id)
+  const rlt = await request.get({
+    url: '/projects/' + projectId + '/deploy/env'
+  })
+  k8s.value = rlt.data.data
+}
 const getNamespaces = async () => {
   let projectId = Number(params.id)
   const ns = await request.get({
@@ -155,6 +178,7 @@ const actionHandler = (command: HandlerCommand) => {
 
 onMounted(() => {
   getDeploymentList()
+  getK8sRepo()
 })
 onUnmounted(() => {})
 </script>
@@ -163,25 +187,40 @@ onUnmounted(() => {})
     <div style="height: 500px">
       <ElScrollbar>
         <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
-          <ElFormItem label="名字空间" prop="namespace">
-            <ElSelect v-model="ruleForm.namespace" placeholder="选择名字空间">
+          <ElFormItem :label="t('project.cd.namespace')" prop="k8s" style="margin-right: 8px">
+            <ElSelect
+              style="width: 200px"
+              :placeholder="t('common.selectText') + t('project.cd.target_env')"
+            >
+              <Eloption v-for="item in k8s" :key="item.abc" :label="item.abc" :value="item.abc" />
+            </ElSelect>
+            <ElDivider direction="vertical" />
+            <ElSelect
+              style="width: 200px"
+              v-model="ruleForm.namespace"
+              allow-create
+              filterable
+              :placeholder="t('common.selectText') + t('project.cd.namespace')"
+            >
               <Eloption v-for="item in namespaces" :key="item" :label="item" :value="item" />
             </ElSelect>
           </ElFormItem>
-          <ElFormItem label="制品名称" prop="artifact">
+          <ElFormItem :label="t('project.cd.artifact_name')" prop="artifact">
             <ElAutocomplete
+              style="width: 200px"
               v-model="ruleForm.artifact"
-              placeholder="输入制品名称"
+              :placeholder="t('common.selectText') + t('project.cd.artifact_name')"
               :fetch-suggestions="queryArtifacts"
               :trigger-on-focus="false"
               @select="artifactSelected"
             />
           </ElFormItem>
-          <ElFormItem label="镜像版本" prop="version">
+          <ElFormItem :label="t('project.cd.deploy_version')" prop="version">
             <ElSelect
+              style="width: 200px"
               v-model="ruleForm.version"
               class="inline-input w-50"
-              placeholder="输入部署版本"
+              :placeholder="t('common.selectText') + t('project.cd.deploy_version')"
             >
               <ElOption
                 v-for="item in ruleForm.versions"
@@ -191,29 +230,29 @@ onUnmounted(() => {})
               />
             </ElSelect>
           </ElFormItem>
-          <ElFormItem label="副本数量" prop="replicate">
-            <ElInputNumber v-model="ruleForm.replicate" :min="1" :max="20" />
+          <ElFormItem :label="t('project.cd.replicate_num')" prop="replicate">
+            <ElInputNumber style="width: 200px" v-model="ruleForm.replicate" :min="1" :max="20" />
           </ElFormItem>
-          <ElFormItem label="端口映射" prop="count">
+          <ElFormItem :label="t('project.cd.port_mapping')" prop="count">
             <ElSpace direction="vertical" :size="10">
-              <ElFormItem v-for="port in ports.portMapping" :key="port.key">
+              <ElFormItem v-for="port in ports.portMapping" :key="port.text">
                 <ElCol :span="8">
                   <ElInput
-                    class="w-50 m-2"
+                    class="w-50"
                     :controls="false"
-                    v-model="port.key"
+                    v-model="port.text"
                     :min="1"
                     :max="65535"
                     oninput="value=value.replace(/\D/g,'')"
                     placeholder="80"
                   >
-                    <template #prepend>服务端口</template>
+                    <template #prepend>{{ t('project.cd.service_port') }}</template>
                   </ElInput>
                 </ElCol>
                 <ElCol class="text-center" :span="1" />
                 <ElCol :span="8">
-                  <ElInput class="w-50 m-2" :controls="false" v-model="port.value" placeholder="80">
-                    <template #prepend>容器端口</template>
+                  <ElInput class="w-50" :controls="false" v-model="port.value" placeholder="80">
+                    <template #prepend>{{ t('project.cd.container_port') }}</template>
                   </ElInput>
                 </ElCol>
                 <ElCol :span="2">
@@ -250,7 +289,7 @@ onUnmounted(() => {})
             </ElSpace>
           </ElFormItem>
 
-          <ElFormItem label="资源配置">
+          <ElFormItem :label="t('project.cd.resource_limit.text')">
             <ElSpace direction="vertical" style="align-items: flex-start">
               <ElSwitch v-model="enableLimit" />
               <ElFormItem v-if="enableLimit">
@@ -261,7 +300,7 @@ onUnmounted(() => {})
                     placeholder="1000"
                     oninput="value=value.replace(/\D/g,'')"
                   >
-                    <template #prepend>CPU资源</template>
+                    <template #prepend>{{ t('project.cd.resource_limit.cpu_request') }}</template>
                   </ElInput>
                 </ElCol>
                 <ElCol :span="1" />
@@ -272,7 +311,7 @@ onUnmounted(() => {})
                     placeholder="2000"
                     oninput="value=value.replace(/\D/g,'')"
                   >
-                    <template #prepend>CPU限制</template>
+                    <template #prepend>{{ t('project.cd.resource_limit.cpu_limit') }}</template>
                   </ElInput>
                 </ElCol>
               </ElFormItem>
@@ -284,7 +323,7 @@ onUnmounted(() => {})
                     placeholder="500"
                     oninput="value=value.replace(/\D/g,'')"
                   >
-                    <template #prepend>内存资源</template>
+                    <template #prepend>{{ t('project.cd.resource_limit.mem_request') }}</template>
                   </ElInput>
                 </ElCol>
                 <ElCol :span="1" />
@@ -295,18 +334,18 @@ onUnmounted(() => {})
                     placeholder="2000"
                     oninput="value=value.replace(/\D/g,'')"
                   >
-                    <template #prepend>内存限制</template>
+                    <template #prepend>{{ t('project.cd.resource_limit.mem_limit') }}</template>
                   </ElInput>
                 </ElCol>
               </ElFormItem>
             </ElSpace>
           </ElFormItem>
 
-          <ElFormItem label="健康检查">
+          <ElFormItem :label="t('project.cd.health_checker')">
             <ElCol :span="9">
               <ElInput
                 v-model="ruleForm.healthcheck"
-                placeholder="健康检查"
+                :placeholder="t('project.cd.health_checker')"
                 :formatter="(value) => `/ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
                 :parser="(value) => value.replace(/\/\s?|(,*)/g, '')"
               />
@@ -317,17 +356,13 @@ onUnmounted(() => {})
                 <ElInput
                   v-model="ruleForm.healthcheckPort"
                   :controls="false"
-                  label="服务端口"
+                  :label="t('project.cd.health_checker_port')"
                   placeholder="80"
                 >
-                  <template #prepend>服务端口</template>
+                  <template #prepend>{{ t('project.cd.health_checker_port') }}</template>
                 </ElInput>
               </ElFormItem>
             </ElCol>
-          </ElFormItem>
-          <ElFormItem>
-            <ElButton type="primary" @click="submitForm(ruleFormRef)">提交 </ElButton>
-            <ElButton @click="resetForm">重置</ElButton>
           </ElFormItem>
         </ElForm>
       </ElScrollbar>
@@ -430,5 +465,8 @@ onUnmounted(() => {})
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.box-item-width {
+  width: 200px;
 }
 </style>
