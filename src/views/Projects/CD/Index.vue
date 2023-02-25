@@ -14,7 +14,7 @@ const { path, params } = useRoute()
 const { push } = useRouter()
 const request = useAxios()
 const podsNumber = ref<number>()
-const k8s = ref<KeyValuePair[]>([])
+const k8sRepos = ref<KeyValuePair[]>([])
 const namespaces = ref<string[]>([])
 const namespacesPair = ref<TextValuePair[]>([])
 const formSize = ref('default')
@@ -22,8 +22,8 @@ const enableLimit = ref(false)
 const deploymentsData = ref<DeploymentData[]>([])
 
 interface KeyValuePair {
-  abc: number
-  def: string
+  id: number
+  name: string
 }
 interface TextValuePair {
   text: string
@@ -129,14 +129,29 @@ const getK8sRepo = async () => {
   const rlt = await request.get({
     url: '/projects/' + projectId + '/deploy/env'
   })
-  k8s.value = rlt.data.data
+  k8sRepos.value = rlt.data.data
 }
-const getNamespaces = async () => {
+const k8sRepoSelected = async function (val: number) {
   let projectId = Number(params.id)
-  const ns = await request.get({
-    url: '/projects/' + projectId + '/deploy/apps'
+  const rlt = await request.get({
+    url: '/projects/' + projectId + '/deploy/' + val + '/namespaces'
   })
-  deploymentsData.value = deployments.data.data
+  namespaces.value = rlt.data.data
+}
+
+let timeout: NodeJS.Timeout
+const queryArtifacts = async (queryString: string, cb: (arg: any) => void) => {
+  let projectId = Number(params.id)
+  if (queryString !== '') {
+    const res = await request.get({
+      url: '/projects/' + projectId + '/artifacts/' + queryString
+    })
+
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      cb(res.data.data)
+    }, 10)
+  }
 }
 
 const submit = async (formEl: FormInstance) => {
@@ -189,20 +204,28 @@ onUnmounted(() => {})
         <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
           <ElFormItem :label="t('project.cd.namespace')" prop="k8s" style="margin-right: 8px">
             <ElSelect
+              v-model="ruleForm.k8s"
+              @change="k8sRepoSelected"
               style="width: 200px"
               :placeholder="t('common.selectText') + t('project.cd.target_env')"
             >
-              <Eloption v-for="item in k8s" :key="item.abc" :label="item.abc" :value="item.abc" />
+              <ElOption
+                v-for="item in k8sRepos"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
             </ElSelect>
             <ElDivider direction="vertical" />
             <ElSelect
+              :disabled="ruleForm.k8s == ''"
               style="width: 200px"
               v-model="ruleForm.namespace"
               allow-create
               filterable
               :placeholder="t('common.selectText') + t('project.cd.namespace')"
             >
-              <Eloption v-for="item in namespaces" :key="item" :label="item" :value="item" />
+              <ElOption v-for="item in namespaces" :key="item" :label="item" :value="item" />
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.artifact_name')" prop="artifact">
