@@ -13,7 +13,6 @@ const { t } = useI18n()
 const { path, params } = useRoute()
 const { push } = useRouter()
 const request = useAxios()
-const podsNumber = ref<number>()
 const k8sRepos = ref<KeyValuePair[]>([])
 const namespaces = ref<string[]>([])
 const namespacesPair = ref<TextValuePair[]>([])
@@ -83,7 +82,6 @@ const ruleForm = reactive({
   namespace: '',
   artifact: null,
   version: '',
-  versions: [],
   replicate: 1,
   healthcheck: '/healthz',
   healthcheckPort: 80,
@@ -92,12 +90,14 @@ const ruleForm = reactive({
   cpuRequest: 500,
   memLimits: 2000,
   memRequest: 200,
-  ports: ports.portMapping,
-  isAutoDeploy: true
+  ports: ports.portMapping
 })
 
 const ruleFormRef = ref<FormInstance>()
 const rules = reactive<FormRules>({
+  k8s: [
+    { required: true, message: t('common.selectText') + t('project.cd.namespace'), trigger: 'blur' }
+  ],
   namespace: [
     { required: true, message: t('common.selectText') + t('project.cd.namespace'), trigger: 'blur' }
   ],
@@ -168,7 +168,10 @@ const submit = async (formEl: FormInstance) => {
   await formEl.validate(async (valid, fields) => {
     if (valid) {
       let projectId = Number(params.id)
-      // await newBuildPlan(projectId, ruleForm)
+      const res = await request.post({
+        url: '/projects/' + projectId + '/deploy/app',
+        data: ruleForm
+      })
       // await getBuildPlans()
       tplDialogVisible.value = false
     }
@@ -212,32 +215,39 @@ onUnmounted(() => {})
     <div style="height: 500px">
       <ElScrollbar>
         <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
-          <ElFormItem :label="t('project.cd.namespace')" prop="k8s" style="margin-right: 8px">
-            <ElSelect
-              v-model="ruleForm.k8s"
-              @change="k8sRepoSelected"
-              style="width: 200px"
-              :placeholder="t('common.selectText') + t('project.cd.target_env')"
+          <ElSpace>
+            <ElFormItem :label="t('project.cd.target_env')" prop="k8s" style="margin-right: 8px">
+              <ElSelect
+                v-model="ruleForm.k8s"
+                @change="k8sRepoSelected"
+                style="width: 200px"
+                :placeholder="t('common.selectText') + t('project.cd.target_env')"
+              >
+                <ElOption
+                  v-for="item in k8sRepos"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </ElSelect>
+            </ElFormItem>
+            <ElFormItem
+              :label="t('project.cd.namespace')"
+              prop="namespace"
+              style="margin-right: 8px"
             >
-              <ElOption
-                v-for="item in k8sRepos"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
-            </ElSelect>
-            <ElDivider direction="vertical" />
-            <ElSelect
-              :disabled="ruleForm.k8s === ''"
-              style="width: 200px"
-              v-model="ruleForm.namespace"
-              allow-create
-              filterable
-              :placeholder="t('common.selectText') + t('project.cd.namespace')"
-            >
-              <ElOption v-for="item in namespaces" :key="item" :label="item" :value="item" />
-            </ElSelect>
-          </ElFormItem>
+              <ElSelect
+                :disabled="ruleForm.k8s === ''"
+                style="width: 200px"
+                v-model="ruleForm.namespace"
+                allow-create
+                filterable
+                :placeholder="t('common.selectText') + t('project.cd.namespace')"
+              >
+                <ElOption v-for="item in namespaces" :key="item" :label="item" :value="item" />
+              </ElSelect>
+            </ElFormItem>
+          </ElSpace>
           <ElFormItem :label="t('project.cd.artifact_name')" prop="artifact">
             <ElSelect
               style="width: 200px"
@@ -269,7 +279,7 @@ onUnmounted(() => {})
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.replicate_num')" prop="replicate">
-            <ElInputNumber style="width: 200px" v-model="ruleForm.replicate" :min="1" :max="20" />
+            <ElInputNumber style="width: 200px" v-model="ruleForm.replicate" :min="1" />
           </ElFormItem>
           <ElFormItem :label="t('project.cd.port_mapping')" prop="count">
             <ElSpace direction="vertical" :size="10">
