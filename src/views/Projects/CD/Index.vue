@@ -20,6 +20,8 @@ const namespacesPair = ref<TextValuePair[]>([])
 const formSize = ref('default')
 const enableLimit = ref(false)
 const deploymentsData = ref<DeploymentData[]>([])
+const artifacts = ref<KeyValuePair[]>([])
+const imageTags = ref<string[]>([])
 
 interface KeyValuePair {
   id: number
@@ -79,8 +81,7 @@ const showNewDeploymentDlg = () => {
 const ruleForm = reactive({
   k8s: '',
   namespace: '',
-  artifactId: 0,
-  artifact: [],
+  artifact: null,
   version: '',
   versions: [],
   replicate: 1,
@@ -140,20 +141,29 @@ const k8sRepoSelected = async function (val: number) {
 }
 
 let timeout: NodeJS.Timeout
-const queryArtifacts = async (queryString: string, cb: (arg: any) => void) => {
-  let projectId = Number(params.id)
-  if (queryString !== '') {
+const queryArtifacts = async (queryString: string) => {
+  if (queryString) {
+    let projectId = Number(params.id)
     const res = await request.get({
       url: '/projects/' + projectId + '/artifacts/' + queryString
     })
 
     clearTimeout(timeout)
     timeout = setTimeout(() => {
-      cb(res.data.data)
+      artifacts.value = res.data.data
     }, 10)
+  } else {
+    artifacts.value = []
   }
 }
 
+const artifactSelected = async () => {
+  let projectId = Number(params.id)
+  const res = await request.get({
+    url: '/projects/' + projectId + '/artifact/' + ruleForm.artifact + '/tags'
+  })
+  imageTags.value = res.data.data
+}
 const submit = async (formEl: FormInstance) => {
   await formEl.validate(async (valid, fields) => {
     if (valid) {
@@ -218,7 +228,7 @@ onUnmounted(() => {})
             </ElSelect>
             <ElDivider direction="vertical" />
             <ElSelect
-              :disabled="ruleForm.k8s == ''"
+              :disabled="ruleForm.k8s === ''"
               style="width: 200px"
               v-model="ruleForm.namespace"
               allow-create
@@ -229,28 +239,33 @@ onUnmounted(() => {})
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.artifact_name')" prop="artifact">
-            <ElAutocomplete
+            <ElSelect
               style="width: 200px"
               v-model="ruleForm.artifact"
+              value-key="id"
               :placeholder="t('common.selectText') + t('project.cd.artifact_name')"
-              :fetch-suggestions="queryArtifacts"
-              :trigger-on-focus="false"
-              @select="artifactSelected"
-            />
+              filterable
+              remote
+              :remote-method="queryArtifacts"
+              @change="artifactSelected"
+            >
+              <ElOption
+                v-for="item in artifacts"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.deploy_version')" prop="version">
             <ElSelect
+              :disabled="ruleForm.artifact == null"
               style="width: 200px"
               v-model="ruleForm.version"
               class="inline-input w-50"
               :placeholder="t('common.selectText') + t('project.cd.deploy_version')"
             >
-              <ElOption
-                v-for="item in ruleForm.versions"
-                :key="item.value"
-                :label="item.value"
-                :value="item.value"
-              />
+              <ElOption v-for="item in imageTags" :key="item" :label="item" :value="item" />
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.replicate_num')" prop="replicate">
