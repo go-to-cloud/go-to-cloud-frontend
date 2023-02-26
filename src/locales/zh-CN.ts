@@ -58,7 +58,7 @@ export default {
     delCancel: '取消',
     delNoData: '请选择需要删除的数据',
     delSuccess: '删除成功',
-    confirmMsgTitle: '是否确认',
+    confirmMsgTitle: '请确认',
     close: '关闭',
     submit: '提交',
     install: '安装'
@@ -282,9 +282,9 @@ export default {
       },
       health_checker: '健康检查',
       health_checker_port: '服务端口',
-      instance: '运行实例',
       ops: '管理实例',
       action: '操作',
+      first_deploy: '开始部署',
       redeploy: '重新部署',
       rollback: '回滚...',
       delete: '删除应用',
@@ -293,13 +293,15 @@ export default {
       detail: '详情...',
       submitAndDeploy: '提交并部署',
       last_deploy_at: '最近部署时间',
+      deploy_history: '部署历史',
+      delete_deployment: '删除部署方案',
       result: {
         never: '从未执行',
         success: '成功',
         failed: '失败',
         building: '正在构建'
       },
-      deleteConfirm: '即将删除应用，是否继续？'
+      deleteConfirm: '即将删除部署方案（应用不会被删除），是否继续？'
     },
     toolset: {
       code: '代码仓库',

@@ -282,9 +282,9 @@ export default {
       },
       health_checker: 'Health Checker',
       health_checker_port: 'Health Checker Port',
-      instance: 'Run Instance',
       ops: 'Operation',
       action: 'Actions',
+      first_deploy: 'Start Deploy',
       redeploy: 'Redeploy',
       rollback: 'Rollback...',
       delete: 'Delete App',
@@ -293,13 +293,15 @@ export default {
       detail: 'Detail...',
       submitAndDeploy: 'Submit And Deploy',
       last_deploy_at: 'Last Deploy At',
+      deploy_history: 'Deploy History',
+      delete_deployment: 'Delete Deployment',
       result: {
         never: 'Never',
         success: 'Success',
         failed: 'Failure',
         building: 'Building'
       },
-      deleteConfirm: 'App will be deleted. Continue?'
+      deleteConfirm: 'Deployment will be deleted since App would NOT. Continue?'
     },
     toolset: {
       code: 'Code Repository',

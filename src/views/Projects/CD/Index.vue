@@ -10,6 +10,7 @@ import { DeploymentApps } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { newDeployment } from '@/api/projects'
 import Icon from '@/components/Icon/src/Icon.vue'
+import { ElMessageBox } from 'element-plus/es'
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -91,6 +92,7 @@ const showNewDeploymentDlg = () => {
 }
 
 const ruleForm = reactive({
+  id: 0,
   k8s: '',
   namespace: '',
   artifact: null,
@@ -207,16 +209,21 @@ interface HandlerCommand {
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'del': {
-      // ElMessageBox.confirm(t('project.ci.removeConfirm'), t('common.confirmMsgTitle'), {
-      //   confirmButtonText: t('common.ok'),
-      //   cancelButtonText: t('common.cancel'),
-      //   type: 'warning'
-      // }).then(() => {
-      //   deletePlan(command.id)
-      // })
+      ElMessageBox.confirm(t('project.cd.deleteConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        let projectId = Number(params.id)
+        const rlt = request
+          .delete({
+            url: '/projects/' + projectId + '/deploy/' + command.id
+          })
+          .then(() => getDeploymentList())
+      })
       break
     }
-    case 'building': {
+    case 'deploy': {
       // startBuildPlan(command.id)
       break
     }
@@ -590,30 +597,25 @@ function debugConsole(o: any) {
               </span>
               <template #dropdown>
                 <ElDropdownMenu>
-                  <ElDropdownItem
-                    v-if="!scope.row.buildingNow"
-                    :command="{ id: scope.row.id, cmd: 'building' }"
-                  >
-                    <ElLink :underline="false">
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'deploy' }">
+                    <ElLink v-if="scope.row.lastDeployAt == null" :underline="false">
                       <Icon icon="material-symbols:play-circle" />
-                      {{ t('project.ci.build_now') }}
+                      {{ t('project.cd.first_deploy') }}
                     </ElLink>
-                  </ElDropdownItem>
-                  <ElDropdownItem v-if="scope.row.buildingNow">
-                    <ElLink :underline="false">
-                      <Icon size="20" icon="typcn:cancel" />
-                      {{ t('project.ci.cancel_building') }}
+                    <ElLink v-if="scope.row.lastDeployAt != null" :underline="false">
+                      <Icon icon="material-symbols:play-circle" />
+                      {{ t('project.cd.redeploy') }}
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem>
                     <ElLink :underline="false">
                       <Icon icon="icon-park-solid:history-query" />
-                      {{ t('project.ci.build_history') }}</ElLink
+                      {{ t('project.cd.deploy_history') }}</ElLink
                     >
                   </ElDropdownItem>
                   <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
                     <ElLink :icon="Delete" :underline="false" type="danger">
-                      {{ t('project.ci.delete_plan') }}
+                      {{ t('project.cd.delete_deployment') }}
                     </ElLink>
                   </ElDropdownItem>
                 </ElDropdownMenu>
