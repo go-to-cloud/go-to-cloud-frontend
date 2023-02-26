@@ -536,99 +536,111 @@ onUnmounted(() => {})
       </ElCol>
     </ElRow>
     <ElDivider />
-    <ElSpace wrap :size="30">
-      <ElTable :data="deploymentsData" style="width: 100%">
-        <ElTableColumn
-          fixed
-          prop="k8sName"
-          :label="t('project.cd.target_env')"
-          width="180"
-          :filters="namespacesPair"
-          :filter-method="nsFilterHandler"
-        /><ElTableColumn
-          fixed
-          prop="namespace"
-          :label="t('project.cd.namespace')"
-          width="180"
-          :filters="namespacesPair"
-          :filter-method="nsFilterHandler"
-        /><ElTableColumn fixed :label="t('project.cd.artifact_name')" width="300">
-          <template #default="scope">
-            {{ scope.row.artifactName }}
-            <ElDivider direction="vertical" />
-            <ElTag effect="light" type="success" v-if="scope.row.artifactTag == 'latest'">{{
-              t('project.cd.deploy_version_latest')
-            }}</ElTag>
-            <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
-              scope.row.artifactTag
-            }}</ElTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="t('project.cd.env_vars')" width="200">
-          <template #default="scope">
-            <ElRow>
-              <ElCol :key="vars" :span="24" v-for="(vars, index) in scope.row.env">
-                <ElTag v-if="index <= 2" style="margin: 3px"
-                  >{{ vars.text }}:{{ vars.value }}</ElTag
-                >
-                <span v-if="index > 2">...</span>
-              </ElCol>
-            </ElRow>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="t('project.cd.port_mapping')" width="200">
-          <template #default="scope">
-            <ElRow>
-              <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
-                <ElTag v-if="index <= 2" style="margin: 3px"
-                  >{{ port.text }}:{{ port.value }}</ElTag
-                >
-                <span v-if="index > 2">...</span>
-              </ElCol>
-            </ElRow>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="t('project.cd.last_deploy_at')" width="180">
-          <template #default="scope">
-            {{ scope.row.lastDeployAt }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="t('project.cd.action')" fixed="right" width="120" align="center">
-          <template #default="scope">
-            <ElDropdown @command="actionHandler">
-              <span class="el-dropdown-link">
-                <ElButton :icon="MoreFilled" circle />
-              </span>
-              <template #dropdown>
-                <ElDropdownMenu>
-                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'deploy' }">
-                    <ElLink v-if="scope.row.lastDeployAt == null" :underline="false">
-                      <Icon icon="material-symbols:play-circle" />
-                      {{ t('project.cd.first_deploy') }}
-                    </ElLink>
-                    <ElLink v-if="scope.row.lastDeployAt != null" :underline="false">
-                      <Icon icon="material-symbols:play-circle" />
-                      {{ t('project.cd.redeploy') }}
-                    </ElLink>
-                  </ElDropdownItem>
-                  <ElDropdownItem>
-                    <ElLink :underline="false">
-                      <Icon icon="icon-park-solid:history-query" />
-                      {{ t('project.cd.deploy_history') }}</ElLink
+    <ElScrollbar max-height="500px">
+      <ElSpace wrap :size="30">
+        <ElTable :data="deploymentsData" style="width: 100%">
+          <ElTableColumn
+            fixed
+            prop="k8sName"
+            :label="t('project.cd.target_env')"
+            width="180"
+            :filters="namespacesPair"
+            :filter-method="nsFilterHandler"
+          /><ElTableColumn
+            fixed
+            prop="namespace"
+            :label="t('project.cd.namespace')"
+            width="180"
+            :filters="namespacesPair"
+            :filter-method="nsFilterHandler"
+          /><ElTableColumn fixed :label="t('project.cd.artifact_name')" width="250">
+            <template #default="scope">
+              {{ scope.row.artifactName }}
+              <ElDivider direction="vertical" />
+              <ElTag effect="light" type="success" v-if="scope.row.artifactTag == 'latest'">{{
+                t('project.cd.deploy_version_latest')
+              }}</ElTag>
+              <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
+                scope.row.artifactTag
+              }}</ElTag>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="t('project.cd.env_vars')" width="200">
+            <template #default="scope">
+              <ElRow>
+                <ElCol :key="vars" :span="24" v-for="(vars, index) in scope.row.env">
+                  <ElTag v-if="index <= 2" style="margin: 3px"
+                    >{{ vars.text }}:{{ vars.value }}</ElTag
+                  >
+                  <span v-if="index > 2">...</span>
+                </ElCol>
+              </ElRow>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="t('project.cd.port_mapping')" width="200">
+            <template #default="scope">
+              <ElRow>
+                <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
+                  <ElTag v-if="index <= 2" style="margin: 3px"
+                    >{{ port.text }}:{{ port.value }}</ElTag
+                  >
+                  <span v-if="index > 2">...</span>
+                </ElCol>
+              </ElRow>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="t('project.cd.last_deploy_at')" width="180">
+            <template #default="scope">
+              {{ scope.row.lastDeployAt }}
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="t('project.cd.action')" fixed="right" width="120" align="center">
+            <template #default="scope">
+              <ElDropdown @command="actionHandler">
+                <span class="el-dropdown-link">
+                  <ElButton :icon="MoreFilled" circle />
+                </span>
+                <template #dropdown>
+                  <ElDropdownMenu>
+                    <ElDropdownItem :command="{ id: scope.row.id, cmd: 'deploy' }">
+                      <ElLink v-if="scope.row.lastDeployAt == null" :underline="false">
+                        <Icon icon="material-symbols:play-circle" />
+                        {{ t('project.cd.first_deploy') }}
+                      </ElLink>
+                      <ElLink v-if="scope.row.lastDeployAt != null" :underline="false">
+                        <Icon icon="material-symbols:play-circle" />
+                        {{ t('project.cd.redeploy') }}
+                      </ElLink>
+                    </ElDropdownItem>
+                    <ElDropdownItem>
+                      <ElLink :underline="false">
+                        <Icon icon="icon-park-solid:history-query" />
+                        {{ t('project.cd.deploy_history') }}</ElLink
+                      >
+                    </ElDropdownItem>
+                    <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                      <ElLink :icon="Delete" :underline="false" type="danger">
+                        {{ t('project.cd.delete_deployment') }}
+                      </ElLink>
+                    </ElDropdownItem>
+                    <ElDropdownItem
+                      v-if="scope.row.lastDeployAt != null"
+                      divided
+                      :command="{ id: scope.row.id, cmd: 'del' }"
                     >
-                  </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
-                    <ElLink :icon="Delete" :underline="false" type="danger">
-                      {{ t('project.cd.delete_deployment') }}
-                    </ElLink>
-                  </ElDropdownItem>
-                </ElDropdownMenu>
-              </template>
-            </ElDropdown>
-          </template>
-        </ElTableColumn>
-      </ElTable>
-    </ElSpace>
+                      <ElLink :underline="false" type="primary">
+                        <Icon icon="material-symbols:text-select-jump-to-end" />
+                        {{ t('common.jump_to') + t('router.monitor') }}
+                      </ElLink>
+                    </ElDropdownItem>
+                  </ElDropdownMenu>
+                </template>
+              </ElDropdown>
+            </template>
+          </ElTableColumn>
+        </ElTable>
+      </ElSpace>
+    </ElScrollbar>
   </ContentDetailWrap>
 </template>
 

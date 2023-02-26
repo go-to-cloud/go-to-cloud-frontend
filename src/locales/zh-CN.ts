@@ -12,6 +12,7 @@ export default {
     testing: '测试',
     organization: '所属组织',
     inputText: '请输入',
+    jump_to: '转到',
     add: '新增',
     save: '保存',
     update: '更新',

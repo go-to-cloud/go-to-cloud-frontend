@@ -12,6 +12,7 @@ export default {
     testing: 'Testing',
     organization: 'Organization',
     inputText: 'Please input',
+    jump_to: 'Jump To ',
     add: 'Add',
     save: 'Save',
     update: 'Update',
