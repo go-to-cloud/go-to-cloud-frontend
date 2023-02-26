@@ -166,10 +166,11 @@ export const refreshPipelineApi = async (projectId: number): Promise<BuildPlanCa
 
 export const newDeployment = async (
   projectId: number,
-  deploy: any
+  deploy: any,
+  launch: boolean
 ): Promise<RepoCreationSubmitResult> => {
   const res = await request.post<IResponse<RepoCreationSubmitResult>>({
-    url: '/projects/' + projectId + '/deploy/app',
+    url: '/projects/' + projectId + '/deploy/app?launch=' + launch,
     data: deploy
   })
   return res && res.data && res.data.data

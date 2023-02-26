@@ -181,22 +181,23 @@ const artifactSelected = async () => {
   })
   imageTags.value = res.data.data
 }
-const submit = async (formEl: FormInstance) => {
+const submit = async (formEl: FormInstance, launch: boolean) => {
   await formEl.validate(async (valid, fields) => {
     if (valid) {
       let projectId = Number(params.id)
       ruleForm.ports = ports.portMapping
-      const res = await newDeployment(projectId, ruleForm)
-      if (res.success) {
-        ElMessage({
-          type: 'success',
-          message: t('common.save') + t('common.success')
-        })
-        await getDeploymentList()
-        tplDialogVisible.value = false
-      } else {
-        ElMessage.error(t('common.save') + t('common.failed') + '<br />' + res.data.message)
-      }
+      return await newDeployment(projectId, ruleForm, launch).then(async (res) => {
+        if (res.success) {
+          ElMessage({
+            type: 'success',
+            message: t('common.save') + t('common.success')
+          })
+          await getDeploymentList()
+          tplDialogVisible.value = false
+        } else {
+          ElMessage.error(t('common.save') + t('common.failed'))
+        }
+      })
     }
   })
 }
@@ -204,7 +205,7 @@ const submit = async (formEl: FormInstance) => {
 interface HandlerCommand {
   id: number
   cmd: string
-  form: DeploymentApps
+  form: DeploymentApps | null
 }
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
@@ -224,7 +225,12 @@ const actionHandler = (command: HandlerCommand) => {
       break
     }
     case 'deploy': {
-      // startBuildPlan(command.id)
+      let projectId = Number(params.id)
+      const rlt = request
+        .put({
+          url: '/projects/' + projectId + '/deploy/' + command.id
+        })
+        .then(() => getDeploymentList())
       break
     }
   }
@@ -235,10 +241,6 @@ onMounted(() => {
   getK8sRepo()
 })
 onUnmounted(() => {})
-
-function debugConsole(o: any) {
-  console.log(o)
-}
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
@@ -504,8 +506,10 @@ function debugConsole(o: any) {
     </div>
     <template #footer>
       <ElButton @click="tplDialogVisible = false">{{ t('common.close') }}</ElButton>
-      <ElButton type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </ElButton>
-      <ElButton type="primary" @click="submitAndDeploy(ruleFormRef)">
+      <ElButton type="primary" @click="submit(ruleFormRef, false)">
+        {{ t('common.submit') }}
+      </ElButton>
+      <ElButton type="primary" @click="submit(ruleFormRef, true)">
         <Icon style="margin-right: 5px" icon="ic:round-rocket-launch" />
         {{ t('project.cd.submitAndDeploy') }}
       </ElButton>
