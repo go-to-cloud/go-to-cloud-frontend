@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ElButton, FormInstance, FormRules } from 'element-plus'
+import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { CirclePlus, Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
-import { BuildPlanCard } from '@/api/projects/types'
+import { DeploymentApps } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
+import { newDeployment } from '@/api/projects'
+import Icon from '@/components/Icon/src/Icon.vue'
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -18,7 +20,7 @@ const namespaces = ref<string[]>([])
 const namespacesPair = ref<TextValuePair[]>([])
 const formSize = ref('default')
 const enableLimit = ref(false)
-const deploymentsData = ref<DeploymentData[]>([])
+const deploymentsData = ref<DeploymentApps[]>([])
 const artifacts = ref<KeyValuePair[]>([])
 const imageTags = ref<string[]>([])
 
@@ -31,20 +33,31 @@ interface TextValuePair {
   value: string
 }
 
-interface DeploymentData {
-  name: string
-  namespace: string
-}
-
 const nsFilterHandler = (
   value: string,
-  row: DeploymentData,
-  column: TableColumnCtx<DeploymentData>
+  row: DeploymentApps,
+  column: TableColumnCtx<DeploymentApps>
 ) => {
-  const property = column['property']
   return row.namespace === value
 }
 
+const env = reactive<TextValuePair[]>([
+  {
+    text: '',
+    value: ''
+  }
+])
+const addVars = () => {
+  env.push({
+    text: '',
+    value: ''
+  })
+}
+const removeVars = (index: number) => {
+  if (env.length > 1) {
+    env.splice(index, 1)
+  }
+}
 const ports = reactive<{ portMapping: TextValuePair[] }>({
   portMapping: [
     {
@@ -81,16 +94,17 @@ const ruleForm = reactive({
   k8s: '',
   namespace: '',
   artifact: null,
-  version: '',
+  artifactTag: '',
   replicate: 1,
   healthcheck: '/healthz',
-  healthcheckPort: 80,
+  healthcheckPort: '80',
   enableLimit: enableLimit,
-  cpuLimits: 1000,
-  cpuRequest: 500,
-  memLimits: 2000,
-  memRequest: 200,
-  ports: ports.portMapping
+  cpuLimits: '1000',
+  cpuRequest: '500',
+  memLimits: '2000',
+  memRequest: '200',
+  ports: ports.portMapping,
+  env: env
 })
 
 const ruleFormRef = ref<FormInstance>()
@@ -111,7 +125,7 @@ const rules = reactive<FormRules>({
   version: [
     {
       required: true,
-      message: t('common.selectText') + t('project.cd.artifact_version'),
+      message: t('common.selectText') + t('project.cd.deploy_version'),
       trigger: 'blur'
     }
   ]
@@ -119,10 +133,10 @@ const rules = reactive<FormRules>({
 
 const getDeploymentList = async () => {
   let projectId = Number(params.id)
-  const deployments = await request.get({
+  const rlt = await request.get({
     url: '/projects/' + projectId + '/deploy/apps'
   })
-  deploymentsData.value = deployments.data.data
+  deploymentsData.value = rlt.data.data
 }
 
 const getK8sRepo = async () => {
@@ -168,22 +182,26 @@ const submit = async (formEl: FormInstance) => {
   await formEl.validate(async (valid, fields) => {
     if (valid) {
       let projectId = Number(params.id)
-      const res = await request.post({
-        url: '/projects/' + projectId + '/deploy/app',
-        data: ruleForm
-      })
-      // await getBuildPlans()
-      tplDialogVisible.value = false
+      ruleForm.ports = ports.portMapping
+      const res = await newDeployment(projectId, ruleForm)
+      if (res.success) {
+        ElMessage({
+          type: 'success',
+          message: t('common.save') + t('common.success')
+        })
+        await getDeploymentList()
+        tplDialogVisible.value = false
+      } else {
+        ElMessage.error(t('common.save') + t('common.failed') + '<br />' + res.data.message)
+      }
     }
   })
 }
 
-const planCards = ref<BuildPlanCard[]>()
-
 interface HandlerCommand {
   id: number
   cmd: string
-  form: BuildPlanCard
+  form: DeploymentApps
 }
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
@@ -209,6 +227,10 @@ onMounted(() => {
   getK8sRepo()
 })
 onUnmounted(() => {})
+
+function debugConsole(o: any) {
+  console.log(o)
+}
 </script>
 <template>
   <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
@@ -267,23 +289,28 @@ onUnmounted(() => {})
               />
             </ElSelect>
           </ElFormItem>
-          <ElFormItem :label="t('project.cd.deploy_version')" prop="version">
+          <ElFormItem :label="t('project.cd.deploy_version')" prop="tag">
             <ElSelect
               :disabled="ruleForm.artifact == null"
               style="width: 200px"
-              v-model="ruleForm.version"
+              v-model="ruleForm.artifactTag"
               class="inline-input w-50"
               :placeholder="t('common.selectText') + t('project.cd.deploy_version')"
             >
-              <ElOption v-for="item in imageTags" :key="item" :label="item" :value="item" />
+              <ElOptionGroup label="最新版本">
+                <ElOption key="latest" label="latest" value="latest" />
+              </ElOptionGroup>
+              <ElOptionGroup label="固定版本">
+                <ElOption v-for="item in imageTags" :key="item" :label="item" :value="item" />
+              </ElOptionGroup>
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.replicate_num')" prop="replicate">
             <ElInputNumber style="width: 200px" v-model="ruleForm.replicate" :min="1" />
           </ElFormItem>
-          <ElFormItem :label="t('project.cd.port_mapping')" prop="count">
+          <ElFormItem :label="t('project.cd.port_mapping')">
             <ElSpace direction="vertical" :size="10">
-              <ElFormItem v-for="port in ports.portMapping" :key="port.text">
+              <ElFormItem v-for="(port, index) in ports.portMapping" :key="port.text">
                 <ElCol :span="8">
                   <ElInput
                     class="w-50"
@@ -336,7 +363,59 @@ onUnmounted(() => {})
               </ElFormItem>
             </ElSpace>
           </ElFormItem>
-
+          <ElFormItem :label="t('project.cd.env_vars')">
+            <ElSpace direction="vertical" :size="10">
+              <ElFormItem v-for="(vars, index) in env" :key="vars">
+                <ElCol :span="8">
+                  <ElInput
+                    class="w-50"
+                    :controls="false"
+                    v-model="vars.text"
+                    :placeholder="t('project.cd.env_vars_key')"
+                  />
+                </ElCol>
+                <ElCol class="text-center" :span="1" />
+                <ElCol :span="8">
+                  <ElInput
+                    class="w-50"
+                    :controls="false"
+                    v-model="vars.value"
+                    :placeholder="t('project.cd.env_vars_value')"
+                  />
+                </ElCol>
+                <ElCol :span="2">
+                  <ElButton
+                    type="primary"
+                    :icon="Plus"
+                    plain
+                    style="margin-left: 10px"
+                    circle
+                    @click="addVars"
+                  />
+                </ElCol>
+                <ElCol :span="2">
+                  <ElButton
+                    v-if="env.length <= 1"
+                    disabled
+                    type="danger"
+                    :icon="Delete"
+                    plain
+                    style="margin-left: 10px"
+                    circle
+                  />
+                  <ElButton
+                    v-if="env.length > 1"
+                    type="danger"
+                    :icon="Delete"
+                    plain
+                    style="margin-left: 10px"
+                    circle
+                    @click="removeVars(index)"
+                  />
+                </ElCol>
+              </ElFormItem>
+            </ElSpace>
+          </ElFormItem>
           <ElFormItem :label="t('project.cd.resource_limit.text')">
             <ElSpace direction="vertical" style="align-items: flex-start">
               <ElSwitch v-model="enableLimit" />
@@ -394,7 +473,7 @@ onUnmounted(() => {})
               <ElInput
                 v-model="ruleForm.healthcheck"
                 :placeholder="t('project.cd.health_checker')"
-                :formatter="(value) => `/ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                :formatter="(value) => `/${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
                 :parser="(value) => value.replace(/\/\s?|(,*)/g, '')"
               />
             </ElCol>
@@ -418,6 +497,10 @@ onUnmounted(() => {})
     <template #footer>
       <ElButton @click="tplDialogVisible = false">{{ t('common.close') }}</ElButton>
       <ElButton type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </ElButton>
+      <ElButton type="primary" @click="submitAndDeploy(ruleFormRef)">
+        <Icon style="margin-right: 5px" icon="ic:round-rocket-launch" />
+        {{ t('project.cd.submitAndDeploy') }}
+      </ElButton>
     </template>
   </ElDialog>
   <ContentDetailWrap :title="t('project.toolset.cd')" @back="push('/projects/index')">
@@ -442,29 +525,55 @@ onUnmounted(() => {})
     </ElRow>
     <ElDivider />
     <ElSpace wrap :size="30">
-      <ElTable :data="planCards" style="width: 100%">
-        <ElTableColumn fixed prop="name" :label="t('project.cd.app_name')" width="250" />
+      <ElTable :data="deploymentsData" style="width: 100%">
         <ElTableColumn
           fixed
-          prop="buildEnv"
+          prop="k8sName"
+          :label="t('project.cd.target_env')"
+          width="180"
+          :filters="namespacesPair"
+          :filter-method="nsFilterHandler"
+        /><ElTableColumn
+          fixed
+          prop="namespace"
           :label="t('project.cd.namespace')"
           width="180"
           :filters="namespacesPair"
           :filter-method="nsFilterHandler"
-        />
-        <ElTableColumn fixed prop="branch" :label="t('project.cd.instance')" width="120">
+        /><ElTableColumn fixed :label="t('project.cd.artifact_name')" width="300">
           <template #default="scope">
-            {{ scope.row.runningPods }} / {{ scope.row.totalPods }}
+            {{ scope.row.artifactName }}
+            <ElDivider direction="vertical" />
+            <ElTag effect="dark" type="success" v-if="scope.row.artifactTag == 'latest'">{{
+              t('project.cd.deploy_version_latest')
+            }}</ElTag>
+            <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
+              scope.row.artifactTag
+            }}</ElTag>
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="t('project.cd.ops')" width="120">
+        <ElTableColumn :label="t('project.cd.env_vars')" width="200">
           <template #default="scope">
-            <ElButton link type="primary" size="small" @click="scale(scope.row)">{{
-              t('project.cd.scale')
-            }}</ElButton>
-            <ElButton link type="primary" size="small" @click="restart(scope.row)"
-              >{{ t('project.cd.restart') }}
-            </ElButton>
+            <ElRow>
+              <ElCol :key="vars" :span="24" v-for="(vars, index) in scope.row.env">
+                <ElTag v-if="index <= 2" style="margin: 3px"
+                  >{{ vars.text }}:{{ vars.value }}</ElTag
+                >
+                <span v-if="index > 2">...</span>
+              </ElCol>
+            </ElRow>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="t('project.cd.port_mapping')">
+          <template #default="scope">
+            <ElRow>
+              <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
+                <ElTag v-if="index <= 2" style="margin: 3px"
+                  >{{ port.text }}:{{ port.value }}</ElTag
+                >
+                <span v-if="index > 2">...</span>
+              </ElCol>
+            </ElRow>
           </template>
         </ElTableColumn>
         <ElTableColumn :label="t('project.cd.action')" fixed="right" width="120" align="center">
@@ -475,27 +584,30 @@ onUnmounted(() => {})
               </span>
               <template #dropdown>
                 <ElDropdownMenu>
-                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'detail' }">
-                    <ElLink :underline="false">
-                      <Icon :icon="Expand" />
-                      {{ t('project.cd.detail') }}
-                    </ElLink>
-                  </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'building' }">
+                  <ElDropdownItem
+                    v-if="!scope.row.buildingNow"
+                    :command="{ id: scope.row.id, cmd: 'building' }"
+                  >
                     <ElLink :underline="false">
                       <Icon icon="material-symbols:play-circle" />
-                      {{ t('project.cd.redeploy') }}
+                      {{ t('project.ci.build_now') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem v-if="scope.row.buildingNow">
+                    <ElLink :underline="false">
+                      <Icon size="20" icon="typcn:cancel" />
+                      {{ t('project.ci.cancel_building') }}
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem>
                     <ElLink :underline="false">
                       <Icon icon="icon-park-solid:history-query" />
-                      {{ t('project.cd.rollback') }}</ElLink
+                      {{ t('project.ci.build_history') }}</ElLink
                     >
                   </ElDropdownItem>
                   <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
                     <ElLink :icon="Delete" :underline="false" type="danger">
-                      {{ t('project.cd.delete') }}
+                      {{ t('project.ci.delete_plan') }}
                     </ElLink>
                   </ElDropdownItem>
                 </ElDropdownMenu>
@@ -508,13 +620,4 @@ onUnmounted(() => {})
   </ContentDetailWrap>
 </template>
 
-<style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.box-item-width {
-  width: 200px;
-}
-</style>
+<style scoped></style>

@@ -101,3 +101,10 @@ export type BuildPlanCard = BuildPlan & {
   lastBuildResult: number
   buildingNow: boolean
 }
+
+export type DeploymentApps = {
+  k8sName: string
+  artifactName: string
+  artifactTag: string
+  namespace: string
+}

@@ -5,6 +5,8 @@ export default {
     public: 'Public'
   },
   common: {
+    success: 'Successful',
+    failed: 'Failed',
     repo: 'Repo',
     viewDetail: 'View Detail',
     testing: 'Testing',
@@ -262,10 +264,15 @@ export default {
       namespace: 'Namespace',
       artifact_name: 'Image Name',
       deploy_version: 'Deploy Version',
+      deploy_version_fixed: 'Fixed Version',
+      deploy_version_latest: 'Always Latest',
       replicate_num: 'Replicate Numbers',
       port_mapping: 'Port Mapping',
       service_port: 'Service Port',
       container_port: 'Container Port',
+      env_vars: 'Environment Variables',
+      env_vars_key: 'Variable',
+      env_vars_value: 'Value',
       resource_limit: {
         text: 'Resource Limit',
         cpu_request: 'CPU Request',
@@ -284,6 +291,7 @@ export default {
       scale: 'Scale',
       restart: 'Restart',
       detail: 'Detail...',
+      submitAndDeploy: 'Submit And Deploy',
       result: {
         never: 'Never',
         success: 'Success',

@@ -5,6 +5,8 @@ export default {
     public: '公开'
   },
   common: {
+    success: '成功',
+    failed: '失败',
     repo: '仓库',
     viewDetail: '查看详情',
     testing: '测试',
@@ -262,10 +264,15 @@ export default {
       namespace: '名字空间',
       artifact_name: '镜像名称',
       deploy_version: '部署版本',
+      deploy_version_fixed: '固定版本',
+      deploy_version_latest: '最新版本',
       replicate_num: '副本数量',
       port_mapping: '端口映射',
       service_port: '服务端口',
       container_port: '容器端口',
+      env_vars: '环境变量',
+      env_vars_key: '变量名',
+      env_vars_value: '变量值',
       resource_limit: {
         text: '资源配置',
         cpu_request: 'CPU资源',
@@ -284,6 +291,7 @@ export default {
       scale: '伸缩',
       restart: '重启',
       detail: '详情...',
+      submitAndDeploy: '提交并部署',
       result: {
         never: '从未执行',
         success: '成功',
