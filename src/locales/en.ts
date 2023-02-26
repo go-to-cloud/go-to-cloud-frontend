@@ -417,6 +417,10 @@ export default {
     remove: 'Remove K8S Cluster',
     removeConfirm: 'Bind cluster will be removed. Continue?'
   },
+  monitor: {
+    appName: 'App Name',
+    refresh: 'Refresh Apps'
+  },
   formDemo: {
     input: 'Input',
     inputNumber: 'InputNumber',

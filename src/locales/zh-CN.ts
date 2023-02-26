@@ -418,6 +418,10 @@ export default {
     remove: '移除K8S集群',
     removeConfirm: '即将移除K8S集群绑定关系，是否继续？'
   },
+  monitor: {
+    appName: '应用名称',
+    refresh: '刷新应用状态'
+  },
   formDemo: {
     input: '输入框',
     inputNumber: '数字输入框',
