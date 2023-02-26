@@ -292,6 +292,7 @@ export default {
       restart: '重启',
       detail: '详情...',
       submitAndDeploy: '提交并部署',
+      last_deploy_at: '最近部署时间',
       result: {
         never: '从未执行',
         success: '成功',

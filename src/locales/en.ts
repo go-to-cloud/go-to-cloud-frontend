@@ -292,6 +292,7 @@ export default {
       restart: 'Restart',
       detail: 'Detail...',
       submitAndDeploy: 'Submit And Deploy',
+      last_deploy_at: 'Last Deploy At',
       result: {
         never: 'Never',
         success: 'Success',

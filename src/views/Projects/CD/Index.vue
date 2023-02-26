@@ -104,7 +104,8 @@ const ruleForm = reactive({
   memLimits: '2000',
   memRequest: '200',
   ports: ports.portMapping,
-  env: env
+  env: env,
+  lastDeployAt: null
 })
 
 const ruleFormRef = ref<FormInstance>()
@@ -544,7 +545,7 @@ function debugConsole(o: any) {
           <template #default="scope">
             {{ scope.row.artifactName }}
             <ElDivider direction="vertical" />
-            <ElTag effect="dark" type="success" v-if="scope.row.artifactTag == 'latest'">{{
+            <ElTag effect="light" type="success" v-if="scope.row.artifactTag == 'latest'">{{
               t('project.cd.deploy_version_latest')
             }}</ElTag>
             <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
@@ -564,7 +565,7 @@ function debugConsole(o: any) {
             </ElRow>
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="t('project.cd.port_mapping')">
+        <ElTableColumn :label="t('project.cd.port_mapping')" width="200">
           <template #default="scope">
             <ElRow>
               <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
@@ -574,6 +575,11 @@ function debugConsole(o: any) {
                 <span v-if="index > 2">...</span>
               </ElCol>
             </ElRow>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="t('project.cd.last_deploy_at')" width="180">
+          <template #default="scope">
+            {{ scope.row.lastDeployAt }}
           </template>
         </ElTableColumn>
         <ElTableColumn :label="t('project.cd.action')" fixed="right" width="120" align="center">
