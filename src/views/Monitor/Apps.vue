@@ -2,10 +2,8 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Dialog } from '@/components/Dialog'
 import {
   ArrowDown,
-  Connection,
   CopyDocument,
   Delete,
   Expand,
@@ -21,13 +19,13 @@ import { getOrganizationsApi } from '@/api/common'
 import {
   bindRepoApi,
   getArtifactRepoApi,
-  getRepoItemApi,
   removeRepoApi,
   testingRepoApi,
   updateRepoApi
 } from '@/api/configure/artifact'
 import { ElMessageBox } from 'element-plus/es'
-import { ArtifactRepoType, ArtifactType, NodeType } from '@/api/configure/types'
+import { ArtifactRepoType, ArtifactType, DeploymentNode, NodeType } from '@/api/configure/types'
+import { getK8sRepoApi } from '@/api/configure/deploy'
 
 const bindDialogVisible = ref(false)
 
@@ -40,13 +38,12 @@ const dlgForCreate = ref(true)
 
 const selectedRepoTab = ref('-1')
 const repoSelected = async (name: string) => {
-  for (let i = 0; i < artifactTypes.value.length; i++) {
-    if (artifactTypes.value[i].Id + '' == name) {
-      const artifact = artifactTypes.value[i]
-      if (artifact.Items === null) {
-        const artifactId = artifact.Id
-        await getRepoItemApi(artifactId).then((resp) => {
-          artifact.Items = resp
+  for (let i = 0; i < deploymentNodes.value.length; i++) {
+    if (deploymentNodes.value[i].id + '' == name) {
+      const node = deploymentNodes.value[i]
+      if (node.items === null) {
+        await getK8sRepoApi(node.id).then((resp) => {
+          node.items = resp
         })
       }
     }
@@ -172,26 +169,25 @@ const close = (formEl: FormInstance | undefined) => {
   getOrganizations()
 }
 
-const artifactTypes = ref<Array<ArtifactType>>([])
+const deploymentNodes = ref<DeploymentNode[]>([])
 
 const getArtifactRepoList = async (params?: any) => {
   await getArtifactRepoApi(params).then(async (resp) => {
-    artifactTypes.value = new Array<ArtifactType>()
+    deploymentNodes.value = new Array<DeploymentNode>()
 
     for (let i = 0; i < resp.length; i++) {
-      artifactTypes.value.push({
-        Id: resp[i].id,
-        Enabled: true,
-        RepoName: resp[i].name,
-        IsSecurity: resp[i].isSecurity,
-        Type: resp[i].type,
-        Items: null,
-        Data: resp[i]
+      deploymentNodes.value.push({
+        id: resp[i].id,
+        enabled: true,
+        nodeName: resp[i].name,
+        isSecurity: resp[i].isSecurity,
+        nodeType: resp[i].type,
+        items: null
       })
     }
     if (resp.length > 0 && selectedRepoTab.value === '-1') {
       selectedRepoTab.value = '0'
-      await repoSelected(artifactTypes.value.at(0)!.Id + '')
+      await repoSelected(deploymentNodes.value.at(0)!.Id + '')
     }
   })
 }
@@ -212,9 +208,9 @@ const getOrganizations = async () => {
   })
 }
 
-const artifactTypeHover = ref(0)
-const artifactTabHover = ref(0)
-const artifactTabSelected = ref(-1)
+const nodeHover = ref(0)
+const nodeTabHover = ref(0)
+const nodeTabSelected = ref(-1)
 
 const artifactRepoFormRule = ref<FormRules>({
   name: [
@@ -273,44 +269,14 @@ const artifactRepoForm = ref({
   orgs: ref(Array<number>())
 })
 
-function resetForm() {
-  artifactRepoForm.value = {
-    id: 0,
-    name: '',
-    type: ArtifactRepoType.Docker,
-    isSecurity: true,
-    url: '',
-    user: '',
-    password: '',
-    remark: '',
-    orgs: []
-  }
-}
-
 const IconKube = 'skill-icons:kubernetes'
-const IconOSS = 'ant-design:aliyun-outlined'
-const IconDocker = 'logos:docker-icon'
-const IconNuget = 'vscode-icons:file-type-nuget'
-const IconMaven = 'vscode-icons:file-type-maven'
-const IconNpm = 'logos:npm-icon'
-const IconS3 = 'logos:aws-s3'
 
-function GetTypeName(artifact: ArtifactType) {
-  switch (artifact.Type) {
-    case ArtifactRepoType.Docker:
-      return 'Docker'
-    case ArtifactRepoType.OSS:
-      return 'Ali-OSS'
-    case ArtifactRepoType.Nuget:
-      return 'Nuget'
-    case ArtifactRepoType.Maven:
-      return 'Maven'
-    case ArtifactRepoType.Npm:
-      return 'Npm'
-    case ArtifactRepoType.S3:
-      return 'S3'
+function GetTypeName(node: DeploymentNode) {
+  switch (node.nodeType) {
+    case NodeType.K8s:
+      return 'K8S'
     default:
-      return IconOSS
+      return 'K8S'
   }
 }
 
@@ -409,9 +375,9 @@ const actionHandler = (command: HandlerCommand) => {
       break
     case 'refresh':
       let i = 0
-      for (; i < artifactTypes.value.length; i++) {
-        if (artifactTypes.value[i].Id === command.id) {
-          artifactTypes.value[i].Items = null
+      for (; i < deploymentNodes.value.length; i++) {
+        if (deploymentNodes.value[i].Id === command.id) {
+          deploymentNodes.value[i].Items = null
           break
         }
       }
@@ -430,11 +396,11 @@ const actionHandler = (command: HandlerCommand) => {
       break
   }
 }
-function isFirstTabInit(a: ArtifactType): boolean {
+function isFirstTabInit(a: DeploymentNode): boolean {
   return (
-    (a === artifactTypes.value[0] && selectedRepoTab.value === '0') ||
-    a.Id === artifactTabHover.value ||
-    a.Id === artifactTabSelected.value
+    (a === deploymentNodes.value[0] && selectedRepoTab.value === '0') ||
+    a.id === nodeTabHover.value ||
+    a.id === nodeTabSelected.value
   )
 }
 
@@ -446,7 +412,7 @@ onMounted(() => {
 
 <template>
   <Error
-    v-if="artifactTypes.length == 0"
+    v-if="deploymentNodes.length == 0"
     type="artifactrepo_empty"
     @error-click="
       () => {
@@ -455,7 +421,7 @@ onMounted(() => {
       }
     "
   />
-  <ElRow justify="space-between" v-if="artifactTypes.length > 0">
+  <ElRow justify="space-between" v-if="deploymentNodes.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.monitor') }}</span>
@@ -473,34 +439,34 @@ onMounted(() => {
     </ElCol>
   </ElRow>
   <ElTabs
-    v-if="artifactTypes.length > 0"
-    class="artifact-tabs"
+    v-if="deploymentNodes.length > 0"
+    class="nodes-tabs"
     tab-position="left"
     @tab-change="repoSelected"
     v-model="selectedRepoTab"
   >
-    <ElTabPane v-for="type in artifactTypes" :key="type.Id" style="padding: 20px">
+    <ElTabPane v-for="node in deploymentNodes" :key="node.id" style="padding: 20px">
       <template #label>
         <div
-          @mouseover="artifactTabHover = type.Id"
-          @mouseleave="artifactTabHover = 0"
-          @click="artifactTabSelected = type.Id"
-          :class="isFirstTabInit(type) ? 'artifact-tab-focus' : ''"
+          @mouseover="nodeTabHover = node.id"
+          @mouseleave="nodeTabHover = 0"
+          @click="nodeTabSelected = node.id"
+          :class="isFirstTabInit(node) ? 'artifact-tab-focus' : ''"
         >
           <ElSpace :size="10" alignment="center" style="width: 200px">
             <Icon
               style="margin-top: 0"
-              :icon="GetIcon(type)[0]"
-              :color="GetIcon(type)[1]"
+              :icon="GetIcon(node.nodeType)[0]"
+              :color="GetIcon(node.nodeType)[1]"
               width="40"
               height="40"
             />
             <div style="height: 80px; margin-top: 4px">
               <div style="margin: -15px 0 0 5px; height: 40px; text-align: left">{{
-                type.RepoName
+                node.nodeName
               }}</div>
               <div style="margin: -10px 0 0 5px; height: 40px; font-size: 12px; color: #606c80">
-                <span>{{ GetTypeName(type) }} {{ t('common.repo') }} </span>
+                <span>{{ GetTypeName(node) }} {{ t('common.repo') }} </span>
                 <ElDivider direction="vertical" />
                 <ElDropdown class="tab-action" @command="actionHandler">
                   <span>
@@ -508,17 +474,17 @@ onMounted(() => {
                     }}<ElIcon class="el-icon--right"> <ArrowDown /> </ElIcon></span
                   ><template #dropdown>
                     <ElDropdownMenu>
-                      <ElDropdownItem :command="{ id: type.Id, cmd: 'view', form: type }"
+                      <ElDropdownItem :command="{ id: node.Id, cmd: 'view', form: node }"
                         ><ElLink :icon="Expand" :underline="false">
                           {{ t('common.edit') }}
                         </ElLink></ElDropdownItem
                       >
-                      <ElDropdownItem :command="{ id: type.Id, cmd: 'refresh', form: type }"
+                      <ElDropdownItem :command="{ id: node.Id, cmd: 'refresh', form: node }"
                         ><ElLink :icon="Refresh" :underline="false">
                           {{ t('common.reload') }}
                         </ElLink></ElDropdownItem
                       >
-                      <ElDropdownItem divided :command="{ id: type.Id, cmd: 'remove', form: type }">
+                      <ElDropdownItem divided :command="{ id: node.Id, cmd: 'remove', form: node }">
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.remove') }}
                         </ElLink>
@@ -532,9 +498,9 @@ onMounted(() => {
         </div>
       </template>
       <ElSpace :size="10" direction="vertical" alignment="start" fill fill-ratio="100">
-        <span class="header_title">{{ type.RepoName }}</span>
-        <div v-if="type.Type === ArtifactRepoType.Docker">
-          <ElTable :data="type.Items" style="width: 100%">
+        <span class="header_title">{{ node.RepoName }}</span>
+        <div v-if="node.Type === ArtifactRepoType.Docker">
+          <ElTable :data="node.Items" style="width: 100%">
             <ElTableColumn fixed prop="name" :label="t('artifacts.docker.list')" width="250">
               <template #default="scope">
                 <ElLink :underline="false"
@@ -609,143 +575,6 @@ onMounted(() => {
       </ElSpace>
     </ElTabPane>
   </ElTabs>
-  <Dialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
-    <ElForm
-      :rules="artifactRepoFormRule"
-      ref="artifactRepoFormRef"
-      :model="artifactRepoForm"
-      label-position="top"
-    >
-      <ElRow>
-        <ElCol :span="10">
-          <ElFormItem prop="name" :label="t('artifacts.name')">
-            <ElInput
-              v-model="artifactRepoForm.name"
-              :label="t('artifacts.name')"
-              :placeholder="t('common.inputText') + t('artifacts.name')"
-            />
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow>
-        <ElFormItem :label="t('artifacts.origin')">
-          <ElSpace :size="10" wrap>
-            <div
-              v-for="type in supportedArtifactTypes"
-              :key="type.Id"
-              @mouseover="artifactTypeHover = type.Id"
-              @mouseleave="artifactTypeHover = 0"
-              @click="type.Enabled ? (artifactRepoForm.type = type.Id) : true"
-              class="radio-sel"
-              :class="
-                type.Id === artifactTypeHover || type.Id == artifactRepoForm.type
-                  ? type.Enabled
-                    ? 'radio-sel-hover'
-                    : 'radio-sel-hover-disabled'
-                  : ''
-              "
-            >
-              <Icon :icon="GetIcon(type)[0]" :color="GetIcon(type)[1]" width="44" height="44" />
-              {{ GetTypeName(type) }}
-              <div
-                :class="
-                  type.Id == artifactRepoForm.type && type.Enabled ? 'radio-sel-selected' : ''
-                "
-              ></div>
-            </div>
-          </ElSpace>
-        </ElFormItem>
-      </ElRow>
-      <ElRow>
-        <ElFormItem :label="t('artifacts.security_type')">
-          <ElSwitch
-            v-model="artifactRepoForm.isSecurity"
-            :inactive-text="t('artifacts.security.insecurity')"
-            :active-text="t('artifacts.security.security')"
-          />
-        </ElFormItem>
-      </ElRow>
-      <ElRow>
-        <ElCol :span="18">
-          <ElFormItem prop="orgs" :label="t('common.organization')">
-            <ElSelect multiple v-model="artifactRepoForm.orgs" style="width: 100%">
-              <ElOption
-                v-for="org in Organizations"
-                :key="org.id"
-                :label="org.name"
-                :value="org.id"
-              /> </ElSelect
-          ></ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow>
-        <ElCol :span="18">
-          <ElFormItem prop="url" :label="t('artifacts.url')">
-            <ElInput
-              v-model="artifactRepoForm.url"
-              :placeholder="t('common.inputText') + t('artifacts.url')"
-            />
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow>
-        <ElCol :span="10">
-          <ElFormItem prop="user" :label="t('artifacts.user')">
-            <ElInput
-              v-model="artifactRepoForm.user"
-              :placeholder="t('common.inputText') + t('artifacts.user')"
-            />
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow>
-        <ElCol :span="10">
-          <ElFormItem prop="password" :label="t('artifacts.password')">
-            <ElInput
-              type="password"
-              v-model="artifactRepoForm.password"
-              autocomplete="false"
-              :placeholder="t('common.inputText') + t('artifacts.password')"
-            />
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow>
-        <ElCol :span="18">
-          <ElFormItem :label="t('common.remark')">
-            <ElInput
-              v-model="artifactRepoForm.remark"
-              show-word-limit
-              maxlength="200"
-              type="textarea"
-            />
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-    </ElForm>
-    <template #footer>
-      <span>
-        <el-button
-          @click="testing(artifactRepoFormRef)"
-          :disabled="
-            artifactRepoForm.url === '' ||
-            artifactRepoForm.user === '' ||
-            artifactRepoForm.password === ''
-          "
-          type="success"
-          style="position: absolute; left: 10px"
-          >{{ t('common.testing') }}</el-button
-        >
-        <ElButton @click="close(artifactRepoFormRef)">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="dlgForCreate" type="primary" @click="submit(artifactRepoFormRef)">{{
-          t('common.ok')
-        }}</ElButton>
-        <ElButton v-if="!dlgForCreate" type="primary" @click="save(artifactRepoFormRef)">{{
-          t('common.update')
-        }}</ElButton>
-      </span>
-    </template>
-  </Dialog>
 </template>
 <style scoped>
 .tab-action {
@@ -761,7 +590,7 @@ onMounted(() => {
   color: var(--el-text-color-primary);
 }
 
-.artifact-tabs {
+.nodes-tabs {
   background-color: #fff;
   margin: 10px 0 10px 0;
   height: 800px;
@@ -815,7 +644,7 @@ onMounted(() => {
 .el-tabs {
   --el-tabs-header-height: 80px;
 }
-.artifact-tab-focus {
+.node-tab-focus {
   background-color: rgb(245, 247, 250);
   margin: 0 -18px 0 -20px;
   padding: 0 18px 0 20px;

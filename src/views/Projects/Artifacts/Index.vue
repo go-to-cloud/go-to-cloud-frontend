@@ -500,7 +500,7 @@ function isFirstTabInit(a: ArtifactType): boolean {
   </ElRow>
   <ElTabs
     v-if="artifactTypes.length > 0"
-    class="artifact-tabs"
+    class="nodes-tabs"
     tab-position="left"
     @tab-change="repoSelected"
     v-model="selectedRepoTab"
@@ -787,7 +787,7 @@ function isFirstTabInit(a: ArtifactType): boolean {
   color: var(--el-text-color-primary);
 }
 
-.artifact-tabs {
+.nodes-tabs {
   background-color: #fff;
   margin: 10px 0 10px 0;
   height: 800px;
@@ -841,7 +841,7 @@ function isFirstTabInit(a: ArtifactType): boolean {
 .el-tabs {
   --el-tabs-header-height: 80px;
 }
-.artifact-tab-focus {
+.node-tab-focus {
   background-color: rgb(245, 247, 250);
   margin: 0 -18px 0 -20px;
   padding: 0 18px 0 20px;

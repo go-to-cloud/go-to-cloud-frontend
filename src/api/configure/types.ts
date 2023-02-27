@@ -113,3 +113,12 @@ export interface NewBuilderNodes {
 export type BuilderNodesOnk8s = NewBuilderNodes & {
   availableWorkers: number | null
 }
+
+export type DeploymentNode = {
+  id: number
+  nodeType: NodeType | NodeType.K8s
+  nodeName: string
+  enabled: boolean
+  isSecurity: boolean
+  items: K8sRepoData[] | null
+}
