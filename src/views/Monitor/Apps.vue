@@ -24,11 +24,9 @@ const repoSelected = async () => {
   for (let i = 0; i < k8sWithApp.value.length; i++) {
     if (k8sWithApp.value[i].id == nodeTabSelected.value) {
       const node = k8sWithApp.value[i]
-      if (node.items == null) {
-        await getAppsApi(node.id).then((resp) => {
-          node.items = resp
-        })
-      }
+      await getAppsApi(node.id).then((resp) => {
+        node.items = resp
+      })
       break
     }
   }
@@ -171,7 +169,7 @@ onMounted(() => {
             >
               <template #default="scope">
                 <ElTag round type="success">
-                  {{ scope.row.latestVersion }}
+                  {{ scope.row.name }}
                 </ElTag>
               </template></ElTableColumn
             >
@@ -187,7 +185,7 @@ onMounted(() => {
               width="160"
             >
               <template #default="scope">
-                <ElLink type="info" :underline="false">{{ scope.row.tags.length }}</ElLink>
+                <ElLink type="info" :underline="false">{{ scope.row.name }}</ElLink>
               </template>
             </ElTableColumn>
             <ElTableColumn fixed="right" prop="id" :label="t('artifacts.docker.action')" width="80">
