@@ -388,6 +388,8 @@ function errorClick() {
         <ElCol :span="18">
           <ElFormItem :label="t('k8s.kubeconfig')">
             <ElInput
+              :readonly="!dlgForCreate"
+              :disabled="!dlgForCreate"
               :autosize="{ minRows: 6, maxRows: 9 }"
               v-model="clusterDetailForm.kubeconfig"
               show-word-limit

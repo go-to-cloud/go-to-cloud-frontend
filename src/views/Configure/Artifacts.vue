@@ -49,6 +49,7 @@ const repoSelected = async (name: string) => {
           artifact.Items = resp
         })
       }
+      break
     }
   }
 }

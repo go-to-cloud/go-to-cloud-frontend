@@ -1,16 +1,21 @@
 import { useAxios } from '@/hooks/web/useAxios'
 import {
-  K8sRepoData,
+  NodeType,
   RemoveRepoResult,
   RepoCreationSubmitResult,
   TestingResult
 } from '@/api/configure/types'
+import { K8sRepoWithAppData } from '@/api/monitor/types'
 
 const request = useAxios()
 
-export const getK8sRepoApi = async (params: any): Promise<K8sRepoData[]> => {
-  const res = await request.get<IResponse<K8sRepoData[]>>({ url: '/configure/deploy/k8s', params })
-  return res && res.data && res.data.data
+export const getK8sRepoApi = async (): Promise<K8sRepoWithAppData[]> => {
+  const res = await request.get<IResponse<K8sRepoWithAppData[]>>({ url: '/configure/deploy/k8s' })
+  const rlt = res && res.data && res.data.data
+  for (let i = 0; i < rlt.length; i++) {
+    rlt[i].type = NodeType.K8s
+  }
+  return rlt
 }
 
 export const testingK8sApi = async (params: any): Promise<TestingResult> => {
