@@ -7,10 +7,12 @@ import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
-import { ArtifactRepoType, NodeType } from '@/api/configure/types'
+import { NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
 import { getAppsApi } from '@/api/monitor'
 import { K8sRepoWithAppData } from '@/api/monitor/types'
+import { DeploymentApps } from '@/api/projects/types'
+import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 
 const { t } = useI18n()
 
@@ -20,6 +22,20 @@ const Organizations = ref<Array<Org>>(new Array<Org>())
 
 const selectedRepoTab = ref('-1')
 const k8sWithApp = ref<K8sRepoWithAppData[]>([])
+const namespacesPair = ref<TextValuePair[]>([])
+
+interface TextValuePair {
+  text: string
+  value: string
+}
+
+const nsFilterHandler = (
+  value: string,
+  row: DeploymentApps,
+  column: TableColumnCtx<DeploymentApps>
+) => {
+  return row.namespace === value
+}
 const repoSelected = async () => {
   for (let i = 0; i < k8sWithApp.value.length; i++) {
     if (k8sWithApp.value[i].id == nodeTabSelected.value) {
@@ -152,33 +168,31 @@ onMounted(() => {
         <span class="header_title">{{ node.name }}</span>
         <div v-if="node.type === NodeType.K8s">
           <ElTable :data="node.items" style="width: 100%">
-            <ElTableColumn fixed prop="name" :label="t('artifacts.docker.list')" width="250">
+            <ElTableColumn fixed prop="name" :label="t('monitor.appName')" width="250">
               <template #default="scope">
-                <ElLink :underline="false"
-                  >{{ scope.row.name }}
-                  <ElTooltip placement="right" :content="t('artifacts.docker.copy_latest_image')">
-                    <ElIcon style="left: 5px"><CopyDocument /></ElIcon> </ElTooltip
-                ></ElLink>
+                <ElLink :underline="false">{{ scope.row.name }} </ElLink>
               </template>
             </ElTableColumn>
             <ElTableColumn
               fixed
-              prop="latestVersion"
-              :label="t('artifacts.docker.latest_version')"
+              prop="namespace"
+              :label="t('monitor.namespace')"
               width="180"
+              :filters="namespacesPair"
+              :filter-method="nsFilterHandler"
             >
               <template #default="scope">
                 <ElTag round type="success">
-                  {{ scope.row.name }}
+                  {{ scope.row.namespace }}
                 </ElTag>
               </template></ElTableColumn
             >
-            <ElTableColumn
-              fixed
-              prop="publishedAt"
-              :label="t('artifacts.docker.latest_push_at')"
-              width="180"
-            />
+            <ElTableColumn fixed prop="pods" :label="t('monitor.pod_number')" width="180">
+              <template #default="scope">
+                {{ scope.row.availablePods }} /
+                {{ scope.row.replicate }}
+              </template>
+            </ElTableColumn>
             <ElTableColumn
               prop="publishCounter"
               :label="t('artifacts.docker.publish_counter')"

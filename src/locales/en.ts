@@ -355,6 +355,7 @@ export default {
     update_failure: 'Update failure, try it later',
     all: 'All Nodes',
     node_type: {
+      name: 'Node Type',
       k8s: {
         namespace: 'Namespace'
       }
@@ -419,7 +420,9 @@ export default {
   },
   monitor: {
     appName: 'App Name',
-    refresh: 'Refresh Apps'
+    refresh: 'Refresh Apps',
+    namespace: 'Namespace',
+    pod_number: 'Pods Number'
   },
   formDemo: {
     input: 'Input',

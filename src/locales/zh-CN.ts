@@ -420,7 +420,9 @@ export default {
   },
   monitor: {
     appName: '应用名称',
-    refresh: '刷新应用状态'
+    refresh: '刷新应用状态',
+    namespace: '名字空间',
+    pod_number: 'Pods数量'
   },
   formDemo: {
     input: '输入框',
