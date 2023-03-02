@@ -1,28 +1,39 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, ref } from 'vue'
-import { ElButton, ElDivider } from 'element-plus'
-import { CopyDocument, Delete, Expand, MoreFilled, Refresh, Search } from '@element-plus/icons-vue'
+import { ElButton, ElDivider, dayjs } from 'element-plus'
+import {
+  CopyDocument,
+  Delete,
+  Expand,
+  MoreFilled,
+  Refresh,
+  Search,
+  RefreshRight
+} from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
-import { NodeType } from '@/api/configure/types'
+import { ArtifactType, NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
-import { getAppsApi } from '@/api/monitor'
+import { calcAge, getAppsApi } from '@/api/monitor'
 import { K8sRepoWithAppData } from '@/api/monitor/types'
 import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
+import { ElMessageBox } from 'element-plus/es'
 
 const { t } = useI18n()
-
+const scaleDlgVisible = ref(false)
 const loading = ref(true)
 const keywords = ref('')
 const Organizations = ref<Array<Org>>(new Array<Org>())
+const replicasNum = ref(0)
 
 const selectedRepoTab = ref('-1')
 const k8sWithApp = ref<K8sRepoWithAppData[]>([])
 const namespacesPair = ref<TextValuePair[]>([])
+const reloadingApps = ref(false)
 
 interface TextValuePair {
   text: string
@@ -37,11 +48,13 @@ const nsFilterHandler = (
   return row.namespace === value
 }
 const repoSelected = async () => {
+  reloadingApps.value = true
   for (let i = 0; i < k8sWithApp.value.length; i++) {
     if (k8sWithApp.value[i].id == nodeTabSelected.value) {
       const node = k8sWithApp.value[i]
       await getAppsApi(node.id).then((resp) => {
         node.items = resp
+        reloadingApps.value = false
       })
       break
     }
@@ -95,6 +108,46 @@ function isFirstTabInit(a: K8sRepoWithAppData): boolean {
   )
 }
 
+interface HandlerCommand {
+  id: number
+  cmd: string
+  form: any
+}
+
+const startScaleReplicas = async () => {}
+
+const actionHandler = (command: HandlerCommand) => {
+  switch (command.cmd) {
+    // case 'view':
+    //   dlgForCreate.value = false
+    //   bindDialogVisible.value = true
+    //   let orgIds: Array<number> = []
+    //   for (let i = 0; i < command.form.Data!.orgLites.length; i++) {
+    //     orgIds.push(command.form.Data!.orgLites[i].orgId)
+    //   }
+    //   artifactRepoForm.value = {
+    //     id: command.form.Data!.id,
+    //     name: command.form.Data!.name,
+    //     type: command.form.Data!.type,
+    //     isSecurity: command.form.Data!.isSecurity,
+    //     url: command.form.Data!.url,
+    //     user: command.form.Data!.user,
+    //     password: command.form.Data!.password,
+    //     remark: command.form.Data!.remark,
+    //     orgs: orgIds
+    //   }
+    //   break
+    case 'scale':
+      scaleDlgVisible.value = true
+      replicasNum.value = command.form.replicas
+      break
+    case 'restart':
+      break
+    case 'delete':
+      break
+  }
+}
+
 onMounted(() => {
   getOrganizations()
   getK8sRepoList()
@@ -102,6 +155,17 @@ onMounted(() => {
 </script>
 
 <template>
+  <ElDialog :title="t('monitor.scale')" v-model="scaleDlgVisible" width="280px" draggable>
+    <ElFormItem>
+      <ElCol :span="17">
+        <ElInputNumber v-model="replicasNum" :min="0" :max="100" />
+      </ElCol>
+      <ElCol :span="1" />
+      <ElCol :span="5">
+        <ElButton type="success" @click="startScaleReplicas()">{{ t('monitor.start') }}</ElButton>
+      </ElCol>
+    </ElFormItem>
+  </ElDialog>
   <Error v-if="k8sWithApp.length == 0" type="k8srepo_empty" @error-click="() => {}" />
   <ElRow justify="space-between" v-if="k8sWithApp.length > 0">
     <ElCol :span="18">
@@ -117,7 +181,7 @@ onMounted(() => {
       </ElSpace>
     </ElCol>
     <ElCol :span="6" style="text-align: right">
-      <ElButton :icon="Refresh" @click="repoSelected" type="success"
+      <ElButton :disabled="reloadingApps" :icon="Refresh" @click="repoSelected" type="success"
         >{{ t('monitor.refresh') }}
       </ElButton>
     </ElCol>
@@ -187,24 +251,45 @@ onMounted(() => {
                 </ElTag>
               </template></ElTableColumn
             >
-            <ElTableColumn fixed prop="pods" :label="t('monitor.pod_number')" width="180">
+            <ElTableColumn fixed prop="pods" :label="t('monitor.pod_number')" width="120">
               <template #default="scope">
                 {{ scope.row.availablePods }} /
-                {{ scope.row.replicate }}
+                {{ scope.row.availablePods + scope.row.unavailablePods }}
               </template>
             </ElTableColumn>
-            <ElTableColumn
-              prop="publishCounter"
-              :label="t('artifacts.docker.publish_counter')"
-              width="160"
-            >
+            <ElTableColumn fixed prop="replicas" :label="t('monitor.replicas')" width="120">
               <template #default="scope">
-                <ElLink type="info" :underline="false">{{ scope.row.name }}</ElLink>
+                {{ scope.row.replicas }}
               </template>
             </ElTableColumn>
-            <ElTableColumn fixed="right" prop="id" :label="t('artifacts.docker.action')" width="80">
-              <template #default>
-                <ElDropdown>
+            <ElTableColumn fixed prop="replicas" :label="t('monitor.publish_time')" width="120">
+              <template #default="scope">
+                {{ calcAge(scope.row.createdAt) }}
+              </template> </ElTableColumn
+            ><ElTableColumn fixed prop="conditions" :label="t('monitor.conditions')" width="220">
+              <template #default="scope">
+                <ElTag
+                  style="margin-right: 10px"
+                  v-for="item in scope.row.conditions"
+                  :key="item.type"
+                  round
+                  size="small"
+                  effect="dark"
+                  :type="
+                    item.type == 'Available'
+                      ? 'success'
+                      : item.type == 'Progressing'
+                      ? 'primary'
+                      : 'danger'
+                  "
+                >
+                  {{ item.type }}
+                </ElTag>
+              </template></ElTableColumn
+            >
+            <ElTableColumn fixed="right" prop="id" :label="t('monitor.action')" width="80">
+              <template #default="scope">
+                <ElDropdown @command="actionHandler">
                   <span class="el-dropdown-link">
                     <ElButton :icon="MoreFilled" circle />
                   </span>
@@ -215,19 +300,22 @@ onMounted(() => {
                           {{ t('common.viewDetail') }}
                         </ElLink>
                       </ElDropdownItem>
-                      <ElDropdownItem>
-                        <ElLink :icon="CopyDocument" :underline="false">
-                          {{ t('artifacts.docker.copy_latest_image') }}</ElLink
+                      <ElDropdownItem
+                        :command="{ id: scope.row.id, cmd: 'scale', form: scope.row }"
+                      >
+                        <ElLink :underline="false">
+                          <Icon icon="fluent:scale-fill-24-regular" style="margin-right: 5px" />
+                          {{ t('monitor.scale') }}</ElLink
                         >
                       </ElDropdownItem>
-                      <ElDropdownItem divided>
-                        <ElLink :icon="Delete" :underline="false" type="danger">
-                          {{ t('artifacts.docker.delete_latest_image') }}
-                        </ElLink>
+                      <ElDropdownItem :command="{ id: scope.row.id, cmd: 'restart' }">
+                        <ElLink :icon="RefreshRight" :underline="false">
+                          {{ t('monitor.restart') }}</ElLink
+                        >
                       </ElDropdownItem>
-                      <ElDropdownItem divided>
+                      <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'delete' }">
                         <ElLink :icon="Delete" :underline="false" type="danger">
-                          {{ t('artifacts.docker.delete_all_images') }}
+                          {{ t('monitor.delete_deployment') }}
                         </ElLink>
                       </ElDropdownItem>
                     </ElDropdownMenu>

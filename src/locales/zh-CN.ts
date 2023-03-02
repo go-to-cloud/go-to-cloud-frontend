@@ -289,8 +289,6 @@ export default {
       redeploy: '重新部署',
       rollback: '回滚...',
       delete: '删除应用',
-      scale: '伸缩',
-      restart: '重启',
       detail: '详情...',
       submitAndDeploy: '提交并部署',
       last_deploy_at: '最近部署时间',
@@ -422,7 +420,15 @@ export default {
     appName: '应用名称',
     refresh: '刷新应用状态',
     namespace: '名字空间',
-    pod_number: 'Pods数量'
+    pod_number: 'Pods数量',
+    replicas: '副本数量',
+    publish_time: '发布时间',
+    conditions: 'Pod状态',
+    action: '操作',
+    scale: '伸缩副本',
+    restart: '重启应用',
+    delete_deployment: '删除应用',
+    start: '开始'
   },
   formDemo: {
     input: '输入框',

@@ -289,8 +289,6 @@ export default {
       redeploy: 'Redeploy',
       rollback: 'Rollback...',
       delete: 'Delete App',
-      scale: 'Scale',
-      restart: 'Restart',
       detail: 'Detail...',
       submitAndDeploy: 'Submit And Deploy',
       last_deploy_at: 'Last Deploy At',
@@ -422,7 +420,15 @@ export default {
     appName: 'App Name',
     refresh: 'Refresh Apps',
     namespace: 'Namespace',
-    pod_number: 'Pods Number'
+    pod_number: 'Pods',
+    replicas: 'Replicas',
+    publish_time: 'Age',
+    conditions: 'Conditions',
+    action: 'Actions',
+    scale: 'Scale',
+    restart: 'Restart',
+    delete_deployment: 'Delete App',
+    start: 'Start'
   },
   formDemo: {
     input: 'Input',

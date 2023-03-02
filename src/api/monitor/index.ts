@@ -9,3 +9,28 @@ export const getAppsApi = async (params: number): Promise<AppData[]> => {
   })
   return res && res.data && res.data.data
 }
+
+export const calcAge = (params: string): string => {
+  if (params) {
+    const seconds = (new Date().getTime() - new Date(params).getTime()) / 1000
+    const minutes = seconds / 60
+    const hours = minutes / 60
+    const days = hours / 24
+
+    if (seconds <= 100) {
+      return parseInt(String(seconds)) + 's'
+    }
+    if (minutes <= 100) {
+      return parseInt(String(minutes)) + 'm'
+    }
+    if (hours <= 24) {
+      return parseInt(String(hours)) + 'h'
+    }
+
+    const d = parseInt(String(days))
+    const f = parseInt(String((24 * (parseInt(String(days * 100)) - d * 100)) / 100))
+    return d + 'd' + f + 'h'
+  } else {
+    return ''
+  }
+}
