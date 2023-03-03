@@ -15,13 +15,16 @@ import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
-import { ArtifactType, NodeType } from '@/api/configure/types'
+import { NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
-import { calcAge, getAppsApi } from '@/api/monitor'
+import { calcAge, getAppsApi, scaleReplicasApi } from '@/api/monitor'
 import { K8sRepoWithAppData } from '@/api/monitor/types'
 import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
-import { ElMessageBox } from 'element-plus/es'
+import { useRoute } from 'vue-router'
+import { timeout } from 'windicss-analysis'
+
+const { path, params } = useRoute()
 
 const { t } = useI18n()
 const scaleDlgVisible = ref(false)
@@ -29,6 +32,7 @@ const loading = ref(true)
 const keywords = ref('')
 const Organizations = ref<Array<Org>>(new Array<Org>())
 const replicasNum = ref(0)
+const selectedDeploymentId = ref(0)
 
 const selectedRepoTab = ref('-1')
 const k8sWithApp = ref<K8sRepoWithAppData[]>([])
@@ -47,12 +51,12 @@ const nsFilterHandler = (
 ) => {
   return row.namespace === value
 }
-const repoSelected = async () => {
+const repoSelected = async (force: boolean) => {
   reloadingApps.value = true
   for (let i = 0; i < k8sWithApp.value.length; i++) {
     if (k8sWithApp.value[i].id == nodeTabSelected.value) {
       const node = k8sWithApp.value[i]
-      await getAppsApi(node.id).then((resp) => {
+      await getAppsApi(node.id, force).then((resp) => {
         node.items = resp
         reloadingApps.value = false
       })
@@ -67,7 +71,7 @@ const getK8sRepoList = async () => {
     if (resp.length > 0 && selectedRepoTab.value === '-1') {
       selectedRepoTab.value = '0'
       nodeTabSelected.value = resp[0].id
-      await repoSelected()
+      await repoSelected(true)
     }
   })
 }
@@ -114,7 +118,16 @@ interface HandlerCommand {
   form: any
 }
 
-const startScaleReplicas = async () => {}
+let timeout: NodeJS.Timeout
+const startScaleReplicas = async () => {
+  let k8sRepoId = nodeTabSelected.value
+  await scaleReplicasApi(selectedDeploymentId.value, k8sRepoId, replicasNum.value).then((resp) => {
+    if (resp.code == '200') {
+      scaleDlgVisible.value = false
+      repoSelected(true)
+    }
+  })
+}
 
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
@@ -140,6 +153,7 @@ const actionHandler = (command: HandlerCommand) => {
     case 'scale':
       scaleDlgVisible.value = true
       replicasNum.value = command.form.replicas
+      selectedDeploymentId.value = command.form.id
       break
     case 'restart':
       break
@@ -162,7 +176,7 @@ onMounted(() => {
       </ElCol>
       <ElCol :span="1" />
       <ElCol :span="5">
-        <ElButton type="success" @click="startScaleReplicas()">{{ t('monitor.start') }}</ElButton>
+        <ElButton type="success" @click="startScaleReplicas">{{ t('monitor.start') }}</ElButton>
       </ElCol>
     </ElFormItem>
   </ElDialog>
@@ -181,7 +195,7 @@ onMounted(() => {
       </ElSpace>
     </ElCol>
     <ElCol :span="6" style="text-align: right">
-      <ElButton :disabled="reloadingApps" :icon="Refresh" @click="repoSelected" type="success"
+      <ElButton :disabled="reloadingApps" :icon="Refresh" @click="repoSelected(true)" type="success"
         >{{ t('monitor.refresh') }}
       </ElButton>
     </ElCol>
@@ -190,7 +204,7 @@ onMounted(() => {
     v-if="k8sWithApp.length > 0"
     class="nodes-tabs"
     tab-position="left"
-    @tab-change="repoSelected"
+    @tab-change="repoSelected(true)"
     v-model="selectedRepoTab"
   >
     <ElTabPane v-for="node in k8sWithApp" :key="node.id" style="padding: 20px">

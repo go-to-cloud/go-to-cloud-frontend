@@ -3,9 +3,9 @@ import { AppData } from '@/api/monitor/types'
 
 const request = useAxios()
 
-export const getAppsApi = async (params: number): Promise<AppData[]> => {
+export const getAppsApi = async (params: number, force: boolean): Promise<AppData[]> => {
   const res = await request.get<IResponse<AppData[]>>({
-    url: '/monitor/' + params + '/apps/query'
+    url: '/monitor/' + params + '/apps/query?force=' + (force ? 'true' : 'false')
   })
   return res && res.data && res.data.data
 }
@@ -33,4 +33,16 @@ export const calcAge = (params: string): string => {
   } else {
     return ''
   }
+}
+
+export const scaleReplicasApi = async (
+  deploymentId: number,
+  k8sRepoId: number,
+  num: number
+): Promise<IResponse> => {
+  const res = await request.put<IResponse>({
+    url: '/monitor/' + k8sRepoId + '/apps/scale',
+    data: { id: deploymentId, num: num }
+  })
+  return res && res.data
 }
