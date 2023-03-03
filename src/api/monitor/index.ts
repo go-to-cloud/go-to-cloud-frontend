@@ -29,7 +29,11 @@ export const calcAge = (params: string): string => {
 
     const d = parseInt(String(days))
     const f = parseInt(String((24 * (parseInt(String(days * 100)) - d * 100)) / 100))
-    return d + 'd' + f + 'h'
+    let rlt = d + 'd'
+    if (f > 0) {
+      rlt += f + 'h'
+    }
+    return rlt
   } else {
     return ''
   }
@@ -43,6 +47,17 @@ export const scaleReplicasApi = async (
   const res = await request.put<IResponse>({
     url: '/monitor/' + k8sRepoId + '/apps/scale',
     data: { id: deploymentId, num: num }
+  })
+  return res && res.data
+}
+
+export const restartDeploymentApi = async (
+  deploymentId: number,
+  k8sRepoId: number
+): Promise<IResponse> => {
+  const res = await request.put<IResponse>({
+    url: '/monitor/' + k8sRepoId + '/apps/restart',
+    data: { id: deploymentId }
   })
   return res && res.data
 }

@@ -1,32 +1,26 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, ref } from 'vue'
-import { ElButton, ElDivider, dayjs } from 'element-plus'
-import {
-  CopyDocument,
-  Delete,
-  Expand,
-  MoreFilled,
-  Refresh,
-  Search,
-  RefreshRight
-} from '@element-plus/icons-vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { ElButton, ElDivider, dayjs, ElMessage, Action } from 'element-plus'
+import { Delete, Expand, MoreFilled, Refresh, Search, RefreshRight } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 import { NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
-import { calcAge, getAppsApi, scaleReplicasApi } from '@/api/monitor'
+import { calcAge, getAppsApi, restartDeploymentApi, scaleReplicasApi } from '@/api/monitor'
 import { K8sRepoWithAppData } from '@/api/monitor/types'
 import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
-import { useRoute } from 'vue-router'
-import { timeout } from 'windicss-analysis'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus/es'
 
 const { path, params } = useRoute()
+const { push } = useRouter()
 
 const { t } = useI18n()
+const podsDetailDlgVisible = ref(false)
 const scaleDlgVisible = ref(false)
 const loading = ref(true)
 const keywords = ref('')
@@ -52,7 +46,7 @@ const nsFilterHandler = (
   return row.namespace === value
 }
 const repoSelected = async (force: boolean) => {
-  reloadingApps.value = true
+  reloadingApps.value = force
   for (let i = 0; i < k8sWithApp.value.length; i++) {
     if (k8sWithApp.value[i].id == nodeTabSelected.value) {
       const node = k8sWithApp.value[i]
@@ -118,7 +112,6 @@ interface HandlerCommand {
   form: any
 }
 
-let timeout: NodeJS.Timeout
 const startScaleReplicas = async () => {
   let k8sRepoId = nodeTabSelected.value
   await scaleReplicasApi(selectedDeploymentId.value, k8sRepoId, replicasNum.value).then((resp) => {
@@ -128,47 +121,92 @@ const startScaleReplicas = async () => {
     }
   })
 }
+const startRestartDeployment = async () => {
+  let k8sRepoId = nodeTabSelected.value
+  await restartDeploymentApi(selectedDeploymentId.value, k8sRepoId).then((resp) => {
+    if (resp.code == '200') {
+      repoSelected(true)
+      ElMessage({
+        type: 'success',
+        message: t('monitor.restart') + t('common.success')
+      })
+    }
+  })
+}
 
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
-    // case 'view':
-    //   dlgForCreate.value = false
-    //   bindDialogVisible.value = true
-    //   let orgIds: Array<number> = []
-    //   for (let i = 0; i < command.form.Data!.orgLites.length; i++) {
-    //     orgIds.push(command.form.Data!.orgLites[i].orgId)
-    //   }
-    //   artifactRepoForm.value = {
-    //     id: command.form.Data!.id,
-    //     name: command.form.Data!.name,
-    //     type: command.form.Data!.type,
-    //     isSecurity: command.form.Data!.isSecurity,
-    //     url: command.form.Data!.url,
-    //     user: command.form.Data!.user,
-    //     password: command.form.Data!.password,
-    //     remark: command.form.Data!.remark,
-    //     orgs: orgIds
-    //   }
-    //   break
+    case 'view':
+      push('/monitor/pods/' + command.form.id)
+      break
     case 'scale':
       scaleDlgVisible.value = true
       replicasNum.value = command.form.replicas
       selectedDeploymentId.value = command.form.id
       break
     case 'restart':
+      selectedDeploymentId.value = command.form.id
+      ElMessageBox.confirm(t('common.confirmMsgTitle') + t('monitor.restart'), '', {
+        type: 'warning',
+        confirmButtonText: t('common.ok'),
+        callback: (action: Action) => {
+          if (action == 'confirm') {
+            startRestartDeployment()
+          }
+        }
+      })
       break
     case 'delete':
       break
   }
 }
 
+class autoRefreshDeployments {
+  intervalId: NodeJS.Timer | null = null
+
+  startTimer() {
+    this.intervalId = setInterval(() => {
+      repoSelected(false)
+    }, 5000)
+  }
+
+  stopTimer() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    }
+  }
+}
+const deploymentsRefresh = ref<autoRefreshDeployments>()
+
 onMounted(() => {
   getOrganizations()
   getK8sRepoList()
+  deploymentsRefresh.value = new autoRefreshDeployments()
+  deploymentsRefresh.value.startTimer()
+})
+onUnmounted(() => {
+  deploymentsRefresh.value!.stopTimer()
 })
 </script>
 
 <template>
+  <ElDialog
+    :title="t('monitor.pods_detail')"
+    v-model="podsDetailDlgVisible"
+    width="280px"
+    draggable
+  >
+    <ElFormItem>
+      <ElCol :span="17">
+        <ElInputNumber v-model="replicasNum" :min="0" :max="100" />
+      </ElCol>
+      <ElCol :span="1" />
+      <ElCol :span="5">
+        <ElButton type="success" @click="startScaleReplicas">{{ t('monitor.start') }}</ElButton>
+      </ElCol>
+    </ElFormItem>
+  </ElDialog>
   <ElDialog :title="t('monitor.scale')" v-model="scaleDlgVisible" width="280px" draggable>
     <ElFormItem>
       <ElCol :span="17">
@@ -309,7 +347,7 @@ onMounted(() => {
                   </span>
                   <template #dropdown>
                     <ElDropdownMenu>
-                      <ElDropdownItem>
+                      <ElDropdownItem :command="{ id: scope.row.id, cmd: 'view', form: scope.row }">
                         <ElLink :icon="Expand" :underline="false">
                           {{ t('common.viewDetail') }}
                         </ElLink>
@@ -322,12 +360,17 @@ onMounted(() => {
                           {{ t('monitor.scale') }}</ElLink
                         >
                       </ElDropdownItem>
-                      <ElDropdownItem :command="{ id: scope.row.id, cmd: 'restart' }">
+                      <ElDropdownItem
+                        :command="{ id: scope.row.id, cmd: 'restart', form: scope.row }"
+                      >
                         <ElLink :icon="RefreshRight" :underline="false">
                           {{ t('monitor.restart') }}</ElLink
                         >
                       </ElDropdownItem>
-                      <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'delete' }">
+                      <ElDropdownItem
+                        divided
+                        :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
+                      >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('monitor.delete_deployment') }}
                         </ElLink>

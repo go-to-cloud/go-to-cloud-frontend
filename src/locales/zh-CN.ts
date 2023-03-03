@@ -428,7 +428,8 @@ export default {
     scale: '伸缩副本',
     restart: '重启应用',
     delete_deployment: '删除应用',
-    start: '开始'
+    start: '开始',
+    pods_detail: '应用详情'
   },
   formDemo: {
     input: '输入框',

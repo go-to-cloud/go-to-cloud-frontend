@@ -428,7 +428,8 @@ export default {
     scale: 'Scale',
     restart: 'Restart',
     delete_deployment: 'Delete App',
-    start: 'Start'
+    start: 'Start',
+    pods_detail: 'Pods Detail'
   },
   formDemo: {
     input: 'Input',
