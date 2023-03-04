@@ -8,7 +8,7 @@ const { t } = useI18n()
 
 export const constantRouterMap: AppRouteRecordRaw[] = [
   {
-    path: '/monitor/pods/:id',
+    path: '/monitor/:id/pods',
     component: () => import('@/views/Monitor/PodsView.vue'),
     name: 'MonitorPodsView',
     meta: {

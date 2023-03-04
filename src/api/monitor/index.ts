@@ -1,5 +1,5 @@
 import { useAxios } from '@/hooks/web/useAxios'
-import { AppData } from '@/api/monitor/types'
+import { AppData, PodDetail } from '@/api/monitor/types'
 
 const request = useAxios()
 
@@ -58,6 +58,17 @@ export const restartDeploymentApi = async (
   const res = await request.put<IResponse>({
     url: '/monitor/' + k8sRepoId + '/apps/restart',
     data: { id: deploymentId }
+  })
+  return res && res.data
+}
+
+export const getPodsDetailApi = async (
+  k8sRepoId: number,
+  deploymentId: number,
+  force: boolean
+): Promise<IResponse<PodDetail[]>> => {
+  const res = await request.get<IResponse>({
+    url: '/monitor/' + k8sRepoId + '/pods/' + deploymentId + '?force=' + force
   })
   return res && res.data
 }

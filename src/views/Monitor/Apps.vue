@@ -18,6 +18,7 @@ import { ElMessageBox } from 'element-plus/es'
 
 const { path, params } = useRoute()
 const { push } = useRouter()
+const route = useRoute()
 
 const { t } = useI18n()
 const podsDetailDlgVisible = ref(false)
@@ -49,6 +50,7 @@ const repoSelected = async (force: boolean) => {
   reloadingApps.value = force
   for (let i = 0; i < k8sWithApp.value.length; i++) {
     if (k8sWithApp.value[i].id == nodeTabSelected.value) {
+      selectedRepoTab.value = i + ''
       const node = k8sWithApp.value[i]
       await getAppsApi(node.id, force).then((resp) => {
         node.items = resp
@@ -59,11 +61,19 @@ const repoSelected = async (force: boolean) => {
   }
 }
 
-const getK8sRepoList = async () => {
+// from: true时读取url query，目的是仅页面首次加载时读取参数
+const getK8sRepoList = async (from: boolean) => {
   await getK8sRepoApi().then(async (resp) => {
     k8sWithApp.value = resp
+    if (from && route.query.from) {
+      let t = parseInt(route.query.from.toString())
+      if (t > 0) {
+        nodeTabSelected.value = t
+        await repoSelected(true)
+        return
+      }
+    }
     if (resp.length > 0 && selectedRepoTab.value === '-1') {
-      selectedRepoTab.value = '0'
       nodeTabSelected.value = resp[0].id
       await repoSelected(true)
     }
@@ -137,7 +147,7 @@ const startRestartDeployment = async () => {
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
-      push('/monitor/pods/' + command.form.id)
+      push('/monitor/' + command.form.id + '/pods?from=' + nodeTabSelected.value)
       break
     case 'scale':
       scaleDlgVisible.value = true
@@ -181,7 +191,7 @@ const deploymentsRefresh = ref<autoRefreshDeployments>()
 
 onMounted(() => {
   getOrganizations()
-  getK8sRepoList()
+  getK8sRepoList(true)
   deploymentsRefresh.value = new autoRefreshDeployments()
   deploymentsRefresh.value.startTimer()
 })

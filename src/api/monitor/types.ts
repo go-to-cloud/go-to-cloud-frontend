@@ -11,3 +11,12 @@ export type AppData = {
 export type K8sRepoWithAppData = K8sRepoData & {
   items: AppData[] | null
 }
+
+export type PodDetail = {
+  id: number
+  name: string
+  contains: []
+  restarts: number
+  age: string
+  status: number
+}

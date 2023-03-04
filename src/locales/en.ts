@@ -418,7 +418,9 @@ export default {
   },
   monitor: {
     appName: 'App Name',
+    podName: 'Pod Name',
     refresh: 'Refresh Apps',
+    refreshPod: 'Refresh Pods',
     namespace: 'Namespace',
     pod_number: 'Pods',
     replicas: 'Replicas',
@@ -429,7 +431,11 @@ export default {
     restart: 'Restart',
     delete_deployment: 'Delete App',
     start: 'Start',
-    pods_detail: 'Pods Detail'
+    pods_detail: 'Pods Detail',
+    container: 'Containers',
+    restarts: 'Restarts',
+    pod_age: 'Age',
+    pod_status: 'Status'
   },
   formDemo: {
     input: 'Input',

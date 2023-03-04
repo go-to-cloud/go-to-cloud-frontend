@@ -418,7 +418,9 @@ export default {
   },
   monitor: {
     appName: '应用名称',
+    podName: 'Pod名称',
     refresh: '刷新应用状态',
+    refreshPod: '刷新Pod状态',
     namespace: '名字空间',
     pod_number: 'Pods数量',
     replicas: '副本数量',
@@ -429,7 +431,11 @@ export default {
     restart: '重启应用',
     delete_deployment: '删除应用',
     start: '开始',
-    pods_detail: '应用详情'
+    pods_detail: '应用详情',
+    container: '容器',
+    restarts: '重启次数',
+    pod_age: '创建时间',
+    pod_status: '状态'
   },
   formDemo: {
     input: '输入框',
