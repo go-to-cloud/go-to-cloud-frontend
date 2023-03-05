@@ -15,8 +15,15 @@ export type K8sRepoWithAppData = K8sRepoData & {
 export type PodDetail = {
   id: number
   name: string
-  contains: []
-  restarts: number
-  age: string
-  status: number
+  containers: []
+  restartCounter: number
+  createdAt: string
+  status: string
+  qos: string
+}
+
+export interface HandlerCommand {
+  id: number
+  cmd: string
+  form: any
 }

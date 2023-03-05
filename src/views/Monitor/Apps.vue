@@ -10,7 +10,7 @@ import { getOrganizationsApi } from '@/api/common'
 import { NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
 import { calcAge, getAppsApi, restartDeploymentApi, scaleReplicasApi } from '@/api/monitor'
-import { K8sRepoWithAppData } from '@/api/monitor/types'
+import { HandlerCommand, K8sRepoWithAppData } from '@/api/monitor/types'
 import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
@@ -115,13 +115,6 @@ function isFirstTabInit(a: K8sRepoWithAppData): boolean {
     a.id === nodeTabSelected.value
   )
 }
-
-interface HandlerCommand {
-  id: number
-  cmd: string
-  form: any
-}
-
 const startScaleReplicas = async () => {
   let k8sRepoId = nodeTabSelected.value
   await scaleReplicasApi(selectedDeploymentId.value, k8sRepoId, replicasNum.value).then((resp) => {

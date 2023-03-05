@@ -435,7 +435,10 @@ export default {
     container: '容器',
     restarts: '重启次数',
     pod_age: '创建时间',
-    pod_status: '状态'
+    pod_status: '状态',
+    pod_logs: '查看日志',
+    container_shell: '登入容器',
+    delete_pod: '删除Pod'
   },
   formDemo: {
     input: '输入框',

@@ -66,9 +66,14 @@ export const getPodsDetailApi = async (
   k8sRepoId: number,
   deploymentId: number,
   force: boolean
-): Promise<IResponse<PodDetail[]>> => {
-  const res = await request.get<IResponse>({
+): Promise<PodDetail[]> => {
+  const res = await request.get<IResponse<PodDetail[]>>({
     url: '/monitor/' + k8sRepoId + '/pods/' + deploymentId + '?force=' + force
   })
-  return res && res.data
+  return res && res.data && res.data.data
+}
+
+export const getWebSocketHost = (): string => {
+  const schema = window.location.protocol.replace('http', 'ws')
+  return schema + '//' + window.location.host
 }

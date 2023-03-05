@@ -435,7 +435,10 @@ export default {
     container: 'Containers',
     restarts: 'Restarts',
     pod_age: 'Age',
-    pod_status: 'Status'
+    pod_status: 'Status',
+    pod_logs: 'View Logs',
+    container_shell: 'Shell',
+    delete_pod: 'Delete Pod'
   },
   formDemo: {
     input: 'Input',
