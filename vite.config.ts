@@ -123,7 +123,7 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
         //   changeOrigin: true,
         // },
         '/api': {
-          target: 'http://localhost:18080',
+          target: env.VITE_BACKEND_HOST,
           changeOrigin: true,
         }
       },
