@@ -438,7 +438,8 @@ export default {
     pod_status: '状态',
     pod_logs: '查看日志',
     container_shell: '登入容器',
-    delete_pod: '删除Pod'
+    delete_pod: '删除Pod',
+    xterm_connecting: '正在建立连接，请稍候'
   },
   formDemo: {
     input: '输入框',

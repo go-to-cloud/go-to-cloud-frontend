@@ -25,9 +25,8 @@ const reloadingPods = ref(false)
 
 import { useAxios } from '@/hooks/web/useAxios'
 
-import { HandlerCommand, PodDetail } from '@/api/monitor/types'
+import { HandlerCommand, PodDetail, xTermDefaultTheme } from '@/api/monitor/types'
 import { calcAge, getPodsDetailApi, getWebSocketHost } from '@/api/monitor'
-import * as process from 'process'
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -122,7 +121,7 @@ const actionHandler = (command: HandlerCommand) => {
   }
 }
 
-const xterm = new Terminal()
+const xterm = ref<Terminal>()
 const xterm_container = ref(null)
 const fitAddon = new FitAddon()
 const webLinksAddon = new WebLinksAddon()
@@ -130,32 +129,37 @@ const searchAddon = new SearchAddon()
 
 const ws = ref<WebSocket>()
 
+const xTermClose = () => {
+  ws.value?.close()
+}
+
+function resizeScreen() {
+  fitAddon.fit()
+}
 const xTermShow = () => {
-  const attachAddon = new AttachAddon(ws.value!)
-  xterm.loadAddon(fitAddon)
-  xterm.loadAddon(webLinksAddon)
-  xterm.loadAddon(searchAddon)
-  xterm.loadAddon(attachAddon)
-  xterm.open(xterm_container.value!)
-  xterm.write('****************系统信息：正在连接容器****************')
+  ws.value = new WebSocket(getWebSocketHost() + '/ws/monitor/' + params.id + '/pod/log?container=')
+  ws.value!.onopen = () => {
+    xterm.value!.clear()
+    fitAddon.fit()
+  }
+  xterm.value = new Terminal({
+    rows: 30,
+    convertEol: true,
+    theme: xTermDefaultTheme
+  })
+  xterm.value.loadAddon(fitAddon)
+  xterm.value.loadAddon(webLinksAddon)
+  xterm.value.loadAddon(searchAddon)
+  xterm.value.loadAddon(new AttachAddon(ws.value!))
+  xterm.value.open(xterm_container.value!)
+  xterm.value.write(t('monitor.xterm_connecting') + '...')
+  window.addEventListener('resize', resizeScreen)
 }
 
 onMounted(() => {
   getPodsDetail(true)
   podsRefresher.value = new autoRefreshPods()
   podsRefresher.value.startTimer()
-  ws.value = new WebSocket(getWebSocketHost() + '/ws/monitor/' + params.id + '/pod/log')
-
-  ws.value!.onerror = () => {
-    console.log('err!')
-  }
-  ws.value!.onopen = (ev) => {
-    const setEnv = {
-      operation: 'stdin',
-      data: 'bash \r'
-    }
-    ws.value!.send(JSON.stringify(setEnv))
-  }
 })
 onUnmounted(() => {
   podsRefresher.value!.stopTimer()
@@ -167,11 +171,19 @@ onUnmounted(() => {
     fullscreen
     :title="t('monitor.pod_logs')"
     @opened="xTermShow"
+    @closed="xTermClose"
     destroy-on-close
   >
-    <ElRow>
-      <div ref="xterm_container"></div>
-    </ElRow>
+    <ElContainer style="background-color: #000; margin: -20px; padding: 0px">
+      <ElHeader>head</ElHeader>
+      <ElMain>
+        <div style="height: calc(85vh)">
+          <vue-scroll>
+            <div ref="xterm_container"> </div>
+          </vue-scroll>
+        </div>
+      </ElMain>
+    </ElContainer>
   </ElDialog>
   <ContentDetailWrap
     :title="t('monitor.pods_detail')"
@@ -274,6 +286,9 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.el-dialog__body {
+  background-color: #000 !important;
+}
 .card-header {
   display: flex;
   justify-content: space-between;

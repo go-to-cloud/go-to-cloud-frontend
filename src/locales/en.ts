@@ -438,7 +438,8 @@ export default {
     pod_status: 'Status',
     pod_logs: 'View Logs',
     container_shell: 'Shell',
-    delete_pod: 'Delete Pod'
+    delete_pod: 'Delete Pod',
+    xterm_connecting: 'Connecting to pod...'
   },
   formDemo: {
     input: 'Input',
