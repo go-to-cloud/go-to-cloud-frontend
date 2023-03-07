@@ -76,3 +76,23 @@ export const getPodsDetailApi = async (
 export const getWebSocketHost = (): string => {
   return import.meta.env.VITE_BACKEND_HOST.replace('http', 'ws')
 }
+
+export const getPodLogWebSocket = (
+  k8sId: number,
+  deploymentId: number,
+  podName: string,
+  containerName: string | ''
+): WebSocket => {
+  return new WebSocket(
+    getWebSocketHost() +
+      '/ws/monitor/' +
+      k8sId +
+      '/pod/' +
+      deploymentId +
+      '/' +
+      podName +
+      '/' +
+      'log?container=' +
+      containerName
+  )
+}

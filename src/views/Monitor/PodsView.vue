@@ -26,7 +26,9 @@ const reloadingPods = ref(false)
 import { useAxios } from '@/hooks/web/useAxios'
 
 import { HandlerCommand, PodDetail, xTermDefaultTheme } from '@/api/monitor/types'
-import { calcAge, getPodsDetailApi, getWebSocketHost } from '@/api/monitor'
+import { calcAge, getPodsDetailApi, getPodLogWebSocket, getWebSocketHost } from '@/api/monitor'
+import { Num } from 'windicss/types/lang/tokens'
+import { contain } from 'echarts/types/src/scale/helper'
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -43,27 +45,10 @@ const getPodsDetail = async (force: boolean) => {
     reloadingPods.value = false
   })
 }
-const getPodLogs = async (xterm: Terminal, containerName: string) => {}
 
 const podsRefresher = ref<autoRefreshPods>()
-const logsRefresher = ref<autoRefreshLogs>()
-const selectedContainerName = ref<string>('')
-class autoRefreshLogs {
-  intervalId: NodeJS.Timer | null = null
+const selectedPod = ref<PodDetail>()
 
-  startTimer(xterm: Terminal) {
-    this.intervalId = setInterval(() => {
-      getPodLogs(xterm, selectedContainerName.value)
-    }, 5000)
-  }
-
-  stopTimer() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-      this.intervalId = null
-    }
-  }
-}
 class autoRefreshPods {
   intervalId: NodeJS.Timer | null = null
 
@@ -132,6 +117,7 @@ const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view_logs':
       dlgViewLog.value = true
+      selectedPod.value = command.form
       break
     case 'shell':
       break
@@ -140,44 +126,56 @@ const actionHandler = (command: HandlerCommand) => {
   }
 }
 
-const xTermLog = ref<Terminal>()
+const xTermLog = ref<Terminal | null>(null)
 const xterm_log_container = ref(null)
 const fitAddon = new FitAddon()
 const webLinksAddon = new WebLinksAddon()
 const searchAddon = new SearchAddon()
 
-const ws = ref<WebSocket>()
+const wsPodLog = ref<WebSocket>()
 
 const xTermLogClose = () => {
-  ws.value?.close()
+  wsPodLog.value?.close()
 }
 
 function resizeScreen() {
   fitAddon.fit()
 }
-const xTermLogShow = () => {
-  ws.value = new WebSocket(getWebSocketHost() + '/ws/monitor/' + params.id + '/pod/log?container=')
-  ws.value!.onopen = () => {
+
+const xTermLogChangeContainer = () => {
+  xTermLog.value?.reset()
+  wsPodLog.value?.send(selectContainer.value || '')
+}
+
+const xTermLogShow = (container: string | '') => {
+  wsPodLog.value = getPodLogWebSocket(
+    Number(params.id),
+    Number(route.query.from),
+    selectedPod.value!.name,
+    container
+  )
+
+  wsPodLog.value!.onopen = () => {
+    wsPodLog.value!.send(container)
     xTermLog.value!.clear()
     fitAddon.fit()
-    logsRefresher.value = new autoRefreshLogs()
-    logsRefresher.value.startTimer(xTermLog.value!)
   }
-  ws.value!.onclose = () => {
+
+  wsPodLog.value!.onclose = () => {
     xTermLog.value!.writeln(t('monitor.xterm.disconnected'))
   }
-  ws.value!.onmessage = (msg: MessageEvent) => {
-    xTermLog.value!.writeln(msg.data)
-  }
+
   xTermLog.value = new Terminal({
     rows: 30,
     convertEol: true,
+    disableStdin: true,
+    cursorBlink: false,
     theme: xTermDefaultTheme
   })
   xTermLog.value.loadAddon(fitAddon)
   xTermLog.value.loadAddon(webLinksAddon)
   xTermLog.value.loadAddon(searchAddon)
-  xTermLog.value.loadAddon(new AttachAddon(ws.value!))
+  xTermLog.value.loadAddon(new AttachAddon(wsPodLog.value!))
   xTermLog.value.open(xterm_log_container.value!)
   xTermLog.value.writeln(t('monitor.xterm.connecting') + '...')
   window.addEventListener('resize', resizeScreen)
@@ -190,20 +188,36 @@ onMounted(() => {
 })
 onUnmounted(() => {
   podsRefresher.value?.stopTimer()
-  logsRefresher.value?.stopTimer()
 })
+const selectContainer = ref<string>()
 </script>
 <template>
   <ElDialog
     v-model="dlgViewLog"
     fullscreen
     :title="t('monitor.pod_logs')"
-    @opened="xTermLogShow"
+    @opened="xTermLogShow('')"
     @closed="xTermLogClose"
     destroy-on-close
   >
+    <template #header="{ titleId, titleClass }">
+      <ElSpace>
+        <h4 :title="titleId" :class="titleClass">{{ t('monitor.pod_logs') }}</h4>
+        <ElDivider direction="vertical" />
+        <ElSelect
+          v-model="selectContainer"
+          :placeholder="t('monitor.switch_container')"
+          @change="xTermLogChangeContainer"
+        >
+          <ElOption
+            v-for="item in selectedPod.containers"
+            :key="item.name"
+            :label="item.name"
+            :value="item.name"
+          />
+        </ElSelect> </ElSpace
+    ></template>
     <ElContainer style="background-color: #000; margin: -20px; padding: 0px">
-      <ElHeader>head</ElHeader>
       <ElMain>
         <div style="height: calc(85vh)">
           <vue-scroll>

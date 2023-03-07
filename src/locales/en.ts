@@ -439,6 +439,7 @@ export default {
     pod_logs: 'View Logs',
     container_shell: 'Shell',
     delete_pod: 'Delete Pod',
+    switch_container: 'Select Container',
     xterm: {
       connecting: 'Connecting to pod...',
       disconnected: 'Disconnected'
