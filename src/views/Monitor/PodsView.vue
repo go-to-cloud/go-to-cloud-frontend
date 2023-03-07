@@ -43,8 +43,27 @@ const getPodsDetail = async (force: boolean) => {
     reloadingPods.value = false
   })
 }
+const getPodLogs = async (xterm: Terminal, containerName: string) => {}
 
 const podsRefresher = ref<autoRefreshPods>()
+const logsRefresher = ref<autoRefreshLogs>()
+const selectedContainerName = ref<string>('')
+class autoRefreshLogs {
+  intervalId: NodeJS.Timer | null = null
+
+  startTimer(xterm: Terminal) {
+    this.intervalId = setInterval(() => {
+      getPodLogs(xterm, selectedContainerName.value)
+    }, 5000)
+  }
+
+  stopTimer() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    }
+  }
+}
 class autoRefreshPods {
   intervalId: NodeJS.Timer | null = null
 
@@ -121,38 +140,46 @@ const actionHandler = (command: HandlerCommand) => {
   }
 }
 
-const xterm = ref<Terminal>()
-const xterm_container = ref(null)
+const xTermLog = ref<Terminal>()
+const xterm_log_container = ref(null)
 const fitAddon = new FitAddon()
 const webLinksAddon = new WebLinksAddon()
 const searchAddon = new SearchAddon()
 
 const ws = ref<WebSocket>()
 
-const xTermClose = () => {
+const xTermLogClose = () => {
   ws.value?.close()
 }
 
 function resizeScreen() {
   fitAddon.fit()
 }
-const xTermShow = () => {
+const xTermLogShow = () => {
   ws.value = new WebSocket(getWebSocketHost() + '/ws/monitor/' + params.id + '/pod/log?container=')
   ws.value!.onopen = () => {
-    xterm.value!.clear()
+    xTermLog.value!.clear()
     fitAddon.fit()
+    logsRefresher.value = new autoRefreshLogs()
+    logsRefresher.value.startTimer(xTermLog.value!)
   }
-  xterm.value = new Terminal({
+  ws.value!.onclose = () => {
+    xTermLog.value!.writeln(t('monitor.xterm.disconnected'))
+  }
+  ws.value!.onmessage = (msg: MessageEvent) => {
+    xTermLog.value!.writeln(msg.data)
+  }
+  xTermLog.value = new Terminal({
     rows: 30,
     convertEol: true,
     theme: xTermDefaultTheme
   })
-  xterm.value.loadAddon(fitAddon)
-  xterm.value.loadAddon(webLinksAddon)
-  xterm.value.loadAddon(searchAddon)
-  xterm.value.loadAddon(new AttachAddon(ws.value!))
-  xterm.value.open(xterm_container.value!)
-  xterm.value.write(t('monitor.xterm_connecting') + '...')
+  xTermLog.value.loadAddon(fitAddon)
+  xTermLog.value.loadAddon(webLinksAddon)
+  xTermLog.value.loadAddon(searchAddon)
+  xTermLog.value.loadAddon(new AttachAddon(ws.value!))
+  xTermLog.value.open(xterm_log_container.value!)
+  xTermLog.value.writeln(t('monitor.xterm.connecting') + '...')
   window.addEventListener('resize', resizeScreen)
 }
 
@@ -162,7 +189,8 @@ onMounted(() => {
   podsRefresher.value.startTimer()
 })
 onUnmounted(() => {
-  podsRefresher.value!.stopTimer()
+  podsRefresher.value?.stopTimer()
+  logsRefresher.value?.stopTimer()
 })
 </script>
 <template>
@@ -170,8 +198,8 @@ onUnmounted(() => {
     v-model="dlgViewLog"
     fullscreen
     :title="t('monitor.pod_logs')"
-    @opened="xTermShow"
-    @closed="xTermClose"
+    @opened="xTermLogShow"
+    @closed="xTermLogClose"
     destroy-on-close
   >
     <ElContainer style="background-color: #000; margin: -20px; padding: 0px">
@@ -179,7 +207,7 @@ onUnmounted(() => {
       <ElMain>
         <div style="height: calc(85vh)">
           <vue-scroll>
-            <div ref="xterm_container"> </div>
+            <div ref="xterm_log_container"> </div>
           </vue-scroll>
         </div>
       </ElMain>

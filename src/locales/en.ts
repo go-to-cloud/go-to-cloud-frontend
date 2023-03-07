@@ -439,7 +439,10 @@ export default {
     pod_logs: 'View Logs',
     container_shell: 'Shell',
     delete_pod: 'Delete Pod',
-    xterm_connecting: 'Connecting to pod...'
+    xterm: {
+      connecting: 'Connecting to pod...',
+      disconnected: 'Disconnected'
+    }
   },
   formDemo: {
     input: 'Input',
