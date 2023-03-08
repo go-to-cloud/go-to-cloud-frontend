@@ -96,3 +96,23 @@ export const getPodLogWebSocket = (
       containerName
   )
 }
+
+export const getPodShellWebSocket = (
+  k8sId: number,
+  deploymentId: number,
+  podName: string,
+  containerName: string | ''
+): WebSocket => {
+  return new WebSocket(
+    getWebSocketHost() +
+      '/ws/monitor/' +
+      k8sId +
+      '/pod/' +
+      deploymentId +
+      '/' +
+      podName +
+      '/' +
+      'shell?container=' +
+      containerName
+  )
+}

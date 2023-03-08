@@ -1,12 +1,12 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ElButton } from 'element-plus'
 import {
-  Refresh,
-  QuestionFilled,
-  Platform,
   ChatLineSquare,
   Delete,
   MoreFilled,
+  Platform,
+  QuestionFilled,
+  Refresh,
   Search
 } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
@@ -19,16 +19,13 @@ import { WebLinksAddon } from 'xterm-addon-web-links'
 import { SearchAddon } from 'xterm-addon-search'
 import { AttachAddon } from 'xterm-addon-attach'
 import 'xterm/css/xterm.css'
-
-const route = useRoute()
-const reloadingPods = ref(false)
-
 import { useAxios } from '@/hooks/web/useAxios'
 
 import { HandlerCommand, PodDetail, xTermDefaultTheme } from '@/api/monitor/types'
-import { calcAge, getPodsDetailApi, getPodLogWebSocket, getWebSocketHost } from '@/api/monitor'
-import { Num } from 'windicss/types/lang/tokens'
-import { contain } from 'echarts/types/src/scale/helper'
+import { calcAge, getPodLogWebSocket, getPodsDetailApi, getPodShellWebSocket } from '@/api/monitor'
+
+const route = useRoute()
+const reloadingPods = ref(false)
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -65,6 +62,7 @@ class autoRefreshPods {
     }
   }
 }
+
 const describeQos = (qos: string): string => {
   if (qos.toLowerCase() === 'BestEffort'.toLowerCase()) {
     return 'Pod 被赋予了尽可能少的资源，并且允许共享其节点。<br />如果节点有可用的资源，则 Pod 可以使用它们，否则 Pod 可以不被调度或终止。'
@@ -112,12 +110,13 @@ const describeContainerColor = (status: number): string => {
 }
 
 const dlgViewLog = ref<boolean>(false)
+const dlgShell = ref<boolean>(false)
 
 const actionHandler = (command: HandlerCommand) => {
+  selectedPod.value = command.form
   switch (command.cmd) {
     case 'view_logs':
       dlgViewLog.value = true
-      selectedPod.value = command.form
       break
     case 'shell':
       break
@@ -127,13 +126,19 @@ const actionHandler = (command: HandlerCommand) => {
 }
 
 const xTermLog = ref<Terminal | null>(null)
+const xTermShell = ref<Terminal | null>(null)
 const xterm_log_container = ref(null)
+const xterm_shell_container = ref(null)
 const fitAddon = new FitAddon()
 const webLinksAddon = new WebLinksAddon()
 const searchAddon = new SearchAddon()
 
 const wsPodLog = ref<WebSocket>()
+const wsPodShell = ref<WebSocket>()
 
+const xTermShellClose = () => {
+  wsPodShell.value?.close()
+}
 const xTermLogClose = () => {
   wsPodLog.value?.close()
 }
@@ -142,9 +147,48 @@ function resizeScreen() {
   fitAddon.fit()
 }
 
+const xTermShellChangeContainer = () => {
+  xTermShell.value?.reset()
+  wsPodShell.value?.send(selectContainer.value || '')
+}
+
 const xTermLogChangeContainer = () => {
   xTermLog.value?.reset()
   wsPodLog.value?.send(selectContainer.value || '')
+}
+
+const xTermShellShow = (container: string | '') => {
+  wsPodShell.value = getPodShellWebSocket(
+    Number(params.id),
+    Number(route.query.from),
+    selectedPod.value!.name,
+    container
+  )
+
+  wsPodShell.value!.onopen = () => {
+    wsPodShell.value!.send(container)
+    xTermShell.value!.clear()
+    fitAddon.fit()
+  }
+
+  wsPodShell.value!.onclose = () => {
+    xTermShell.value!.writeln(t('monitor.xterm.disconnected'))
+  }
+
+  xTermShell.value = new Terminal({
+    rows: 30,
+    convertEol: true,
+    disableStdin: true,
+    cursorBlink: false,
+    theme: xTermDefaultTheme
+  })
+  xTermShell.value.loadAddon(fitAddon)
+  xTermShell.value.loadAddon(webLinksAddon)
+  xTermShell.value.loadAddon(searchAddon)
+  xTermShell.value.loadAddon(new AttachAddon(wsPodShell.value!))
+  xTermShell.value.open(xterm_shell_container.value!)
+  xTermShell.value.writeln(t('monitor.xterm.connecting') + '...')
+  window.addEventListener('resize', resizeScreen)
 }
 
 const xTermLogShow = (container: string | '') => {
@@ -193,16 +237,53 @@ const selectContainer = ref<string>()
 </script>
 <template>
   <ElDialog
-    v-model="dlgViewLog"
-    fullscreen
-    :title="t('monitor.pod_logs')"
-    @opened="xTermLogShow('')"
-    @closed="xTermLogClose"
+    v-model="dlgShell"
+    :title="t('monitor.container_shell')"
     destroy-on-close
+    fullscreen
+    @closed="xTermShellClose"
+    @opened="xTermShellShow('')"
   >
     <template #header="{ titleId, titleClass }">
       <ElSpace>
-        <h4 :title="titleId" :class="titleClass">{{ t('monitor.pod_logs') }}</h4>
+        <h4 :class="titleClass" :title="titleId">{{ t('monitor.container_shell') }}</h4>
+        <ElDivider direction="vertical" />
+        <ElSelect
+          v-model="selectContainer"
+          :placeholder="t('monitor.switch_container')"
+          @change="xTermShellChangeContainer"
+        >
+          <ElOption
+            v-for="item in selectedPod.containers"
+            :key="item.name"
+            :label="item.name"
+            :value="item.name"
+          />
+        </ElSelect>
+      </ElSpace>
+    </template>
+    <ElContainer style="background-color: #000; margin: -20px; padding: 0px">
+      <ElMain>
+        <div style="height: calc(85vh)">
+          <vue-scroll>
+            <div ref="xterm_shell_container"></div>
+          </vue-scroll>
+        </div>
+      </ElMain>
+    </ElContainer>
+  </ElDialog>
+
+  <ElDialog
+    v-model="dlgViewLog"
+    :title="t('monitor.pod_logs')"
+    destroy-on-close
+    fullscreen
+    @closed="xTermLogClose"
+    @opened="xTermLogShow('')"
+  >
+    <template #header="{ titleId, titleClass }">
+      <ElSpace>
+        <h4 :class="titleClass" :title="titleId">{{ t('monitor.pod_logs') }}</h4>
         <ElDivider direction="vertical" />
         <ElSelect
           v-model="selectContainer"
@@ -215,13 +296,14 @@ const selectContainer = ref<string>()
             :label="item.name"
             :value="item.name"
           />
-        </ElSelect> </ElSpace
-    ></template>
+        </ElSelect>
+      </ElSpace>
+    </template>
     <ElContainer style="background-color: #000; margin: -20px; padding: 0px">
       <ElMain>
         <div style="height: calc(85vh)">
           <vue-scroll>
-            <div ref="xterm_log_container"> </div>
+            <div ref="xterm_log_container"></div>
           </vue-scroll>
         </div>
       </ElMain>
@@ -248,17 +330,17 @@ const selectContainer = ref<string>()
         <ElButton
           :disabled="reloadingPods"
           :icon="Refresh"
-          @click="getPodsDetail(true)"
           type="success"
+          @click="getPodsDetail(true)"
           >{{ t('monitor.refreshPod') }}
         </ElButton>
       </ElCol>
     </ElRow>
     <ElDivider />
-    <ElSpace wrap :size="30">
+    <ElSpace :size="30" wrap>
       <ElTable :data="pods" style="width: 100%">
-        <ElTableColumn fixed prop="name" :label="t('monitor.podName')" width="300" />
-        <ElTableColumn fixed prop="containers" :label="t('monitor.container')" width="180">
+        <ElTableColumn :label="t('monitor.podName')" fixed prop="name" width="300" />
+        <ElTableColumn :label="t('monitor.container')" fixed prop="containers" width="180">
           <template #default="scope">
             <span v-for="s in scope.row.containers" :key="s"
               ><ElTooltip :content="s.name"
@@ -267,15 +349,20 @@ const selectContainer = ref<string>()
             </span>
           </template>
         </ElTableColumn>
-        <ElTableColumn fixed prop="restartCounter" :label="t('monitor.restarts')" width="180" />
-        <ElTableColumn fixed prop="qos" label="QoS" width="180">
+        <ElTableColumn :label="t('monitor.restarts')" fixed prop="restartCounter" width="180" />
+        <ElTableColumn fixed label="QoS" prop="qos" width="180">
           <template #default="scope">
             <ElSpace
-              >{{ scope.row.qos
-              }}<ElTooltip
-                ><template #content><div v-html="describeQos(scope.row.qos)"></div></template>
-                <ElIcon><QuestionFilled /></ElIcon></ElTooltip
-            ></ElSpace>
+              >{{ scope.row.qos }}
+              <ElTooltip>
+                <template #content>
+                  <div v-html="describeQos(scope.row.qos)"></div>
+                </template>
+                <ElIcon>
+                  <QuestionFilled />
+                </ElIcon>
+              </ElTooltip>
+            </ElSpace>
           </template>
         </ElTableColumn>
         <ElTableColumn :label="t('monitor.pod_age')" width="120">
@@ -283,12 +370,12 @@ const selectContainer = ref<string>()
             {{ calcAge(scope.row.createdAt) }}
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="status" :label="t('monitor.pod_status')" width="160">
+        <ElTableColumn :label="t('monitor.pod_status')" prop="status" width="160">
           <template #default="scope">
             <ElTag :type="describeStatus(scope.row.status)">{{ scope.row.status }}</ElTag>
           </template>
         </ElTableColumn>
-        <ElTableColumn fixed="right" prop="id" :label="t('common.action')" width="80">
+        <ElTableColumn :label="t('common.action')" fixed="right" prop="id" width="80">
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">
@@ -305,13 +392,13 @@ const selectContainer = ref<string>()
                   </ElDropdownItem>
                   <ElDropdownItem :command="{ id: scope.row.id, cmd: 'shell', form: scope.row }">
                     <ElLink :underline="false">
-                      <Icon icon="tabler:brand-powershell" :underline="false" />{{
-                        t('monitor.container_shell')
-                      }}</ElLink
-                    > </ElDropdownItem
-                  ><ElDropdownItem
-                    divided
+                      <Icon :underline="false" icon="tabler:brand-powershell" />
+                      {{ t('monitor.container_shell') }}
+                    </ElLink>
+                  </ElDropdownItem>
+                  <ElDropdownItem
                     :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
+                    divided
                   >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('monitor.delete_pod') }}
@@ -331,6 +418,7 @@ const selectContainer = ref<string>()
 .el-dialog__body {
   background-color: #000 !important;
 }
+
 .card-header {
   display: flex;
   justify-content: space-between;
