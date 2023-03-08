@@ -439,6 +439,7 @@ export default {
     pod_logs: '查看日志',
     container_shell: '登入容器',
     delete_pod: '删除Pod',
+    deletePodConfirm: '是否确认要删除Pod',
     switch_container: '切换容器',
     xterm: {
       connecting: '正在建立连接，请稍候',

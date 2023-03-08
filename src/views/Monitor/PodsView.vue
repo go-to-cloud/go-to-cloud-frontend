@@ -22,7 +22,14 @@ import 'xterm/css/xterm.css'
 import { useAxios } from '@/hooks/web/useAxios'
 
 import { HandlerCommand, PodDetail, xTermDefaultTheme } from '@/api/monitor/types'
-import { calcAge, getPodLogWebSocket, getPodsDetailApi, getPodShellWebSocket } from '@/api/monitor'
+import {
+  calcAge,
+  deletePodApi,
+  getPodLogWebSocket,
+  getPodsDetailApi,
+  getPodShellWebSocket
+} from '@/api/monitor'
+import { ElMessageBox } from 'element-plus/es'
 
 const route = useRoute()
 const reloadingPods = ref(false)
@@ -125,6 +132,13 @@ const actionHandler = (command: HandlerCommand) => {
       dlgShell.value = true
       break
     case 'delete':
+      ElMessageBox.confirm(t('monitor.deletePodConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        deletePodApi(Number(params.id), Number(route.query.from), command.form.name)
+      })
       break
   }
 }

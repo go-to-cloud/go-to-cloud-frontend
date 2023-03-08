@@ -1,5 +1,5 @@
 import { useAxios } from '@/hooks/web/useAxios'
-import { AppData, PodDetail } from '@/api/monitor/types'
+import { AppData, DeleteResult, PodDetail } from '@/api/monitor/types'
 
 const request = useAxios()
 
@@ -115,4 +115,20 @@ export const getPodShellWebSocket = (
       'shell?container=' +
       containerName
   )
+}
+
+export const deletePodApi = async (
+  k8sId: number,
+  params: number,
+  podName: string
+): Promise<DeleteResult> => {
+  const res = await request.put<IResponse<DeleteResult>>({
+    url: '/monitor/' + k8sId + '/apps/delete',
+    data: { id: params, podName: podName }
+  })
+  if (res && res.data) {
+    return { success: res.data.code == '200' }
+  } else {
+    return { success: false }
+  }
 }

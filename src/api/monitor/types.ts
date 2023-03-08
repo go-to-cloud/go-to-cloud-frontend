@@ -1,5 +1,9 @@
 import { K8sRepoData } from '@/api/configure/types'
 
+export type DeleteResult = {
+  success: boolean
+}
+
 export type AppData = {
   id: number
   name: string
