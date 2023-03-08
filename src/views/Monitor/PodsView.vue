@@ -114,11 +114,15 @@ const dlgShell = ref<boolean>(false)
 
 const actionHandler = (command: HandlerCommand) => {
   selectedPod.value = command.form
+  if ((selectedPod.value?.containers?.length || 0) > 0) {
+    selectContainer.value = command.form.containers[0].name
+  }
   switch (command.cmd) {
     case 'view_logs':
       dlgViewLog.value = true
       break
     case 'shell':
+      dlgShell.value = true
       break
     case 'delete':
       break
@@ -166,28 +170,67 @@ const xTermShellShow = (container: string | '') => {
   )
 
   wsPodShell.value!.onopen = () => {
-    wsPodShell.value!.send(container)
-    xTermShell.value!.clear()
     fitAddon.fit()
+    xTermShell.value?.focus()
+  }
+
+  const shellConnected = ref<boolean>(false)
+  wsPodShell.value!.onmessage = (evt) => {
+    if (!shellConnected.value) {
+      shellConnected.value = true
+      xTermShell.value!.clear()
+    }
+    xTermShell.value!.write(JSON.parse(evt.data).data)
   }
 
   wsPodShell.value!.onclose = () => {
+    shellConnected.value = false
+    xTermShell.value!.writeln(t('monitor.xterm.disconnected'))
+  }
+
+  wsPodShell.value!.onerror = () => {
+    shellConnected.value = false
     xTermShell.value!.writeln(t('monitor.xterm.disconnected'))
   }
 
   xTermShell.value = new Terminal({
     rows: 30,
     convertEol: true,
-    disableStdin: true,
-    cursorBlink: false,
+    cursorBlink: true,
     theme: xTermDefaultTheme
   })
   xTermShell.value.loadAddon(fitAddon)
   xTermShell.value.loadAddon(webLinksAddon)
   xTermShell.value.loadAddon(searchAddon)
-  xTermShell.value.loadAddon(new AttachAddon(wsPodShell.value!))
+  // xTermShell.value.loadAddon(new AttachAddon(wsPodShell.value!))
   xTermShell.value.open(xterm_shell_container.value!)
   xTermShell.value.writeln(t('monitor.xterm.connecting') + '...')
+
+  xTermShell.value.onResize((size) => {
+    const msg = {
+      operation: 'resize',
+      cols: size.cols,
+      rows: size.rows
+    }
+    if (shellConnected.value) {
+      wsPodShell.value!.send(
+        JSON.stringify({
+          operation: 'resize',
+          cols: size.cols,
+          rows: size.rows
+        })
+      )
+    }
+  })
+  xTermShell.value.onData((msg) => {
+    console.log(msg)
+    wsPodShell.value!.send(
+      JSON.stringify({
+        operation: 'stdin',
+        data: msg
+      })
+    )
+  })
   window.addEventListener('resize', resizeScreen)
 }
 
@@ -242,7 +285,7 @@ const selectContainer = ref<string>()
     destroy-on-close
     fullscreen
     @closed="xTermShellClose"
-    @opened="xTermShellShow('')"
+    @opened="xTermShellShow(selectContainer)"
   >
     <template #header="{ titleId, titleClass }">
       <ElSpace>
@@ -279,7 +322,7 @@ const selectContainer = ref<string>()
     destroy-on-close
     fullscreen
     @closed="xTermLogClose"
-    @opened="xTermLogShow('')"
+    @opened="xTermLogShow(selectContainer)"
   >
     <template #header="{ titleId, titleClass }">
       <ElSpace>
