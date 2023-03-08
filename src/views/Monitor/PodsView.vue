@@ -59,7 +59,7 @@ class autoRefreshPods {
   startTimer() {
     this.intervalId = setInterval(() => {
       getPodsDetail(false)
-    }, 5000)
+    }, 1000)
   }
 
   stopTimer() {
@@ -216,16 +216,10 @@ const xTermShellShow = (container: string | '') => {
   xTermShell.value.loadAddon(fitAddon)
   xTermShell.value.loadAddon(webLinksAddon)
   xTermShell.value.loadAddon(searchAddon)
-  // xTermShell.value.loadAddon(new AttachAddon(wsPodShell.value!))
   xTermShell.value.open(xterm_shell_container.value!)
   xTermShell.value.writeln(t('monitor.xterm.connecting') + '...')
 
   xTermShell.value.onResize((size) => {
-    const msg = {
-      operation: 'resize',
-      cols: size.cols,
-      rows: size.rows
-    }
     if (shellConnected.value) {
       wsPodShell.value!.send(
         JSON.stringify({
