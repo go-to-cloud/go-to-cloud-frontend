@@ -132,3 +132,14 @@ export const deletePodApi = async (
     return { success: false }
   }
 }
+
+export const deleteDeploymentApi = async (k8sId: number, params: number): Promise<DeleteResult> => {
+  const res = await request.delete<IResponse<DeleteResult>>({
+    url: '/monitor/' + k8sId + '/apps/delete/' + params
+  })
+  if (res && res.data) {
+    return { success: res.data.code == '200' }
+  } else {
+    return { success: false }
+  }
+}

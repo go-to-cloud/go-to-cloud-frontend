@@ -441,6 +441,7 @@ export default {
     delete_pod: '删除Pod',
     deletePodConfirm: '是否确认要删除Pod',
     switch_container: '切换容器',
+    delete_deployment_confirm: '即将删除应用，请确认是否继续',
     xterm: {
       connecting: '正在建立连接，请稍候',
       disconnected: '连接断开'

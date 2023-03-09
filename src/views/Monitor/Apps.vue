@@ -9,7 +9,14 @@ import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 import { NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
-import { calcAge, getAppsApi, restartDeploymentApi, scaleReplicasApi } from '@/api/monitor'
+import {
+  calcAge,
+  deleteDeploymentApi,
+  deletePodApi,
+  getAppsApi,
+  restartDeploymentApi,
+  scaleReplicasApi
+} from '@/api/monitor'
 import { HandlerCommand, K8sRepoWithAppData } from '@/api/monitor/types'
 import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
@@ -160,6 +167,13 @@ const actionHandler = (command: HandlerCommand) => {
       })
       break
     case 'delete':
+      ElMessageBox.confirm(t('monitor.delete_deployment_confirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        deleteDeploymentApi(Number(params.id), command.form.id)
+      })
       break
   }
 }
