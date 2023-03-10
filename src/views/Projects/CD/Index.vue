@@ -22,6 +22,7 @@ const namespacesPair = ref<TextValuePair[]>([])
 const formSize = ref('default')
 const enableLimit = ref(false)
 const deploymentsData = ref<DeploymentApps[]>([])
+const deploymentHistoryData = ref<DeploymentApps[]>([])
 const artifacts = ref<KeyValuePair[]>([])
 const imageTags = ref<string[]>([])
 
@@ -81,6 +82,9 @@ const removePort = (index: number) => {
 }
 
 const tplDialogVisible = ref(false)
+const historyDlgVisible = ref(false)
+const historyLoading = ref(true)
+
 const showNewDeploymentDlg = () => {
   ports.portMapping = [
     {
@@ -233,6 +237,13 @@ const actionHandler = (command: HandlerCommand) => {
         .then(() => getDeploymentList())
       break
     }
+    case 'history': {
+      historyDlgVisible.value = true
+      historyLoading.value = true
+      setTimeout(() => {
+        historyLoading.value = false
+      }, 3000)
+    }
   }
 }
 
@@ -243,6 +254,80 @@ onMounted(() => {
 onUnmounted(() => {})
 </script>
 <template>
+  <ElDialog
+    v-model="historyDlgVisible"
+    :title="t('project.cd.deploy_history')"
+    draggable
+    width="80%"
+  >
+    <ElSkeleton :loading="historyLoading" animated>
+      <template #template>
+        <ElSkeletonItem variant="text" style="margin-right: 16px" />
+        <ElSkeletonItem variant="text" style="width: 30%" />
+        <ElSkeletonItem variant="text" style="margin-right: 16px" />
+        <ElSkeletonItem variant="text" style="width: 30%" />
+        <ElSkeletonItem variant="text" style="margin-right: 16px" />
+        <ElSkeletonItem variant="text" style="width: 30%" />
+      </template>
+      <template #default>
+        <ElTable :data="deploymentHistoryData" style="width: 100%">
+          <ElTableColumn :label="t('project.cd.deployed_at')" width="180">
+            <template #default="scope">
+              {{ scope.row.lastDeployAt }}
+            </template>
+          </ElTableColumn>
+          <ElTableColumn
+            prop="k8sName"
+            :label="t('project.cd.target_env')"
+            width="180"
+            :filters="namespacesPair"
+            :filter-method="nsFilterHandler"
+          /><ElTableColumn
+            prop="namespace"
+            :label="t('project.cd.namespace')"
+            width="180"
+            :filters="namespacesPair"
+            :filter-method="nsFilterHandler"
+          /><ElTableColumn :label="t('project.cd.artifact_name')" width="250">
+            <template #default="scope">
+              {{ scope.row.artifactName }}
+              <ElDivider direction="vertical" />
+              <ElTag effect="light" type="success" v-if="scope.row.artifactTag == 'latest'">{{
+                t('project.cd.deploy_version_latest')
+              }}</ElTag>
+              <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
+                scope.row.artifactTag
+              }}</ElTag>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="t('project.cd.env_vars')" width="200">
+            <template #default="scope">
+              <ElRow>
+                <ElCol :key="vars" :span="24" v-for="(vars, index) in scope.row.env">
+                  <ElTag v-if="index <= 2" style="margin: 3px"
+                    >{{ vars.text }}:{{ vars.value }}</ElTag
+                  >
+                  <span v-if="index > 2">...</span>
+                </ElCol>
+              </ElRow>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="t('project.cd.port_mapping')" width="200">
+            <template #default="scope">
+              <ElRow>
+                <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
+                  <ElTag v-if="index <= 2" style="margin: 3px"
+                    >{{ port.text }}:{{ port.value }}</ElTag
+                  >
+                  <span v-if="index > 2">...</span>
+                </ElCol>
+              </ElRow>
+            </template>
+          </ElTableColumn>
+        </ElTable></template
+      >
+    </ElSkeleton>
+  </ElDialog>
   <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
     <div style="height: 500px">
       <ElScrollbar>
@@ -612,7 +697,7 @@ onUnmounted(() => {})
                         {{ t('project.cd.redeploy') }}
                       </ElLink>
                     </ElDropdownItem>
-                    <ElDropdownItem>
+                    <ElDropdownItem :command="{ id: scope.row.id, cmd: 'history' }">
                       <ElLink :underline="false">
                         <Icon icon="icon-park-solid:history-query" />
                         {{ t('project.cd.deploy_history') }}</ElLink

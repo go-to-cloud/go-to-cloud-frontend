@@ -291,6 +291,7 @@ export default {
       delete: '删除应用',
       detail: '详情...',
       submitAndDeploy: '提交并部署',
+      deployed_at: '部署时间',
       last_deploy_at: '最近部署时间',
       deploy_history: '部署历史',
       delete_deployment: '删除部署方案',

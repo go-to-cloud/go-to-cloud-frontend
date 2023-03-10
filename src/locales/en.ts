@@ -291,6 +291,7 @@ export default {
       delete: 'Delete App',
       detail: 'Detail...',
       submitAndDeploy: 'Submit And Deploy',
+      deployed_at: 'Deployed At',
       last_deploy_at: 'Last Deploy At',
       deploy_history: 'Deploy History',
       delete_deployment: 'Delete Deployment',
