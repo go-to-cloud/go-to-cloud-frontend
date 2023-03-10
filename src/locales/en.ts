@@ -383,8 +383,12 @@ export default {
     docker: {
       list: 'Image Name',
       latest_version: 'Latest Version',
+      tag_version: 'Image Tag',
       latest_push_at: 'Latest Publish',
+      push_at: 'Published At',
       publish_counter: 'Publish Times',
+      title_artifact_history: 'Image History',
+      view_artifact_history: 'View Image History',
       copy_latest_image: 'Copy Latest Image URL',
       delete_latest_image: 'Delete Latest Image',
       delete_all_images: 'Delete All Images',

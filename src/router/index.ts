@@ -18,7 +18,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/projects/artifacts/:id',
     component: () => import('@/views/Projects/Artifacts/Index.vue'),
-    name: 'ProjectCode',
+    name: 'ProjectArtifact',
     meta: {
       hidden: true
     }

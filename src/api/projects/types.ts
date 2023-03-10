@@ -79,12 +79,17 @@ export type BuildCmd = {
   unitTest: string
 }
 
+export type Branchref = {
+  branch: string
+  branch_commit_id: string
+}
+
 export type BuildPlan = {
   id: number
   name: string
   buildEnv: string
   source_code_id: number | undefined
-  branch: string
+  branch: Branchref | undefined
   qa_enabled: boolean
   unit_test: string | undefined
   lint_check: string | undefined

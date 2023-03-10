@@ -56,7 +56,7 @@ const ruleForm = reactive<BuildPlan>({
   name: '',
   buildEnv: '',
   source_code_id: undefined,
-  branch: '',
+  branch: undefined,
   qa_enabled: true,
   unit_test: '',
   lint_check: '',
@@ -355,9 +355,9 @@ onUnmounted(() => {
                   <ElSelect v-model="ruleForm.branch" :placeholder="t('common.selectText')">
                     <ElOption
                       v-for="item in branchList"
-                      :key="item.Path"
+                      :key="item.Sha"
                       :label="item.Name"
-                      :value="item.Path"
+                      :value="{ sha: item.Sha, name: item.Name }"
                     />
                   </ElSelect>
                 </ElFormItem>
@@ -447,7 +447,7 @@ onUnmounted(() => {
       <ElTable :data="planCards" style="width: 100%">
         <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
         <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
-        <ElTableColumn fixed prop="branch" :label="t('project.ci.code_branch')" width="180" />
+        <ElTableColumn fixed prop="branch.name" :label="t('project.ci.code_branch')" width="180" />
         <ElTableColumn :label="t('project.ci.last_build')" width="300">
           <template #default="scope">
             <span v-if="scope.row.lastBuildResult != 0"

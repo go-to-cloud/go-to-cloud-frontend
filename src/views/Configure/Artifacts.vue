@@ -27,9 +27,16 @@ import {
   updateRepoApi
 } from '@/api/configure/artifact'
 import { ElMessageBox } from 'element-plus/es'
-import { ArtifactRepoType, ArtifactType } from '@/api/configure/types'
+import {
+  ArtifactHistory,
+  ArtifactRepoItem,
+  ArtifactRepoType,
+  ArtifactType
+} from '@/api/configure/types'
 
 const bindDialogVisible = ref(false)
+const artifactHistoryVisible = ref(false)
+const currentArtifactHistory = ref<ArtifactHistory[]>()
 
 const { t } = useI18n()
 
@@ -397,6 +404,7 @@ interface HandlerCommand {
   id: number
   cmd: string
   form: ArtifactType
+  item: ArtifactRepoItem
 }
 
 const actionHandler = (command: HandlerCommand) => {
@@ -440,6 +448,11 @@ const actionHandler = (command: HandlerCommand) => {
       }).then(() => {
         removeRepo(command.id)
       })
+      break
+    ////// for artifact below /////
+    case 'view_artifact_history':
+      artifactHistoryVisible.value = true
+      currentArtifactHistory.value = command.item.tags
       break
   }
 }
@@ -587,16 +600,22 @@ onMounted(() => {
               </template>
             </ElTableColumn>
             <ElTableColumn fixed="right" prop="id" :label="t('artifacts.docker.action')" width="80">
-              <template #default>
-                <ElDropdown>
+              <template #default="scope">
+                <ElDropdown @command="actionHandler">
                   <span class="el-dropdown-link">
                     <ElButton :icon="MoreFilled" circle />
                   </span>
                   <template #dropdown>
                     <ElDropdownMenu>
-                      <ElDropdownItem>
+                      <ElDropdownItem
+                        :command="{
+                          id: scope.row.id,
+                          cmd: 'view_artifact_history',
+                          item: scope.row
+                        }"
+                      >
                         <ElLink :icon="Expand" :underline="false">
-                          {{ t('common.viewDetail') }}
+                          {{ t('artifacts.docker.view_artifact_history') }}
                         </ElLink>
                       </ElDropdownItem>
                       <ElDropdownItem>
@@ -624,7 +643,7 @@ onMounted(() => {
       </ElSpace>
     </ElTabPane>
   </ElTabs>
-  <Dialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
+  <ElDialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
     <ElForm
       :rules="artifactRepoFormRule"
       ref="artifactRepoFormRef"
@@ -760,9 +779,33 @@ onMounted(() => {
         }}</ElButton>
       </span>
     </template>
-  </Dialog>
+  </ElDialog>
+  <ElDialog v-model="artifactHistoryVisible" :title="t('artifacts.docker.title_artifact_history')">
+    <ElTable :data="currentArtifactHistory">
+      <ElTableColumn :label="t('artifacts.docker.tag_version')">
+        <template #default="scope">
+          <ElBadge value="new" style="margin-top: 8px">
+            <ElTag v-if="!scope.row.isLatest" type="success">
+              {{ scope.row.tags }}
+            </ElTag>
+          </ElBadge>
+          <ElTag v-if="!scope.row.isLatest" type="info"> {{ scope.row.tags }}</ElTag>
+        </template></ElTableColumn
+      >
+      <ElTableColumn :label="t('artifacts.docker.push_at')">
+        <template #default="scope">
+          {{ scope.row.publishedAt }}
+        </template>
+      </ElTableColumn>
+    </ElTable>
+  </ElDialog>
 </template>
 <style scoped>
+.artifact-history-dlg-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 .tab-action {
   position: relative;
   top: 32px;

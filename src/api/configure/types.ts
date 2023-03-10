@@ -59,13 +59,17 @@ export type ArtifactType = {
   Items: Array<ArtifactRepoItem> | null
   Data: ArtifactRepoData | null
 }
-
+export type ArtifactHistory = {
+  tags: string
+  publishedAt: string
+  isLatest: boolean
+}
 export type ArtifactRepoItem = {
   hashId: string
   name: string
   latestVersion: string
   publishedAt: string
-  tags: string[]
+  tags: ArtifactHistory[]
 }
 export type ArtifactRepoData = {
   id: number

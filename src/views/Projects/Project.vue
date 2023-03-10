@@ -158,22 +158,6 @@ function resetForm() {
   newProjectForm.value = { id: 0, name: '', remark: '', orgId: null, org: null }
 }
 const keywords = ref('')
-const columns: TableColumn[] = [
-  {
-    field: 'name',
-    label: t('project.name'),
-    width: '450'
-  },
-  {
-    field: 'id',
-    label: t('project.modules'),
-    width: '300'
-  },
-  {
-    field: 'action',
-    label: t('project.action')
-  }
-]
 const loading = ref(true)
 
 let projectDataList = ref<ProjectData[]>([])
@@ -203,6 +187,7 @@ const getProjectList = async (params?: Params) => {
 getProjectList()
 
 const toolsetClicked = (type: string, id: number) => {
+  console.log('/projects/' + type + '/' + id)
   push('/projects/' + type + '/' + id)
 }
 

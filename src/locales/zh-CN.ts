@@ -383,8 +383,12 @@ export default {
     docker: {
       list: '镜像名称',
       latest_version: '最新版本',
+      tag_version: '镜像版本',
       latest_push_at: '最近发布时间',
+      push_at: '发布时间',
       publish_counter: '发布次数',
+      title_artifact_history: '镜像历史',
+      view_artifact_history: '查看镜像历史',
       copy_latest_image: '拷贝最新镜像地址',
       delete_latest_image: '删除最新镜像',
       delete_all_images: '删除所有镜像',
