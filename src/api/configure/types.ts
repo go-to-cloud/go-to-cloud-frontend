@@ -60,6 +60,7 @@ export type ArtifactType = {
   Data: ArtifactRepoData | null
 }
 export type ArtifactHistory = {
+  imageID: number
   tags: string
   publishedAt: string
   isLatest: boolean
@@ -69,7 +70,7 @@ export type ArtifactRepoItem = {
   name: string
   latestVersion: string
   publishedAt: string
-  tags: ArtifactHistory[]
+  tags: Array<ArtifactHistory>
 }
 export type ArtifactRepoData = {
   id: number

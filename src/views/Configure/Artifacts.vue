@@ -20,6 +20,7 @@ import { isEmpty } from '@/utils/is'
 import { getOrganizationsApi } from '@/api/common'
 import {
   bindRepoApi,
+  deleteImageApi,
   getArtifactRepoApi,
   getRepoItemApi,
   removeRepoApi,
@@ -36,7 +37,7 @@ import {
 
 const bindDialogVisible = ref(false)
 const artifactHistoryVisible = ref(false)
-const currentArtifactHistory = ref<ArtifactHistory[]>()
+const currentArtifactHistory = ref<Array<ArtifactHistory>>()
 
 const { t } = useI18n()
 
@@ -51,12 +52,10 @@ const repoSelected = async (name: string) => {
     if (artifactTypes.value[i].Id + '' == name) {
       selectedRepoTab.value = i + ''
       const artifact = artifactTypes.value[i]
-      if (artifact.Items === null) {
-        const artifactId = artifact.Id
-        await getRepoItemApi(artifactId).then((resp) => {
-          artifact.Items = resp
-        })
-      }
+      const artifactId = artifact.Id
+      await getRepoItemApi(artifactId).then((resp) => {
+        artifact.Items = resp
+      })
       break
     }
   }
@@ -463,6 +462,27 @@ function isFirstTabInit(a: ArtifactType): boolean {
   )
 }
 
+const deleteImage = (item: ArtifactHistory) => {
+  ElMessageBox.confirm(t('artifacts.removeConfirm'), t('common.confirmMsgTitle'), {
+    confirmButtonText: t('common.ok'),
+    cancelButtonText: t('common.cancel'),
+    type: 'warning'
+  }).then(async () => {
+    await deleteImageApi(item.imageID).then((resp) => {
+      if (resp.success) {
+        currentArtifactHistory.value = currentArtifactHistory.value?.filter(
+          (m) => m.imageID != item.imageID
+        )
+        artifactTypes.value.forEach((r) => {
+          r.Items?.forEach((y) => {
+            y.tags = y.tags.filter((a) => a.imageID != item.imageID)
+          })
+        })
+      }
+    })
+  })
+}
+
 onMounted(() => {
   getOrganizations()
   getArtifactRepoList()
@@ -797,12 +817,12 @@ onMounted(() => {
         </template>
       </ElTableColumn>
       <ElTableColumn>
-        <template #default>
+        <template #default="scope">
           <ElTooltip :content="t('artifacts.docker.copy_image')">
             <ElButton type="primary" :icon="CopyDocument" circle
           /></ElTooltip>
           <ElTooltip :content="t('artifacts.docker.delete_image')">
-            <ElButton type="danger" :icon="Delete" circle
+            <ElButton type="danger" :icon="Delete" circle @click="deleteImage(scope.row)"
           /></ElTooltip>
         </template>
       </ElTableColumn>
