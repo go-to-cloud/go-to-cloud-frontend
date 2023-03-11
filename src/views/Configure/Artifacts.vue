@@ -57,16 +57,12 @@ const Organizations = ref<Array<Org>>(new Array<Org>())
 const dlgForCreate = ref(true)
 
 const repoSelected = async (name: string) => {
-  for (let i = 0; i < artifactTypes.value.length; i++) {
-    if (artifactTypes.value[i].Id + '' == name) {
-      const artifact = artifactTypes.value[i]
-      const artifactId = artifact.Id
-      await getRepoItemApi(artifactId).then((resp) => {
-        artifact.Items = resp
-      })
-      break
-    }
-  }
+  let artifactId = Number(name)
+  let artifact = artifactTypes.value.filter((r) => r.Id === artifactId).at(0)
+
+  await getRepoItemApi(artifactId).then((resp) => {
+    artifact!.Items = resp
+  })
 }
 
 const removeRepo = async (repoId: number) => {
@@ -562,8 +558,7 @@ onMounted(() => {
     v-if="artifactTypes.length > 0"
     class="artifact-tabs"
     tab-position="left"
-    @tab-change="repoSelected"
-    v-model="selectedRepoTab"
+    @tab-change="repoSelected(artifactTabSelected + '')"
   >
     <ElTabPane v-for="type in artifactTypes" :key="type.Id" style="padding: 20px">
       <template #label>

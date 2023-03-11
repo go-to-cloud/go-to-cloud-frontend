@@ -2,7 +2,7 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Delete, Expand, MoreFilled, Search } from '@element-plus/icons-vue'
+import { Delete, Expand, MoreFilled, Search, Platform } from '@element-plus/icons-vue'
 import { BuilderNodesOnk8s, NewBuilderNodes, NodeType, Params } from '@/api/configure/types'
 import {
   getBuilderNodesOnK8sApi,
@@ -313,6 +313,14 @@ const actionHandler = (command: HandlerCommand) => {
     }
   }
 }
+
+const describeContainerColor = (current: number, available: number): string => {
+  if (current <= available) {
+    return '#529578'
+  } else {
+    return '#B70707FF'
+  }
+}
 </script>
 
 <template>
@@ -485,7 +493,13 @@ const actionHandler = (command: HandlerCommand) => {
           </template>
         </ElTableColumn>
         <ElTableColumn prop="pod_status" :label="t('builder.node_status')" width="300">
-          n个指示灯
+          <template #default="scope">
+            <span v-for="s in scope.row.maxWorkers" :key="s"
+              ><ElIcon :color="describeContainerColor(s, scope.row.availableWorkers)"
+                ><Platform
+              /></ElIcon>
+            </span>
+          </template>
         </ElTableColumn>
         <ElTableColumn :label="t('common.organization')" prop="orgLites">
           <template #default="scope">
