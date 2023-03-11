@@ -64,12 +64,14 @@ export type ArtifactHistory = {
   tags: string
   publishedAt: string
   isLatest: boolean
+  fullName: string
 }
 export type ArtifactRepoItem = {
   hashId: string
   name: string
   latestVersion: string
   publishedAt: string
+  fullName: string
   tags: Array<ArtifactHistory>
 }
 export type ArtifactRepoData = {

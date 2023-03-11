@@ -62,7 +62,8 @@ export default {
     confirmMsgTitle: '请确认',
     close: '关闭',
     submit: '提交',
-    install: '安装'
+    install: '安装',
+    copied: '已复制到剪切版'
   },
   error: {
     noPermission: `抱歉，您无权访问此页面。`,
@@ -393,6 +394,7 @@ export default {
       copy_image: '拷贝镜像地址',
       delete_image: '删除镜像',
       delete_latest_image: '删除最新镜像',
+      delete_image_confirm: '即将删除镜像， 是否继续？',
       delete_all_images: '删除所有镜像',
       action: '操作',
       remove: '移除制品仓库'

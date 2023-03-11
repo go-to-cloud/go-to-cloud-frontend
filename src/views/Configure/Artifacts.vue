@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, ref } from 'vue'
-import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Dialog } from '@/components/Dialog'
+import {
+  ElNotification,
+  ElButton,
+  ElDivider,
+  ElMessage,
+  FormInstance,
+  FormRules
+} from 'element-plus'
+import useClipboard from 'vue-clipboard3'
+
 import {
   ArrowDown,
   Connection,
@@ -21,6 +29,7 @@ import { getOrganizationsApi } from '@/api/common'
 import {
   bindRepoApi,
   deleteImageApi,
+  deleteImagesByHashIdApi,
   getArtifactRepoApi,
   getRepoItemApi,
   removeRepoApi,
@@ -40,17 +49,16 @@ const artifactHistoryVisible = ref(false)
 const currentArtifactHistory = ref<Array<ArtifactHistory>>()
 
 const { t } = useI18n()
+const { toClipboard } = useClipboard()
 
 const loading = ref(true)
 const keywords = ref('')
 const Organizations = ref<Array<Org>>(new Array<Org>())
 const dlgForCreate = ref(true)
 
-const selectedRepoTab = ref('-1')
 const repoSelected = async (name: string) => {
   for (let i = 0; i < artifactTypes.value.length; i++) {
     if (artifactTypes.value[i].Id + '' == name) {
-      selectedRepoTab.value = i + ''
       const artifact = artifactTypes.value[i]
       const artifactId = artifact.Id
       await getRepoItemApi(artifactId).then((resp) => {
@@ -187,6 +195,9 @@ const getArtifactRepoList = async (params?: any) => {
     artifactTypes.value = new Array<ArtifactType>()
 
     for (let i = 0; i < resp.length; i++) {
+      if (i == 0) {
+        artifactTabSelected.value = resp[i].id
+      }
       artifactTypes.value.push({
         Id: resp[i].id,
         Enabled: true,
@@ -197,8 +208,7 @@ const getArtifactRepoList = async (params?: any) => {
         Data: resp[i]
       })
     }
-    if (resp.length > 0 && selectedRepoTab.value === '-1') {
-      selectedRepoTab.value = resp[0].id + ''
+    if (resp.length > 0) {
       await repoSelected(artifactTypes.value.at(0)!.Id + '')
     }
   })
@@ -429,13 +439,6 @@ const actionHandler = (command: HandlerCommand) => {
       }
       break
     case 'refresh':
-      let i = 0
-      for (; i < artifactTypes.value.length; i++) {
-        if (artifactTypes.value[i].Id === command.id) {
-          artifactTypes.value[i].Items = null
-          break
-        }
-      }
       repoSelected(command.id + '')
       break
     case 'remove':
@@ -452,33 +455,69 @@ const actionHandler = (command: HandlerCommand) => {
       artifactHistoryVisible.value = true
       currentArtifactHistory.value = command.item.tags
       break
+
+    case 'copy_latest_image':
+      copyToClipboard(command.item.fullName)
+      break
+
+    case 'delete_latest_image':
+      deleteImage(command.item.tags.filter((r) => r.isLatest).at(0)!)
+      break
+
+    case 'delete_all_images':
+      deleteAllImages(command.item.hashId)
+      break
   }
 }
 function isFirstTabInit(a: ArtifactType): boolean {
-  return (
-    (a.Id === artifactTypes.value[0].Id && selectedRepoTab.value === '0') ||
-    a.Id === artifactTabHover.value ||
-    a.Id === artifactTabSelected.value
-  )
+  return a.Id === artifactTabHover.value || a.Id === artifactTabSelected.value
 }
 
-const deleteImage = (item: ArtifactHistory) => {
-  ElMessageBox.confirm(t('artifacts.removeConfirm'), t('common.confirmMsgTitle'), {
+const deleteAllImages = (hashId: string) => {
+  ElMessageBox.confirm(t('artifacts.docker.delete_image_confirm'), t('common.confirmMsgTitle'), {
     confirmButtonText: t('common.ok'),
     cancelButtonText: t('common.cancel'),
     type: 'warning'
-  }).then(async () => {
-    await deleteImageApi(item.imageID).then((resp) => {
-      if (resp.success) {
-        currentArtifactHistory.value = currentArtifactHistory.value?.filter(
-          (m) => m.imageID != item.imageID
-        )
-        artifactTypes.value.forEach((r) => {
-          r.Items?.forEach((y) => {
-            y.tags = y.tags.filter((a) => a.imageID != item.imageID)
+  })
+    .then(async () => {
+      await deleteImagesByHashIdApi(hashId).then((resp) => {
+        if (resp.success) {
+          repoSelected(hashId.split(',')[0])
+        }
+      })
+    })
+    .catch(async () => {})
+}
+
+const deleteImage = (item: ArtifactHistory) => {
+  ElMessageBox.confirm(t('artifacts.docker.delete_image'), t('common.confirmMsgTitle'), {
+    confirmButtonText: t('common.ok'),
+    cancelButtonText: t('common.cancel'),
+    type: 'warning'
+  })
+    .then(async () => {
+      await deleteImageApi(item.imageID).then((resp) => {
+        if (resp.success) {
+          currentArtifactHistory.value = currentArtifactHistory.value?.filter(
+            (m) => m.imageID != item.imageID
+          )
+          artifactTypes.value.forEach((r) => {
+            r.Items?.forEach((y) => {
+              y.tags = y.tags.filter((a) => a.imageID != item.imageID)
+            })
           })
-        })
-      }
+        }
+      })
+    })
+    .catch(async () => {})
+}
+
+const copyToClipboard = (content: string) => {
+  toClipboard(content).then((v: any) => {
+    ElNotification({
+      title: t('common.success'),
+      message: t('common.copied'),
+      type: 'success'
     })
   })
 }
@@ -587,7 +626,9 @@ onMounted(() => {
                 <ElLink :underline="false"
                   >{{ scope.row.name }}
                   <ElTooltip placement="right" :content="t('artifacts.docker.copy_latest_image')">
-                    <ElIcon style="left: 5px"><CopyDocument /></ElIcon> </ElTooltip
+                    <ElIcon @click="copyToClipboard(scope.row.fullName)" style="left: 5px"
+                      ><CopyDocument
+                    /></ElIcon> </ElTooltip
                 ></ElLink>
               </template>
             </ElTableColumn>
@@ -637,17 +678,37 @@ onMounted(() => {
                           {{ t('artifacts.docker.view_artifact_history') }}
                         </ElLink>
                       </ElDropdownItem>
-                      <ElDropdownItem>
+                      <ElDropdownItem
+                        :command="{
+                          id: scope.row.id,
+                          cmd: 'copy_latest_image',
+                          item: scope.row
+                        }"
+                      >
                         <ElLink :icon="CopyDocument" :underline="false">
                           {{ t('artifacts.docker.copy_latest_image') }}</ElLink
                         >
                       </ElDropdownItem>
-                      <ElDropdownItem divided>
+                      <ElDropdownItem
+                        divided
+                        :command="{
+                          id: scope.row.id,
+                          cmd: 'delete_latest_image',
+                          item: scope.row
+                        }"
+                      >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.delete_latest_image') }}
                         </ElLink>
                       </ElDropdownItem>
-                      <ElDropdownItem divided>
+                      <ElDropdownItem
+                        divided
+                        :command="{
+                          id: scope.row.id,
+                          cmd: 'delete_all_images',
+                          item: scope.row
+                        }"
+                      >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.delete_all_images') }}
                         </ElLink>
@@ -819,7 +880,11 @@ onMounted(() => {
       <ElTableColumn>
         <template #default="scope">
           <ElTooltip :content="t('artifacts.docker.copy_image')">
-            <ElButton type="primary" :icon="CopyDocument" circle
+            <ElButton
+              type="primary"
+              :icon="CopyDocument"
+              circle
+              @click="copyToClipboard(scope.row.fullName)"
           /></ElTooltip>
           <ElTooltip :content="t('artifacts.docker.delete_image')">
             <ElButton type="danger" :icon="Delete" circle @click="deleteImage(scope.row)"

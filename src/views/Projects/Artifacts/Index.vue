@@ -40,6 +40,7 @@ const dlgForCreate = ref(true)
 
 const selectedRepoTab = ref('-1')
 const repoSelected = async (name: string) => {
+  console.log('repoSelected,name=' + name)
   const artifact = artifactTypes.value[Number(name)]
   if (artifact.Items === null) {
     const artifactId = artifact.Id
@@ -444,7 +445,6 @@ const actionHandler = (command: HandlerCommand) => {
           break
         }
       }
-      console.log(i)
 
       repoSelected(i + '')
       break
@@ -460,11 +460,12 @@ const actionHandler = (command: HandlerCommand) => {
   }
 }
 function isFirstTabInit(a: ArtifactType): boolean {
-  return (
-    (a === artifactTypes.value[0] && selectedRepoTab.value === '0') ||
-    a.Id === artifactTabHover.value ||
-    a.Id === artifactTabSelected.value
-  )
+  return artifactTabSelected.value == a.Id
+  // return (
+  //   (a === artifactTypes.value[0] && selectedRepoTab.value === '0') ||
+  //   a.Id === artifactTabHover.value ||
+  //   a.Id === artifactTabSelected.value
+  // )
 }
 </script>
 

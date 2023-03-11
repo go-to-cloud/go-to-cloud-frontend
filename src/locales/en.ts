@@ -62,7 +62,8 @@ export default {
     confirmMsgTitle: 'Confirming',
     close: 'Close',
     submit: 'Submit',
-    install: 'Install'
+    install: 'Install',
+    copied: 'Copied'
   },
   error: {
     noPermission: `Sorry, you don't have permission to access this page.`,
@@ -393,6 +394,7 @@ export default {
       copy_image: 'Copy Image URL',
       delete_image: 'Delete Image',
       delete_latest_image: 'Delete Latest Image',
+      delete_image_confirm: 'Image will be deleted. Continue?',
       delete_all_images: 'Delete All Images',
       action: 'Operation',
       remove: 'Remove Artifact Repo'
