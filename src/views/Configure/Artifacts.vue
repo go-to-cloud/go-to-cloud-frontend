@@ -49,6 +49,7 @@ const selectedRepoTab = ref('-1')
 const repoSelected = async (name: string) => {
   for (let i = 0; i < artifactTypes.value.length; i++) {
     if (artifactTypes.value[i].Id + '' == name) {
+      selectedRepoTab.value = i + ''
       const artifact = artifactTypes.value[i]
       if (artifact.Items === null) {
         const artifactId = artifact.Id
@@ -198,7 +199,7 @@ const getArtifactRepoList = async (params?: any) => {
       })
     }
     if (resp.length > 0 && selectedRepoTab.value === '-1') {
-      selectedRepoTab.value = '0'
+      selectedRepoTab.value = resp[0].id + ''
       await repoSelected(artifactTypes.value.at(0)!.Id + '')
     }
   })
@@ -436,9 +437,7 @@ const actionHandler = (command: HandlerCommand) => {
           break
         }
       }
-      console.log(i)
-
-      repoSelected(i + '')
+      repoSelected(command.id + '')
       break
     case 'remove':
       ElMessageBox.confirm(t('artifacts.removeConfirm'), t('common.confirmMsgTitle'), {
@@ -458,7 +457,7 @@ const actionHandler = (command: HandlerCommand) => {
 }
 function isFirstTabInit(a: ArtifactType): boolean {
   return (
-    (a === artifactTypes.value[0] && selectedRepoTab.value === '0') ||
+    (a.Id === artifactTypes.value[0].Id && selectedRepoTab.value === '0') ||
     a.Id === artifactTabHover.value ||
     a.Id === artifactTabSelected.value
   )
@@ -784,8 +783,8 @@ onMounted(() => {
     <ElTable :data="currentArtifactHistory">
       <ElTableColumn :label="t('artifacts.docker.tag_version')">
         <template #default="scope">
-          <ElBadge value="new" style="margin-top: 8px">
-            <ElTag v-if="!scope.row.isLatest" type="success">
+          <ElBadge :hidden="!scope.row.isLatest" value="new" style="margin-top: 8px">
+            <ElTag v-if="scope.row.isLatest" type="success">
               {{ scope.row.tags }}
             </ElTag>
           </ElBadge>
@@ -795,6 +794,16 @@ onMounted(() => {
       <ElTableColumn :label="t('artifacts.docker.push_at')">
         <template #default="scope">
           {{ scope.row.publishedAt }}
+        </template>
+      </ElTableColumn>
+      <ElTableColumn>
+        <template #default>
+          <ElTooltip :content="t('artifacts.docker.copy_image')">
+            <ElButton type="primary" :icon="CopyDocument" circle
+          /></ElTooltip>
+          <ElTooltip :content="t('artifacts.docker.delete_image')">
+            <ElButton type="danger" :icon="Delete" circle
+          /></ElTooltip>
         </template>
       </ElTableColumn>
     </ElTable>

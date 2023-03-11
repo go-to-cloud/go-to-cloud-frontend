@@ -390,6 +390,8 @@ export default {
       title_artifact_history: 'Image History',
       view_artifact_history: 'View Image History',
       copy_latest_image: 'Copy Latest Image URL',
+      copy_image: 'Copy Image URL',
+      delete_image: 'Delete Image',
       delete_latest_image: 'Delete Latest Image',
       delete_all_images: 'Delete All Images',
       action: 'Operation',

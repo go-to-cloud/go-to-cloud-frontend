@@ -390,6 +390,8 @@ export default {
       title_artifact_history: '镜像历史',
       view_artifact_history: '查看镜像历史',
       copy_latest_image: '拷贝最新镜像地址',
+      copy_image: '拷贝镜像地址',
+      delete_image: '删除镜像',
       delete_latest_image: '删除最新镜像',
       delete_all_images: '删除所有镜像',
       action: '操作',
