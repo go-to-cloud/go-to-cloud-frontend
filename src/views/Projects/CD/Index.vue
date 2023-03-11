@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ElButton, ElMessage, FormInstance, FormRules } from 'element-plus'
+import { ElButton, ElMessage, ElNotification, FormInstance, FormRules } from 'element-plus'
 import { CirclePlus, Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
-import { DeploymentApps } from '@/api/projects/types'
+import { DeploymentApps, UpdateResult } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
-import { newDeployment } from '@/api/projects'
+import { newDeployment, startRollback } from '@/api/projects'
 import Icon from '@/components/Icon/src/Icon.vue'
 import { ElMessageBox } from 'element-plus/es'
 
@@ -146,6 +146,13 @@ const getDeploymentList = async () => {
   deploymentsData.value = rlt.data.data
 }
 
+const getDeploymentHistory = async (deploymentId): Promise<DeploymentApps[]> => {
+  let projectId = Number(params.id)
+  const rlt = await request.get({
+    url: '/projects/' + projectId + '/deploy/app/' + deploymentId + '/history'
+  })
+  return rlt.data.data
+}
 const getK8sRepo = async () => {
   let projectId = Number(params.id)
   const rlt = await request.get({
@@ -234,17 +241,70 @@ const actionHandler = (command: HandlerCommand) => {
         .put({
           url: '/projects/' + projectId + '/deploy/' + command.id
         })
-        .then(() => getDeploymentList())
+        .then(() => {
+          ElNotification({
+            title: t('common.success'),
+            message: t('project.cd.start_deploy'),
+            type: 'success'
+          })
+          getDeploymentList()
+        })
       break
     }
     case 'history': {
       historyDlgVisible.value = true
       historyLoading.value = true
-      setTimeout(() => {
-        historyLoading.value = false
-      }, 3000)
+      getDeploymentHistory(command.id)
+        .then((resp) => {
+          deploymentHistoryData.value = resp
+        })
+        .finally(() => {
+          setTimeout(() => {
+            historyLoading.value = false
+          }, 500)
+        })
+      break
+    }
+    case 'jump_to_monitor': {
+      push(
+        '/monitor/' +
+          command.form!.k8s +
+          '/pods?from=' +
+          command.form!.id +
+          '&redirect=/projects/cd/' +
+          params.id
+      )
+      break
     }
   }
+}
+
+const tooltipRollbackTo = (a: any): string => {
+  return t('project.cd.rollback_to') + a.artifactTag
+}
+const canRollback = (a: any): boolean => {
+  return a.lastDeployAt !== deploymentHistoryData.value[0].lastDeployAt
+}
+
+const rollback = async (historyId: number, deploymentId: number) => {
+  let projectId = Number(params.id)
+  return await startRollback(projectId, historyId, deploymentId).then(async (rlt) => {
+    if (rlt) {
+      ElNotification({
+        title: t('common.success'),
+        message: t('project.cd.start_deploy'),
+        type: 'success'
+      })
+      await getDeploymentList()
+      historyDlgVisible.value = false
+    } else {
+      ElNotification({
+        title: t('common.failed'),
+        message: t('project.cd.deploy_failed'),
+        type: 'warning'
+      })
+    }
+  })
 }
 
 onMounted(() => {
@@ -324,8 +384,19 @@ onUnmounted(() => {})
               </ElRow>
             </template>
           </ElTableColumn>
-        </ElTable></template
-      >
+          <ElTableColumn>
+            <template #default="scope">
+              <ElTooltip
+                v-if="canRollback(scope.row)"
+                :content="tooltipRollbackTo(scope.row)"
+                placement="right"
+              >
+                <ElButton @click="rollback(scope.row.id, scope.row.deploymentId)"
+                  ><Icon icon="eos-icons:snapshot-rollback" /></ElButton
+              ></ElTooltip>
+            </template>
+          </ElTableColumn> </ElTable
+      ></template>
     </ElSkeleton>
   </ElDialog>
   <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
@@ -711,7 +782,7 @@ onUnmounted(() => {})
                     <ElDropdownItem
                       v-if="scope.row.lastDeployAt != null"
                       divided
-                      :command="{ id: scope.row.id, cmd: 'del' }"
+                      :command="{ id: scope.row.id, cmd: 'jump_to_monitor', form: scope.row }"
                     >
                       <ElLink :underline="false" type="primary">
                         <Icon icon="material-symbols:text-select-jump-to-end" />

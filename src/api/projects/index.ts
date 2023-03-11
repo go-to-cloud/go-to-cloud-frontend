@@ -175,3 +175,14 @@ export const newDeployment = async (
   })
   return res && res.data && res.data.data
 }
+
+export const startRollback = async (
+  projectId: number,
+  historyId: number,
+  deploymentId: number
+): Promise<boolean> => {
+  const res = await request.put<IResponse<UpdateResult>>({
+    url: '/projects/' + projectId + '/deploy/' + deploymentId + '/rollback/' + historyId
+  })
+  return res && res.data.code == '200'
+}

@@ -112,4 +112,8 @@ export type DeploymentApps = {
   artifactName: string
   artifactTag: string
   namespace: string
+  id: number
+  k8s: number
+  lastDeployAt: string
+  deploymentId: number
 }

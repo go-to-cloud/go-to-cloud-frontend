@@ -289,6 +289,7 @@ export default {
       first_deploy: 'Start Deploy',
       redeploy: 'Redeploy',
       rollback: 'Rollback...',
+      rollback_to: 'Rollback Artifact To ',
       delete: 'Delete App',
       detail: 'Detail...',
       submitAndDeploy: 'Submit And Deploy',
@@ -302,7 +303,9 @@ export default {
         failed: 'Failure',
         building: 'Building'
       },
-      deleteConfirm: 'Deployment will be deleted since App would NOT. Continue?'
+      deleteConfirm: 'Deployment will be deleted since App would NOT. Continue?',
+      start_deploy: 'Start Deploy',
+      deploy_failed: 'Deploy failed, Please Check and Retry.'
     },
     toolset: {
       code: 'Code Repository',

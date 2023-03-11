@@ -275,7 +275,14 @@ const xTermLogShow = (container: string | '') => {
   xTermLog.value.writeln(t('monitor.xterm.connecting') + '...')
   window.addEventListener('resize', resizeScreen)
 }
-
+const backTo = () => {
+  if (route.query.redirect) {
+    console.log(route.query.redirect.toString())
+    push(route.query.redirect.toString())
+  } else {
+    push('/monitor/apps?from=' + route.query.from)
+  }
+}
 onMounted(() => {
   getPodsDetail(true)
   podsRefresher.value = new autoRefreshPods()
@@ -360,10 +367,7 @@ const selectContainer = ref<string>()
       </ElMain>
     </ElContainer>
   </ElDialog>
-  <ContentDetailWrap
-    :title="t('monitor.pods_detail')"
-    @back="push('/monitor/apps?from=' + route.query.from)"
-  >
+  <ContentDetailWrap :title="t('monitor.pods_detail')" @back="backTo">
     <ElRow justify="space-between">
       <ElCol :span="18">
         <ElSpace wrap>

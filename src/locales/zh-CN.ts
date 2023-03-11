@@ -289,6 +289,7 @@ export default {
       first_deploy: '开始部署',
       redeploy: '重新部署',
       rollback: '回滚...',
+      rollback_to: '回滚到版本',
       delete: '删除应用',
       detail: '详情...',
       submitAndDeploy: '提交并部署',
@@ -302,7 +303,9 @@ export default {
         failed: '失败',
         building: '正在构建'
       },
-      deleteConfirm: '即将删除部署方案（应用不会被删除），是否继续？'
+      deleteConfirm: '即将删除部署方案（应用不会被删除），是否继续？',
+      start_deploy: '开始部署',
+      deploy_failed: '部署失败，请检查配置后重试'
     },
     toolset: {
       code: '代码仓库',
