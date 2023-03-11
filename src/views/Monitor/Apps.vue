@@ -172,7 +172,7 @@ const actionHandler = (command: HandlerCommand) => {
         cancelButtonText: t('common.cancel'),
         type: 'warning'
       }).then(() => {
-        deleteDeploymentApi(Number(params.id), command.form.id)
+        deleteDeploymentApi(nodeTabSelected.value, command.form.id)
       })
       break
   }
