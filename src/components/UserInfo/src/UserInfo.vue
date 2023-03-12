@@ -39,7 +39,7 @@ const loginOut = () => {
 }
 
 const toDocument = () => {
-  window.open('https://element-plus-admin-doc.cn/')
+  window.open('https://docs.gotocloud.vip')
 }
 </script>
 

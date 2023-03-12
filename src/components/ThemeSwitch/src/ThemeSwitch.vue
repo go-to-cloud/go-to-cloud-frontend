@@ -21,12 +21,13 @@ const isDark = false //ref(appStore.getIsDark)
 const blackColor = 'var(--el-color-black)'
 
 const themeChange = (val: boolean) => {
-  appStore.setIsDark(val)
+  appStore.setIsDark(false)
 }
 </script>
 
 <template>
   <ElSwitch
+    v-if="false"
     :class="prefixCls"
     v-model="isDark"
     inline-prompt

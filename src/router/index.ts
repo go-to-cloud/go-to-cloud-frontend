@@ -96,24 +96,24 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
 ]
 
 export const asyncRouterMap: AppRouteRecordRaw[] = [
-  {
-    path: '/dashboard',
-    component: Layout,
-    meta: {},
-    name: 'Dashboard',
-    children: [
-      {
-        path: 'workplace',
-        component: () => import('@/views/Dashboard/Workplace.vue'),
-        name: 'Workplace',
-        meta: {
-          title: t('router.workplace'),
-          icon: 'ant-design:dashboard-filled',
-          noCache: true
-        }
-      }
-    ]
-  },
+  // {
+  //   path: '/dashboard',
+  //   component: Layout,
+  //   meta: {},
+  //   name: 'Dashboard',
+  //   children: [
+  //     {
+  //       path: 'workplace',
+  //       component: () => import('@/views/Dashboard/Workplace.vue'),
+  //       name: 'Workplace',
+  //       meta: {
+  //         title: t('router.workplace'),
+  //         icon: 'ant-design:dashboard-filled',
+  //         noCache: true
+  //       }
+  //     }
+  //   ]
+  // },
   {
     path: '/projects',
     component: Layout,
