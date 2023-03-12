@@ -245,11 +245,13 @@ export default {
       artifact_name_rule: 'Image name not match the rule, a-z, 0-9, . _ - only',
       stage_enable: 'Enable',
       last_build: 'Last Build',
+      build_at: 'Build At',
       build_now: 'Build Now',
       cancel_building: 'Stop Building',
       build_history: 'Build History',
       delete_plan: 'Delete Plan',
       steps: 'Build Step',
+      build_logs: 'Build Logs',
       result: {
         never: 'Never',
         success: 'Success',

@@ -129,6 +129,16 @@ export const getBuildPlansApi = async (projectId: number): Promise<BuildPlanCard
   return res && res.data && res.data.data
 }
 
+export const getBuildHistoryApi = async (
+  projectId: number,
+  planId: number
+): Promise<BuildPlanCard[]> => {
+  const res = await request.get<IResponse<BuildPlanCard[]>>({
+    url: '/projects/' + projectId + '/pipeline/' + planId + '/history'
+  })
+  return res && res.data && res.data.data
+}
+
 export const deletePlanApi = async (
   projectId: number,
   planId: number

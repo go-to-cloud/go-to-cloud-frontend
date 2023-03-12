@@ -126,7 +126,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Projects',
         meta: {
           title: t('router.projects'),
-          icon: 'clarity:document-solid'
+          icon: 'game-icons:over-infinity'
         }
       }
     ]
@@ -207,7 +207,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Apps',
         meta: {
           title: t('router.monitor'),
-          icon: 'clarity:document-solid'
+          icon: 'ic:outline-screenshot-monitor'
         }
       }
     ]

@@ -318,7 +318,7 @@ onUnmounted(() => {})
     v-model="historyDlgVisible"
     :title="t('project.cd.deploy_history')"
     draggable
-    width="80%"
+    width="90%"
   >
     <ElSkeleton :loading="historyLoading" animated>
       <template #template>
@@ -372,7 +372,7 @@ onUnmounted(() => {})
               </ElRow>
             </template>
           </ElTableColumn>
-          <ElTableColumn :label="t('project.cd.port_mapping')" width="200">
+          <ElTableColumn :label="t('project.cd.port_mapping')" width="180">
             <template #default="scope">
               <ElRow>
                 <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
@@ -384,7 +384,7 @@ onUnmounted(() => {})
               </ElRow>
             </template>
           </ElTableColumn>
-          <ElTableColumn>
+          <ElTableColumn width="80">
             <template #default="scope">
               <ElTooltip
                 v-if="canRollback(scope.row)"

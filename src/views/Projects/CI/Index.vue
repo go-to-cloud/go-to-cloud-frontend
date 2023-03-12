@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElButton, ElCard, FormInstance, FormRules } from 'element-plus'
-import { CirclePlus, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
+import { CirclePlus, Delete, MoreFilled, Search, Memo } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -20,6 +20,7 @@ import {
   getBranchListApi,
   getBuildCmdApi,
   getBuildEnvsApi,
+  getBuildHistoryApi,
   getBuildPlansApi,
   getSourceCodeListApi,
   newBuildPlan,
@@ -48,6 +49,8 @@ const { push } = useRouter()
 const request = useAxios()
 
 const tplDialogVisible = ref(false)
+const historyDialogVisible = ref(false)
+
 const showNewPlanDlg = () => {
   tplDialogVisible.value = true
 }
@@ -160,6 +163,8 @@ const submit = async (formEl: FormInstance) => {
 }
 
 const planCards = ref<BuildPlanCard[]>()
+const buildHistory = ref<BuildPlanCard[]>()
+
 const getBuildPlans = async () => {
   let projectId = Number(params.id)
   await getBuildPlansApi(projectId).then((dat) => {
@@ -233,6 +238,8 @@ const actionHandler = (command: HandlerCommand) => {
       break
     }
     case 'build_history': {
+      historyDialogVisible.value = true
+      loadBuildHistory(command.id)
       break
     }
   }
@@ -253,6 +260,13 @@ const startBuildPlan = async (planId: number) => {
     if (resp.success) {
       await getBuildPlans()
     }
+  })
+}
+
+const loadBuildHistory = async (planId: number) => {
+  let projectId = Number(params.id)
+  await getBuildHistoryApi(projectId, planId).then(async (res) => {
+    buildHistory.value = res
   })
 }
 
@@ -304,6 +318,56 @@ onUnmounted(() => {
 })
 </script>
 <template>
+  <ElDialog
+    v-model="historyDialogVisible"
+    :title="t('project.ci.build_history')"
+    width="90%"
+    draggable
+  >
+    <ElTable :data="buildHistory" style="width: 100%">
+      <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
+      <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
+      <ElTableColumn fixed prop="branch.name" :label="t('project.ci.code_branch')" width="180" />
+      <ElTableColumn :label="t('project.ci.build_at')" width="300">
+        <template #default="scope">
+          <span v-if="scope.row.lastBuildResult != 0"
+            >{{ scope.row.lastBuildAt }} <ElDivider direction="vertical"
+          /></span>
+          <ElTag
+            :type="buildResultType(scope.row.lastBuildResult)"
+            :effect="buildResultEffect(scope.row.lastBuildResult)"
+            >{{ buildResultText(scope.row.lastBuildResult) }}</ElTag
+          >
+        </template>
+      </ElTableColumn>
+      <ElTableColumn :label="t('project.ci.steps')" width="160">
+        <template #default="scope">
+          <ElSpace style="margin-top: 4px">
+            <ElTooltip
+              v-if="scope.row.qa_enabled && scope.row.unit_test"
+              :content="t('project.ci.unit_test')"
+            >
+              <Icon class="toolset" icon="file-icons:test-generic" />
+            </ElTooltip>
+            <ElTooltip
+              v-if="scope.row.qa_enabled && scope.row.lint_check"
+              :content="t('project.ci.lint_check')"
+            >
+              <Icon class="toolset" icon="file-icons:commitlint" />
+            </ElTooltip>
+            <ElTooltip v-if="scope.row.artifact_enabled" :content="t('project.toolset.artifact')">
+              <Icon class="toolset" icon="cib:azure-artifacts" />
+            </ElTooltip>
+          </ElSpace>
+        </template>
+      </ElTableColumn>
+      <ElTableColumn fixed="right" prop="id" width="120">
+        <template #default>
+          <ElLink :icon="Memo">{{ t('project.ci.build_logs') }}</ElLink>
+        </template>
+      </ElTableColumn>
+    </ElTable>
+  </ElDialog>
   <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
     <div style="height: 500px">
       <ElScrollbar>
@@ -465,7 +529,7 @@ onUnmounted(() => {
         </ElTableColumn>
         <ElTableColumn :label="t('project.ci.steps')" width="160">
           <template #default="scope">
-            <ElSpace>
+            <ElSpace style="margin-top: 4px">
               <ElTooltip
                 v-if="scope.row.qa_enabled && scope.row.unit_test"
                 :content="t('project.ci.unit_test')"

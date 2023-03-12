@@ -245,11 +245,13 @@ export default {
       artifact_name_rule: '镜像名称只允许小写字母、数字以及. _ -',
       stage_enable: '启用',
       last_build: '最近构建',
+      build_at: '构建时间',
       build_now: '立即构建',
       cancel_building: '中止构建',
       build_history: '构建历史',
       delete_plan: '删除计划',
       steps: '节点任务',
+      build_logs: '构建日志',
       result: {
         never: '从未执行',
         success: '成功',
