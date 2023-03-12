@@ -2,7 +2,7 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getAllMembersApi, getOrgListApi } from '@/api/login'
+import { getAllMembersApi, getJoinedMemberApi, getOrgListApi } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { h, onMounted, ref } from 'vue'
 import { Delete, Expand, MoreFilled, Connection, UserFilled } from '@element-plus/icons-vue'
@@ -105,7 +105,14 @@ const close = () => {
 const saveMembers = () => {
   console.log(joinedMembers.value)
 }
-const actionHandler = (command: HandlerCommand) => {
+const showJoinedMembers = async (orgId: number) => {
+  joinedMembers.value = []
+  await getJoinedMemberApi(orgId).then((r) => {
+    joinedMembers.value = r
+    memberDialogVisible.value = true
+  })
+}
+const actionHandler = async (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
       isCreate.value = false
@@ -115,7 +122,7 @@ const actionHandler = (command: HandlerCommand) => {
       bindDialogVisible.value = true
       break
     case 'member':
-      memberDialogVisible.value = true
+      await showJoinedMembers(command.data.id)
       break
     case 'del':
       ElMessageBox.confirm(t('authz.org.deleteConfirm'), t('common.confirmMsgTitle'), {
