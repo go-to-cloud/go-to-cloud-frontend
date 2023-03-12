@@ -170,10 +170,10 @@ const getBuildPlans = async () => {
 const buildResultEffect = function (rlt: number): string {
   switch (rlt) {
     case 1:
-    case 2:
     case 3:
       return 'dark'
     case 0:
+    case 2:
     case 99:
       return 'light'
   }
@@ -230,6 +230,9 @@ const actionHandler = (command: HandlerCommand) => {
     }
     case 'building': {
       startBuildPlan(command.id)
+      break
+    }
+    case 'build_history': {
       break
     }
   }
@@ -504,7 +507,7 @@ onUnmounted(() => {
                       {{ t('project.ci.cancel_building') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem>
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'build_history' }">
                     <ElLink :underline="false">
                       <Icon icon="icon-park-solid:history-query" />
                       {{ t('project.ci.build_history') }}</ElLink
