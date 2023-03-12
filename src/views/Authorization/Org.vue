@@ -2,10 +2,10 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getOrgListApi } from '@/api/login'
-import { OrgType } from '@/api/login/types'
+import { getAllMembersApi, getOrgListApi } from '@/api/login'
+import { MemberData, OrgType } from '@/api/login/types'
 import { h, onMounted, ref } from 'vue'
-import { Delete, Expand, MoreFilled, Connection } from '@element-plus/icons-vue'
+import { Delete, Expand, MoreFilled, Connection, UserFilled } from '@element-plus/icons-vue'
 import { useAxios } from '@/hooks/web/useAxios'
 import { DeleteResult } from '@/api/monitor/types'
 import { RestfulResult } from '@/api/common/types'
@@ -61,8 +61,23 @@ const getOrgList = async () => {
   }
 }
 
+const getAllMembers = async () => {
+  const res = await getAllMembersApi()
+    .catch(() => {})
+    .finally(() => {
+      loading.value = false
+    })
+  if (res) {
+    allMembers.value = res
+  }
+}
+
+const allMembers = ref<MemberData[]>([])
+const joinedMembers = ref<number[]>([])
+
 onMounted(async () => {
   await getOrgList()
+  await getAllMembers()
 })
 
 interface HandlerCommand {
@@ -72,6 +87,7 @@ interface HandlerCommand {
 
 const isCreate = ref<boolean>(false)
 const bindDialogVisible = ref<boolean>(false)
+const memberDialogVisible = ref<boolean>(false)
 
 const currentOrg = ref({
   id: 0,
@@ -81,9 +97,13 @@ const currentOrg = ref({
 
 const close = () => {
   bindDialogVisible.value = false
+  memberDialogVisible.value = false
   currentOrg.value.id = 0
   currentOrg.value.name = ''
   currentOrg.value.remark = ''
+}
+const saveMembers = () => {
+  console.log(joinedMembers.value)
 }
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
@@ -93,6 +113,9 @@ const actionHandler = (command: HandlerCommand) => {
       currentOrg.value.name = command.data.name
       currentOrg.value.remark = command.data.remark
       bindDialogVisible.value = true
+      break
+    case 'member':
+      memberDialogVisible.value = true
       break
     case 'del':
       ElMessageBox.confirm(t('authz.org.deleteConfirm'), t('common.confirmMsgTitle'), {
@@ -190,6 +213,28 @@ const showNewOrgDlg = () => {
 </script>
 
 <template>
+  <ElDialog v-model="memberDialogVisible" :title="t('authz.org.member')" draggable width="810px">
+    <ElTransfer
+      :data="allMembers"
+      v-model="joinedMembers"
+      :titles="[t('authz.org.allMember'), t('authz.org.joinedMember')]"
+      style="text-align: left; display: inline-block"
+      filterable
+      :filter-placeholder="t('authz.org.member_filter_placeholder')"
+    >
+      <template #default="{ option }">
+        <span>{{ option.name }} ({{ option.account }})</span>
+      </template>
+    </ElTransfer>
+    <template #footer>
+      <span>
+        <ElButton @click="close()">{{ t('common.cancel') }}</ElButton>
+        <ElButton v-if="!isCreate" type="primary" @click="saveMembers()">{{
+          t('common.update')
+        }}</ElButton>
+      </span>
+    </template>
+  </ElDialog>
   <ElDialog v-model="bindDialogVisible" :fullscreen="false" :title="t('authz.org.detail')" height>
     <ElForm :model="currentOrg" label-position="top" status-icon>
       <ElRow>
@@ -241,6 +286,11 @@ const showNewOrgDlg = () => {
                   {{ t('common.viewDetail') }}
                 </ElLink>
               </ElDropdownItem>
+              <ElDropdownItem :command="{ data: scope.row, cmd: 'member' }">
+                <ElLink :icon="UserFilled" :underline="false">
+                  {{ t('authz.org.member') }}
+                </ElLink>
+              </ElDropdownItem>
               <ElDropdownItem :command="{ data: scope.row, cmd: 'del' }" divided>
                 <ElLink :icon="Delete" :underline="false" type="danger">
                   {{ t('authz.org.delete') }}
@@ -253,3 +303,9 @@ const showNewOrgDlg = () => {
     </Table>
   </ContentWrap>
 </template>
+
+<style scoped>
+.el-transfer {
+  --el-transfer-panel-width: 300px;
+}
+</style>

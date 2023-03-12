@@ -1,6 +1,6 @@
 import { useAxios } from '@/hooks/web/useAxios'
 import type { UserType } from './types'
-import { OrgType } from './types'
+import { MemberData, OrgType } from './types'
 
 interface RoleParams {
   roleName: string
@@ -28,6 +28,14 @@ export const getUserListApi = ({ params }: AxiosConfig) => {
 export const getOrgListApi = async () => {
   const rlt = await request.get<IResponse<OrgType[]>>({
     url: '/user/org/list'
+  })
+
+  return rlt && rlt.data && rlt.data.data
+}
+
+export const getAllMembersApi = async () => {
+  const rlt = await request.get<IResponse<MemberData[]>>({
+    url: '/user/list'
   })
 
   return rlt && rlt.data && rlt.data.data

@@ -484,7 +484,11 @@ export default {
       deleteSuccess: '组织删除成功',
       createFailure: '组织创建失败',
       updateFailure: '组织更新失败',
-      deleteFailure: '组织删除失败'
+      deleteFailure: '组织删除失败',
+      member: '管理成员',
+      member_filter_placeholder: '搜索用户',
+      allMember: '所有成员',
+      joinedMember: '组织成员'
     },
     created_at: '创建时间',
     index: '序号',

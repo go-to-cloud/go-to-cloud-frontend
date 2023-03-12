@@ -20,3 +20,11 @@ export type OrgType = {
   member_count: number
   remark: string
 }
+
+export type MemberData = {
+  key: number
+  id: number
+  name: string
+  account: string
+  shortcut: string
+}

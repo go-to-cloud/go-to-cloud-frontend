@@ -485,7 +485,11 @@ export default {
       deleteSuccess: 'Organization Deleted!',
       createFailure: 'Organization Create Failed!',
       updateFailure: 'Organization Update Failed!',
-      deleteFailure: 'Organization Delete Failed!'
+      deleteFailure: 'Organization Delete Failed!',
+      member: 'Member Management',
+      member_filter_placeholder: 'User Name',
+      allMember: 'All Members',
+      joinedMember: 'Joined Members'
     },
     created_at: 'Created Time',
     index: 'Index',
