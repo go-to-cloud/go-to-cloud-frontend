@@ -1,8 +1,8 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useTimeAgo } from '@/hooks/web/useTimeAgo'
-import { ElRow, ElCol, ElSkeleton, ElCard, ElDivider, ElLink } from 'element-plus'
+import { ElCard, ElCol, ElDivider, ElLink, ElRow, ElSkeleton } from 'element-plus'
 import { useI18n } from '@/hooks/web/useI18n'
-import { ref, reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { CountTo } from '@/components/CountTo'
 import { formatTime } from '@/utils'
 import { Echart } from '@/components/Echart'
@@ -11,12 +11,12 @@ import { radarOption } from './echarts-data'
 import { Highlight } from '@/components/Highlight'
 import {
   getCountApi,
-  getProjectApi,
   getDynamicApi,
-  getTeamApi,
-  getRadarApi
+  getProjectApi,
+  getRadarApi,
+  getTeamApi
 } from '@/api/dashboard/workplace'
-import type { WorkplaceTotal, Project, Dynamic, Team } from '@/api/dashboard/workplace/types'
+import type { Dynamic, Project, Team, WorkplaceTotal } from '@/api/dashboard/workplace/types'
 import { set } from 'lodash-es'
 
 const loading = ref(true)
@@ -115,12 +115,12 @@ const { t } = useI18n()
     <ElCard shadow="never">
       <ElSkeleton :loading="loading" animated>
         <ElRow :gutter="20" justify="space-between">
-          <ElCol :xl="12" :lg="12" :md="12" :sm="24" :xs="24">
+          <ElCol :lg="12" :md="12" :sm="24" :xl="12" :xs="24">
             <div class="flex items-center">
               <img
-                src="@/assets/imgs/avatar.jpg"
                 alt=""
                 class="w-70px h-70px rounded-[50%] mr-20px"
+                src="@/assets/imgs/avatar.png"
               />
               <div>
                 <div class="text-20px text-700">
@@ -132,35 +132,35 @@ const { t } = useI18n()
               </div>
             </div>
           </ElCol>
-          <ElCol :xl="12" :lg="12" :md="12" :sm="24" :xs="24">
+          <ElCol :lg="12" :md="12" :sm="24" :xl="12" :xs="24">
             <div class="flex h-70px items-center justify-end <sm:mt-20px">
               <div class="px-8px text-right">
                 <div class="text-14px text-gray-400 mb-20px">{{ t('workplace.project') }}</div>
                 <CountTo
-                  class="text-20px"
-                  :start-val="0"
-                  :end-val="totalSate.project"
                   :duration="2600"
+                  :end-val="totalSate.project"
+                  :start-val="0"
+                  class="text-20px"
                 />
               </div>
               <ElDivider direction="vertical" />
               <div class="px-8px text-right">
                 <div class="text-14px text-gray-400 mb-20px">{{ t('workplace.toDo') }}</div>
                 <CountTo
-                  class="text-20px"
-                  :start-val="0"
-                  :end-val="totalSate.todo"
                   :duration="2600"
+                  :end-val="totalSate.todo"
+                  :start-val="0"
+                  class="text-20px"
                 />
               </div>
-              <ElDivider direction="vertical" border-style="dashed" />
+              <ElDivider border-style="dashed" direction="vertical" />
               <div class="px-8px text-right">
                 <div class="text-14px text-gray-400 mb-20px">{{ t('workplace.access') }}</div>
                 <CountTo
-                  class="text-20px"
-                  :start-val="0"
-                  :end-val="totalSate.access"
                   :duration="2600"
+                  :end-val="totalSate.access"
+                  :start-val="0"
+                  class="text-20px"
                 />
               </div>
             </div>
@@ -170,13 +170,13 @@ const { t } = useI18n()
     </ElCard>
   </div>
 
-  <ElRow class="mt-20px" :gutter="20" justify="space-between">
-    <ElCol :xl="16" :lg="16" :md="24" :sm="24" :xs="24" class="mb-20px">
+  <ElRow :gutter="20" class="mt-20px" justify="space-between">
+    <ElCol :lg="16" :md="24" :sm="24" :xl="16" :xs="24" class="mb-20px">
       <ElCard shadow="never">
         <template #header>
           <div class="flex justify-between">
             <span>{{ t('workplace.project') }}</span>
-            <ElLink type="primary" :underline="false">{{ t('workplace.more') }}</ElLink>
+            <ElLink :underline="false" type="primary">{{ t('workplace.more') }}</ElLink>
           </div>
         </template>
         <ElSkeleton :loading="loading" animated>
@@ -184,10 +184,10 @@ const { t } = useI18n()
             <ElCol
               v-for="(item, index) in projects"
               :key="`card-${index}`"
-              :xl="8"
               :lg="8"
               :md="12"
               :sm="24"
+              :xl="8"
               :xs="24"
             >
               <ElCard shadow="hover">
@@ -206,20 +206,20 @@ const { t } = useI18n()
         </ElSkeleton>
       </ElCard>
 
-      <ElCard shadow="never" class="mt-20px">
+      <ElCard class="mt-20px" shadow="never">
         <template #header>
           <div class="flex justify-between">
             <span>{{ t('workplace.dynamic') }}</span>
-            <ElLink type="primary" :underline="false">{{ t('workplace.more') }}</ElLink>
+            <ElLink :underline="false" type="primary">{{ t('workplace.more') }}</ElLink>
           </div>
         </template>
         <ElSkeleton :loading="loading" animated>
           <div v-for="(item, index) in dynamics" :key="`dynamics-${index}`">
             <div class="flex items-center">
               <img
-                src="@/assets/imgs/avatar.jpg"
                 alt=""
                 class="w-35px h-35px rounded-[50%] mr-20px"
+                src="@/assets/imgs/avatar.png"
               />
               <div>
                 <div class="text-14px">
@@ -237,7 +237,7 @@ const { t } = useI18n()
         </ElSkeleton>
       </ElCard>
     </ElCol>
-    <ElCol :xl="8" :lg="8" :md="24" :sm="24" :xs="24" class="mb-20px">
+    <ElCol :lg="8" :md="24" :sm="24" :xl="8" :xs="24" class="mb-20px">
       <ElCard shadow="never">
         <template #header>
           <span>{{ t('workplace.shortcutOperation') }}</span>
@@ -246,30 +246,30 @@ const { t } = useI18n()
           <ElCol
             v-for="item in 9"
             :key="`card-${item}`"
-            :xl="12"
             :lg="12"
             :md="12"
             :sm="24"
+            :xl="12"
             :xs="24"
             class="mb-10px"
           >
-            <ElLink type="default" :underline="false">
+            <ElLink :underline="false" type="default">
               {{ t('workplace.operation') }}{{ item }}
             </ElLink>
           </ElCol>
         </ElSkeleton>
       </ElCard>
 
-      <ElCard shadow="never" class="mt-20px">
+      <ElCard class="mt-20px" shadow="never">
         <template #header>
           <span>xx{{ t('workplace.index') }}</span>
         </template>
         <ElSkeleton :loading="loading" animated>
-          <Echart :options="radarOptionData" :height="400" />
+          <Echart :height="400" :options="radarOptionData" />
         </ElSkeleton>
       </ElCard>
 
-      <ElCard shadow="never" class="mt-20px">
+      <ElCard class="mt-20px" shadow="never">
         <template #header>
           <span>{{ t('workplace.team') }}</span>
         </template>
@@ -278,7 +278,7 @@ const { t } = useI18n()
             <ElCol v-for="item in team" :key="`team-${item.name}`" :span="12" class="mb-20px">
               <div class="flex items-center">
                 <Icon :icon="item.icon" class="mr-10px" />
-                <ElLink type="default" :underline="false">
+                <ElLink :underline="false" type="default">
                   {{ item.name }}
                 </ElLink>
               </div>

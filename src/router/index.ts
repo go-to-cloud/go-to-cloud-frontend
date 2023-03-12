@@ -8,6 +8,16 @@ const { t } = useI18n()
 
 export const constantRouterMap: AppRouteRecordRaw[] = [
   {
+    path: '/',
+    component: Layout,
+    // redirect: '/dashboard/workplace',
+    redirect: '/projects/index',
+    name: 'Root',
+    meta: {
+      hidden: true
+    }
+  },
+  {
     path: '/monitor/:id/pods',
     component: () => import('@/views/Monitor/PodsView.vue'),
     name: 'MonitorPodsView',
@@ -47,15 +57,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
       hidden: true
     }
   },
-  {
-    path: '/',
-    component: Layout,
-    redirect: '/dashboard/workplace',
-    name: 'Root',
-    meta: {
-      hidden: true
-    }
-  },
+
   {
     path: '/redirect',
     component: Layout,
@@ -123,7 +125,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
       {
         path: 'index',
         component: () => import('@/views/Projects/Project.vue'),
-        name: 'Projects',
+        name: 'ProjectIndex',
         meta: {
           title: t('router.projects'),
           icon: 'game-icons:over-infinity'
@@ -231,29 +233,20 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: t('router.user')
         }
       },
+      // {
+      //   path: 'role',
+      //   component: () => import('@/views/Authorization/Role.vue'),
+      //   name: 'Role',
+      //   meta: {
+      //     title: t('router.role')
+      //   }
+      // },
       {
-        path: 'role',
-        component: () => import('@/views/Authorization/Role.vue'),
-        name: 'Role',
+        path: 'org',
+        component: () => import('@/views/Authorization/Org.vue'),
+        name: 'Org',
         meta: {
-          title: t('router.role')
-        }
-      }
-    ]
-  },
-  {
-    path: '/demo',
-    component: Layout,
-    meta: {},
-    name: 'Demo',
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/Demo/Demo.vue'),
-        name: 'Demo',
-        meta: {
-          title: '测试',
-          icon: 'clarity:document-solid'
+          title: t('router.org')
         }
       }
     ]

@@ -140,7 +140,8 @@ export default {
     monitor: 'Apps Monitor',
     authorization: 'Authorization',
     user: 'User management',
-    role: 'Role management'
+    role: 'Role management',
+    org: 'Organization management'
   },
   permission: {
     hasPermission: 'Please set the operation permission value'
@@ -462,6 +463,27 @@ export default {
       disconnected: 'Disconnected'
     }
   },
+  authz: {
+    user: {
+      title: '用户管理',
+      message: '由于是模拟数据，所以只提供了两种不同权限的帐号，开发者可根据实际情况自行改造结合。',
+      username: 'Username',
+      password: 'Password'
+    },
+    org: {
+      title: 'Organization',
+      message:
+        'A group of users is typically organized into an organization, such as including the development team members of a project. A user can belong to multiple organizations.',
+      name: 'Name',
+      member_count: 'Member Count'
+    },
+    created_at: 'Created Time',
+    index: 'Index',
+    role: 'Role',
+    remark: 'Remark',
+    remarkMessage1: 'Back end control routing permission',
+    remarkMessage2: 'Front end control routing permission'
+  },
   formDemo: {
     input: 'Input',
     inputNumber: 'InputNumber',
@@ -674,19 +696,6 @@ export default {
     content: 'Content',
     save: 'Save',
     detail: 'Detail'
-  },
-  userDemo: {
-    title: 'User management',
-    message:
-      'Because it is simulated data, only two accounts with different permissions are provided, which can be modified and combined by developers according to the actual situation.',
-    index: 'Index',
-    action: 'Action',
-    username: 'Username',
-    password: 'Password',
-    role: 'Role',
-    remark: 'Remark',
-    remarkMessage1: 'Back end control routing permission',
-    remarkMessage2: 'Front end control routing permission'
   },
   inputPasswordDemo: {
     title: 'InputPassword',

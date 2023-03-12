@@ -138,9 +138,10 @@ export default {
     artifacts: '制品仓库',
     k8s: '部署环境',
     monitor: '应用监控',
-    authorization: '账户管理',
+    authorization: '账号管理',
     user: '用户管理',
-    role: '角色管理'
+    role: '角色管理',
+    org: '组织管理'
   },
   permission: {
     hasPermission: '请设置操作权限值'
@@ -462,6 +463,26 @@ export default {
       disconnected: '连接断开'
     }
   },
+  authz: {
+    user: {
+      title: '用户管理',
+      message: '由于是模拟数据，所以只提供了两种不同权限的帐号，开发者可根据实际情况自行改造结合。',
+      username: 'Username',
+      password: 'Password'
+    },
+    org: {
+      title: '组织管理',
+      message: '一组用户的集合，通常将一个项目组的研发成员纳入一个组织，一个用户可以属于多个组织',
+      name: '组织名称',
+      member_count: '成员数量'
+    },
+    created_at: '创建时间',
+    index: '序号',
+    role: 'Role',
+    remark: '备注',
+    remarkMessage1: 'Back end control routing permission',
+    remarkMessage2: 'Front end control routing permission'
+  },
   formDemo: {
     input: '输入框',
     inputNumber: '数字输入框',
@@ -671,18 +692,6 @@ export default {
     content: '内容',
     save: '保存',
     detail: '详情'
-  },
-  userDemo: {
-    title: '用户管理',
-    message: '由于是模拟数据，所以只提供了两种不同权限的帐号，开发者可根据实际情况自行改造结合。',
-    index: '序号',
-    action: '操作',
-    username: '用户名',
-    password: '密码',
-    role: '角色',
-    remark: '备注',
-    remarkMessage1: '后端控制路由权限',
-    remarkMessage2: '前端控制路由权限'
   },
   inputPasswordDemo: {
     title: '密码输入框',

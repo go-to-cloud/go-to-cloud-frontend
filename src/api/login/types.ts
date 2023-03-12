@@ -12,3 +12,11 @@ export type UserType = {
   expire: string
   token: string
 }
+
+export type OrgType = {
+  id: number
+  name: string
+  created_at: string
+  member_count: number
+  remark: string
+}

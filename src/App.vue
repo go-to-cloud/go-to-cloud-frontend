@@ -1,8 +1,7 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed } from 'vue'
 import { useAppStore } from '@/store/modules/app'
 import { ConfigGlobal } from '@/components/ConfigGlobal'
-import { isDark } from '@/utils/is'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useCache } from '@/hooks/web/useCache'
 import { setCssVar } from '@/utils'
@@ -21,11 +20,11 @@ const { wsCache } = useCache()
 
 // 根据浏览器当前主题设置系统主题色
 const setDefaultTheme = () => {
-  if (wsCache.get('isDark')) {
-    appStore.setIsDark(wsCache.get('isDark'))
-    return
-  }
-  const isDarkTheme = isDark()
+  // if (wsCache.get('isDark')) {
+  //   appStore.setIsDark(wsCache.get('isDark'))
+  //   return
+  // }
+  const isDarkTheme = false // isDark()
   appStore.setIsDark(isDarkTheme)
 
   // 切换标签栏显示时，同步切换标签栏的高度

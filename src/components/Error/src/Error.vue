@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import pageError from '@/assets/svgs/404.svg'
 import networkError from '@/assets/svgs/500.svg'
 import empty_repo from '@/assets/svgs/empty_repo.svg'
@@ -78,8 +78,8 @@ const btnClick = () => {
   <div class="flex justify-center">
     <div class="text-center">
       <img
-        :width="errorMap[type].width"
         :src="errorMap[type].url"
+        :width="errorMap[type].width"
         alt=""
         style="padding: 10px; margin: 0 auto"
       />
