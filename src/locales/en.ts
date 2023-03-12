@@ -475,7 +475,17 @@ export default {
       message:
         'A group of users is typically organized into an organization, such as including the development team members of a project. A user can belong to multiple organizations.',
       name: 'Name',
-      member_count: 'Member Count'
+      member_count: 'Member Count',
+      detail: 'Detail',
+      new: 'New Organization',
+      delete: 'Delete Organization',
+      deleteConfirm: 'Organization will be deleted, Continue?',
+      createSuccess: 'Organization Created!',
+      updateSuccess: 'Organization Updated!',
+      deleteSuccess: 'Organization Deleted!',
+      createFailure: 'Organization Create Failed!',
+      updateFailure: 'Organization Update Failed!',
+      deleteFailure: 'Organization Delete Failed!'
     },
     created_at: 'Created Time',
     index: 'Index',

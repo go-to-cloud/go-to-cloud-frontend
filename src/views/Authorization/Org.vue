@@ -4,11 +4,16 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
 import { getOrgListApi } from '@/api/login'
 import { OrgType } from '@/api/login/types'
-import { h, ref } from 'vue'
-
-import { Delete, Expand, MoreFilled } from '@element-plus/icons-vue'
+import { h, onMounted, ref } from 'vue'
+import { Delete, Expand, MoreFilled, Connection } from '@element-plus/icons-vue'
+import { useAxios } from '@/hooks/web/useAxios'
+import { DeleteResult } from '@/api/monitor/types'
+import { RestfulResult } from '@/api/common/types'
+import { ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus/es'
 
 const { t } = useI18n()
+const request = useAxios()
 
 const columns: TableColumn[] = [
   {
@@ -56,7 +61,9 @@ const getOrgList = async () => {
   }
 }
 
-getOrgList()
+onMounted(async () => {
+  await getOrgList()
+})
 
 interface HandlerCommand {
   data: OrgType
@@ -81,19 +88,109 @@ const close = () => {
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
+      isCreate.value = false
       currentOrg.value.id = command.data.id
       currentOrg.value.name = command.data.name
       currentOrg.value.remark = command.data.remark
       bindDialogVisible.value = true
       break
     case 'del':
+      ElMessageBox.confirm(t('authz.org.deleteConfirm'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(async () => {
+        await request
+          .delete<IResponse<RestfulResult>>({
+            url: '/user/org/' + command.data.id
+          })
+          .then(async (r) => {
+            if (r.data.code == '200') {
+              ElMessage({
+                type: 'success',
+                message: t('authz.org.deleteSuccess'),
+                showClose: true,
+                center: true
+              })
+              await getOrgList().then(() => close())
+            }
+          })
+          .catch((r) => {
+            ElMessage({
+              type: 'error',
+              message: t('authz.org.deleteFailure'),
+              showClose: true,
+              center: true
+            })
+          })
+      })
       break
   }
+}
+
+const save = async () => {
+  await request
+    .put<IResponse<RestfulResult>>({
+      url: '/user/org',
+      data: currentOrg.value
+    })
+    .then(async (r) => {
+      if (r.data.code == '200') {
+        ElMessage({
+          type: 'success',
+          message: t('authz.org.updateSuccess'),
+          showClose: true,
+          center: true
+        })
+        await getOrgList().then(() => close())
+      }
+    })
+    .catch((r) => {
+      ElMessage({
+        type: 'error',
+        message: t('authz.org.updateFailure'),
+        showClose: true,
+        center: true
+      })
+    })
+}
+const submit = async () => {
+  await request
+    .post<IResponse<RestfulResult>>({
+      url: '/user/org',
+      data: currentOrg.value
+    })
+    .then(async (r) => {
+      if (r.data.code == '200') {
+        ElMessage({
+          type: 'success',
+          message: t('authz.org.createSuccess'),
+          showClose: true,
+          center: true
+        })
+        await getOrgList().then(() => close())
+      }
+    })
+    .catch((r) => {
+      ElMessage({
+        type: 'error',
+        message: t('authz.org.createFailure'),
+        showClose: true,
+        center: true
+      })
+    })
+}
+const showNewOrgDlg = () => {
+  currentOrg.value.id = 0
+  isCreate.value = true
+  currentOrg.value.name = ''
+  currentOrg.value.remark = ''
+  bindDialogVisible.value = true
 }
 </script>
 
 <template>
-  <ElDialog v-model="bindDialogVisible" :fullscreen="false" height>
+  <ElDialog v-model="bindDialogVisible" :fullscreen="false" :title="t('authz.org.detail')" height>
     <ElForm :model="currentOrg" label-position="top" status-icon>
       <ElRow>
         <ElCol :span="10">
@@ -117,16 +214,20 @@ const actionHandler = (command: HandlerCommand) => {
     <template #footer>
       <span>
         <ElButton @click="close()">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="isCreate" type="primary" @click="submit(newProjectFormRef)">{{
-          t('common.ok')
-        }}</ElButton>
-        <ElButton v-if="!isCreate" type="primary" @click="save(newProjectFormRef)">{{
+        <ElButton v-if="isCreate" type="primary" @click="submit()">{{ t('common.save') }}</ElButton>
+        <ElButton v-if="!isCreate" type="primary" @click="save()">{{
           t('common.update')
         }}</ElButton>
       </span>
     </template>
   </ElDialog>
-  <ContentWrap :message="t('authz.org.message')" :title="t('authz.org.title')">
+  <ContentWrap
+    :message="t('authz.org.message')"
+    :title="t('authz.org.title')"
+    :button="showNewOrgDlg"
+    :button-text="t('authz.org.new')"
+    :button-icon="Connection"
+  >
     <Table :columns="columns" :data="orgList" :loading="loading" :selection="false">
       <template #action="scope">
         <ElDropdown @command="actionHandler">
@@ -142,7 +243,7 @@ const actionHandler = (command: HandlerCommand) => {
               </ElDropdownItem>
               <ElDropdownItem :command="{ data: scope.row, cmd: 'del' }" divided>
                 <ElLink :icon="Delete" :underline="false" type="danger">
-                  {{ t('builder.uninstall') }}
+                  {{ t('authz.org.delete') }}
                 </ElLink>
               </ElDropdownItem>
             </ElDropdownMenu>

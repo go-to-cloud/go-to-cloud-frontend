@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { ElButton, ElDivider, dayjs, ElMessage, Action } from 'element-plus'
+import { ElButton, ElDivider, ElMessage, Action } from 'element-plus'
 import { Delete, Expand, MoreFilled, Refresh, Search, RefreshRight } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
@@ -12,7 +12,6 @@ import { getK8sRepoApi } from '@/api/configure/deploy'
 import {
   calcAge,
   deleteDeploymentApi,
-  deletePodApi,
   getAppsApi,
   restartDeploymentApi,
   scaleReplicasApi

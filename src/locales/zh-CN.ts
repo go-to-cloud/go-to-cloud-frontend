@@ -474,7 +474,17 @@ export default {
       title: '组织管理',
       message: '一组用户的集合，通常将一个项目组的研发成员纳入一个组织，一个用户可以属于多个组织',
       name: '组织名称',
-      member_count: '成员数量'
+      member_count: '成员数量',
+      detail: '组织详情',
+      new: '创建新的组织',
+      delete: '删除组织',
+      deleteConfirm: '即将删除组织，确认是否继续？',
+      createSuccess: '组织创建成功',
+      updateSuccess: '组织更新成功',
+      deleteSuccess: '组织删除成功',
+      createFailure: '组织创建失败',
+      updateFailure: '组织更新失败',
+      deleteFailure: '组织删除失败'
     },
     created_at: '创建时间',
     index: '序号',
