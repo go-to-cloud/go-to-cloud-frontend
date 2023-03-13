@@ -488,7 +488,8 @@ export default {
       member: '管理成员',
       member_filter_placeholder: '搜索用户',
       allMember: '所有成员',
-      joinedMember: '组织成员'
+      joinedMember: '组织成员',
+      joinFailed: '保存组织成员失败'
     },
     created_at: '创建时间',
     index: '序号',

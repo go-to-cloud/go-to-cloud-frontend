@@ -2,7 +2,12 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getAllMembersApi, getJoinedMemberApi, getOrgListApi } from '@/api/login'
+import {
+  getAllMembersApi,
+  getJoinedMemberApi,
+  getOrgListApi,
+  saveJoinedMembersApi
+} from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { h, onMounted, ref } from 'vue'
 import { Delete, Expand, MoreFilled, Connection, UserFilled } from '@element-plus/icons-vue'
@@ -102,11 +107,24 @@ const close = () => {
   currentOrg.value.name = ''
   currentOrg.value.remark = ''
 }
-const saveMembers = () => {
-  console.log(joinedMembers.value)
+const saveMembers = async () => {
+  await saveJoinedMembersApi(currentOrg.value.id, joinedMembers.value).then((resp) => {
+    if (resp.code == '200') {
+      joinedMembers.value = []
+      memberDialogVisible.value = false
+    } else {
+      ElMessage({
+        type: 'error',
+        message: t('authz.org.joinFailed'),
+        showClose: true,
+        center: true
+      })
+    }
+  })
 }
 const showJoinedMembers = async (orgId: number) => {
   joinedMembers.value = []
+  currentOrg.value.id = orgId
   await getJoinedMemberApi(orgId).then((r) => {
     joinedMembers.value = r
     memberDialogVisible.value = true
@@ -236,9 +254,7 @@ const showNewOrgDlg = () => {
     <template #footer>
       <span>
         <ElButton @click="close()">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="!isCreate" type="primary" @click="saveMembers()">{{
-          t('common.update')
-        }}</ElButton>
+        <ElButton type="primary" @click="saveMembers">{{ t('common.update') }}</ElButton>
       </span>
     </template>
   </ElDialog>

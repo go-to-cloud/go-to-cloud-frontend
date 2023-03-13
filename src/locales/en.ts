@@ -489,7 +489,8 @@ export default {
       member: 'Member Management',
       member_filter_placeholder: 'User Name',
       allMember: 'All Members',
-      joinedMember: 'Joined Members'
+      joinedMember: 'Joined Members',
+      joinFailed: 'Save Members Failed'
     },
     created_at: 'Created Time',
     index: 'Index',
