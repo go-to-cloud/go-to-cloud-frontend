@@ -465,10 +465,18 @@ export default {
   },
   authz: {
     user: {
+      new: '创建新的用户',
       title: '用户管理',
-      message: '由于是模拟数据，所以只提供了两种不同权限的帐号，开发者可根据实际情况自行改造结合。',
-      username: 'Username',
-      password: 'Password'
+      message: '所有用户的集合，在这里可以对用户进行增删改查、重置密码及管理所属组织',
+      username: '用户名',
+      account: '账号',
+      password: '密码',
+      reset_password: '重置密码',
+      belongs: '所属组织',
+      email: '邮箱',
+      mobile: '联系电话',
+      detail: '用户详情',
+      delete: '删除用户'
     },
     org: {
       title: '组织管理',

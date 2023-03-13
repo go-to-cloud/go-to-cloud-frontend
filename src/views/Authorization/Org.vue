@@ -10,9 +10,8 @@ import {
 } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { h, onMounted, ref } from 'vue'
-import { Delete, Expand, MoreFilled, Connection, UserFilled } from '@element-plus/icons-vue'
+import { Delete, Expand, MoreFilled, UserFilled, CirclePlus } from '@element-plus/icons-vue'
 import { useAxios } from '@/hooks/web/useAxios'
-import { DeleteResult } from '@/api/monitor/types'
 import { RestfulResult } from '@/api/common/types'
 import { ElMessage } from 'element-plus'
 import { ElMessageBox } from 'element-plus/es'
@@ -94,24 +93,27 @@ const isCreate = ref<boolean>(false)
 const bindDialogVisible = ref<boolean>(false)
 const memberDialogVisible = ref<boolean>(false)
 
-const currentOrg = ref({
+const currentOrg = ref<OrgType>({
   id: 0,
   name: '',
+  created_at: '',
+  member_count: 0,
   remark: ''
 })
 
 const close = () => {
   bindDialogVisible.value = false
   memberDialogVisible.value = false
-  currentOrg.value.id = 0
-  currentOrg.value.name = ''
-  currentOrg.value.remark = ''
+  currentOrg.value!.id = 0
+  currentOrg.value!.name = ''
+  currentOrg.value!.remark = ''
 }
 const saveMembers = async () => {
-  await saveJoinedMembersApi(currentOrg.value.id, joinedMembers.value).then((resp) => {
+  await saveJoinedMembersApi(currentOrg.value!.id, joinedMembers.value).then(async (resp) => {
     if (resp.code == '200') {
       joinedMembers.value = []
       memberDialogVisible.value = false
+      await getOrgList()
     } else {
       ElMessage({
         type: 'error',
@@ -124,7 +126,7 @@ const saveMembers = async () => {
 }
 const showJoinedMembers = async (orgId: number) => {
   joinedMembers.value = []
-  currentOrg.value.id = orgId
+  currentOrg.value!.id = orgId
   await getJoinedMemberApi(orgId).then((r) => {
     joinedMembers.value = r
     memberDialogVisible.value = true
@@ -134,9 +136,9 @@ const actionHandler = async (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
       isCreate.value = false
-      currentOrg.value.id = command.data.id
-      currentOrg.value.name = command.data.name
-      currentOrg.value.remark = command.data.remark
+      currentOrg.value!.id = command.data.id
+      currentOrg.value!.name = command.data.name
+      currentOrg.value!.remark = command.data.remark
       bindDialogVisible.value = true
       break
     case 'member':
@@ -229,10 +231,10 @@ const submit = async () => {
     })
 }
 const showNewOrgDlg = () => {
-  currentOrg.value.id = 0
   isCreate.value = true
-  currentOrg.value.name = ''
-  currentOrg.value.remark = ''
+  currentOrg.value!.id = 0
+  currentOrg.value!.name = ''
+  currentOrg.value!.remark = ''
   bindDialogVisible.value = true
 }
 </script>
@@ -294,7 +296,7 @@ const showNewOrgDlg = () => {
     :title="t('authz.org.title')"
     :button="showNewOrgDlg"
     :button-text="t('authz.org.new')"
-    :button-icon="Connection"
+    :button-icon="CirclePlus"
   >
     <Table :columns="columns" :data="orgList" :loading="loading" :selection="false">
       <template #action="scope">

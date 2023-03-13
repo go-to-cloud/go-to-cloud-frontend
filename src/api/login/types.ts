@@ -24,7 +24,11 @@ export type OrgType = {
 export type MemberData = {
   key: number
   id: number
+  belong_count: number
   name: string
+  email: string
+  mobile: string
   account: string
-  shortcut: string
+  pinyin: string
+  pinyin_init: string
 }
