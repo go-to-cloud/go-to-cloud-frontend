@@ -40,6 +40,13 @@ export const getJoinedMemberApi = async (orgId: number): Promise<number[]> => {
   return rlt && rlt.data && rlt.data.data
 }
 
+export const getJoinedOrgsApi = async (memberId: number): Promise<number[]> => {
+  const rlt = await request.get<IResponse<number[]>>({
+    url: '/user/' + memberId + '/orgs/joined'
+  })
+  return rlt && rlt.data && rlt.data.data
+}
+
 export const getAllMembersApi = async () => {
   const rlt = await request.get<IResponse<MemberData[]>>({
     url: '/user/list'

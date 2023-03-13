@@ -2,7 +2,7 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getAllMembersApi } from '@/api/login'
+import { getAllMembersApi, getJoinedMemberApi, getJoinedOrgsApi, getOrgListApi } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { ref, onMounted } from 'vue'
 import { ElButton } from 'element-plus'
@@ -87,6 +87,7 @@ const loading = ref(true)
 const isCreate = ref<boolean>(false)
 const memberList = ref<MemberData[]>([])
 const userDlgVisible = ref<boolean>(false)
+const orgsDlgVisible = ref<boolean>(false)
 
 const close = () => {
   userDlgVisible.value = false
@@ -146,6 +147,26 @@ interface HandlerCommand {
   cmd: string
 }
 
+const joinedOrgs = ref<number[]>([])
+
+const showJoinedOrgs = async (memberId: number) => {
+  joinedOrgs.value = []
+  currentUser.value!.id = memberId
+  // await getJoinedOrgsApi(memberId).then((r) => {
+  //   joinedOrgs.value = r
+  orgsDlgVisible.value = true
+  // })
+}
+
+let orgList = ref<OrgType[]>([])
+
+const getAllOrgs = async () => {
+  const res = await getOrgListApi().catch(() => {})
+  if (res) {
+    orgList.value = res
+  }
+}
+
 const actionHandler = async (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
@@ -160,6 +181,7 @@ const actionHandler = async (command: HandlerCommand) => {
       currentUser.value!.mobile = command.data.mobile
       break
     case 'belongs':
+      await showJoinedOrgs(command.data.id)
       break
     case 'del':
       ElMessageBox.confirm(t('authz.org.deleteConfirm'), t('common.confirmMsgTitle'), {
@@ -179,7 +201,7 @@ const actionHandler = async (command: HandlerCommand) => {
                 showClose: true,
                 center: true
               })
-              await getOrgList().then(() => close())
+              await getAllOrgs().then(() => close())
             }
           })
           .catch((r) => {
@@ -195,11 +217,32 @@ const actionHandler = async (command: HandlerCommand) => {
   }
 }
 onMounted(async () => {
+  await getAllOrgs()
   await getAllMembers()
 })
 </script>
 
 <template>
+  <ElDialog v-model="orgsDlgVisible" :title="t('authz.org.member')" draggable width="810px">
+    <ElTransfer
+      :data="orgList"
+      v-model="joinedOrgs"
+      :titles="[t('authz.org.allMember'), t('authz.org.joinedMember')]"
+      style="text-align: left; display: inline-block"
+      filterable
+      :filter-placeholder="t('authz.org.member_filter_placeholder')"
+    >
+      <template #default="{ option }">
+        <span>{{ option.name }} ({{ option.account }})</span>
+      </template>
+    </ElTransfer>
+    <template #footer>
+      <span>
+        <ElButton @click="close()">{{ t('common.cancel') }}</ElButton>
+        <ElButton type="primary" @click="saveMembers">{{ t('common.update') }}</ElButton>
+      </span>
+    </template>
+  </ElDialog>
   <ElDialog v-model="userDlgVisible" :fullscreen="false" :title="t('authz.user.detail')" height>
     <ElForm :model="currentUser" label-position="top" status-icon :rules="memberDataRules">
       <ElRow>

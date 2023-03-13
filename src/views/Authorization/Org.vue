@@ -136,10 +136,10 @@ const actionHandler = async (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
       isCreate.value = false
+      bindDialogVisible.value = true
       currentOrg.value!.id = command.data.id
       currentOrg.value!.name = command.data.name
       currentOrg.value!.remark = command.data.remark
-      bindDialogVisible.value = true
       break
     case 'member':
       await showJoinedMembers(command.data.id)
