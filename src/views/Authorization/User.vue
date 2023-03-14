@@ -1,16 +1,16 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getAllMembersApi, getJoinedMemberApi, getJoinedOrgsApi, getOrgListApi } from '@/api/login'
+import { getAllMembersApi, getOrgListApi } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ElButton } from 'element-plus'
-import { CirclePlus, Delete, Expand, MoreFilled, UserFilled } from '@element-plus/icons-vue'
+import { CirclePlus, Delete, Expand, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, FormRules } from 'element-plus/es'
 import { RestfulResult } from '@/api/common/types'
 import { useAxios } from '@/hooks/web/useAxios'
-import { isEmpty, isRegExp } from '@/utils/is'
+import { isEmpty } from '@/utils/is'
 
 const { t } = useI18n()
 const request = useAxios()
@@ -91,6 +91,7 @@ const orgsDlgVisible = ref<boolean>(false)
 
 const close = () => {
   userDlgVisible.value = false
+  orgsDlgVisible.value = false
   currentUser.value = {
     id: 0,
     key: 0,
@@ -225,12 +226,12 @@ onMounted(async () => {
 <template>
   <ElDialog v-model="orgsDlgVisible" :title="t('authz.org.title')" draggable width="810px">
     <ElTransfer
-      :data="orgList"
       v-model="joinedOrgs"
-      :titles="[t('authz.user.allOrg'), t('authz.user.belongs')]"
-      style="text-align: left; display: inline-block"
-      filterable
+      :data="orgList"
       :filter-placeholder="t('authz.org.member_filter_placeholder')"
+      :titles="[t('authz.user.allOrg'), t('authz.user.belongs')]"
+      filterable
+      style="text-align: left; display: inline-block"
     >
       <template #default="{ option }">
         <span>{{ option.name }}</span>
@@ -244,19 +245,20 @@ onMounted(async () => {
     </template>
   </ElDialog>
   <ElDialog v-model="userDlgVisible" :fullscreen="false" :title="t('authz.user.detail')" height>
-    <ElForm :model="currentUser" label-position="top" status-icon :rules="memberDataRules">
+    <ElForm :model="currentUser" :rules="memberDataRules" label-position="top" status-icon>
       <ElRow>
         <ElCol :span="10">
           <ElFormItem :label="t('authz.user.account')" prop="account">
             <ElInput
               v-model="currentUser.account"
-              :readonly="!isCreate"
               :disabled="!isCreate"
               :placeholder="t('common.inputText') + t('authz.user.account')"
+              :readonly="!isCreate"
             />
           </ElFormItem>
-        </ElCol> </ElRow
-      ><ElRow>
+        </ElCol>
+      </ElRow>
+      <ElRow>
         <ElCol :span="10">
           <ElFormItem :label="t('authz.user.username')" prop="name">
             <ElInput
@@ -265,8 +267,9 @@ onMounted(async () => {
               :placeholder="t('common.inputText') + t('authz.user.username')"
             />
           </ElFormItem>
-        </ElCol> </ElRow
-      ><ElRow>
+        </ElCol>
+      </ElRow>
+      <ElRow>
         <ElCol :span="10">
           <ElFormItem :label="t('authz.user.email')" prop="email">
             <ElInput
@@ -275,8 +278,9 @@ onMounted(async () => {
               :placeholder="t('common.inputText') + t('authz.user.email')"
             />
           </ElFormItem>
-        </ElCol> </ElRow
-      ><ElRow>
+        </ElCol>
+      </ElRow>
+      <ElRow>
         <ElCol :span="10">
           <ElFormItem :label="t('authz.user.mobile')" prop="mobile">
             <ElInput
@@ -285,17 +289,18 @@ onMounted(async () => {
               :placeholder="t('common.inputText') + t('authz.user.mobile')"
             />
           </ElFormItem>
-        </ElCol> </ElRow
-      ><ElRow>
+        </ElCol>
+      </ElRow>
+      <ElRow>
         <ElCol :span="10">
           <ElFormItem v-if="isCreate" :label="t('authz.user.password')" prop="password">
             <ElInput
+              v-model="currentUser.password"
+              :label="t('authz.user.mobile')"
+              autocomplete="off"
               minlength="6"
               show-password
               type="password"
-              autocomplete="off"
-              v-model="currentUser.password"
-              :label="t('authz.user.mobile')"
             />
           </ElFormItem>
         </ElCol>
@@ -312,11 +317,11 @@ onMounted(async () => {
     </template>
   </ElDialog>
   <ContentWrap
-    :title="t('authz.user.title')"
-    :message="t('authz.user.message')"
     :button="showNewUserDlg"
-    :button-text="t('authz.user.new')"
     :button-icon="CirclePlus"
+    :button-text="t('authz.user.new')"
+    :message="t('authz.user.message')"
+    :title="t('authz.user.title')"
   >
     <Table :columns="columns" :data="memberList" :loading="loading" :selection="false">
       <template #action="scope">
