@@ -476,7 +476,8 @@ export default {
       email: '邮箱',
       mobile: '联系电话',
       detail: '用户详情',
-      delete: '删除用户'
+      delete: '删除用户',
+      allOrg: '所有组织'
     },
     org: {
       title: '组织管理',

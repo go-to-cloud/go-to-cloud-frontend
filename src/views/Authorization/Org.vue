@@ -94,6 +94,7 @@ const bindDialogVisible = ref<boolean>(false)
 const memberDialogVisible = ref<boolean>(false)
 
 const currentOrg = ref<OrgType>({
+  key: 0,
   id: 0,
   name: '',
   created_at: '',

@@ -30,7 +30,24 @@ export const getOrgListApi = async () => {
     url: '/user/org/list'
   })
 
-  return rlt && rlt.data && rlt.data.data
+  return await fixKey(rlt && rlt.data && rlt.data.data)
+}
+
+export const getAllMembersApi = async () => {
+  const rlt = await request.get<IResponse<MemberData[]>>({
+    url: '/user/list'
+  })
+
+  return await fixKey(rlt && rlt.data && rlt.data.data)
+}
+
+const fixKey = async (a: MemberData[] | OrgType[]): Promise<MemberData[] | OrgType[]> => {
+  if (a) {
+    for (let i = 0; i < a.length; i++) {
+      a[i].key = a[i].id
+    }
+  }
+  return a
 }
 
 export const getJoinedMemberApi = async (orgId: number): Promise<number[]> => {
@@ -44,14 +61,6 @@ export const getJoinedOrgsApi = async (memberId: number): Promise<number[]> => {
   const rlt = await request.get<IResponse<number[]>>({
     url: '/user/' + memberId + '/orgs/joined'
   })
-  return rlt && rlt.data && rlt.data.data
-}
-
-export const getAllMembersApi = async () => {
-  const rlt = await request.get<IResponse<MemberData[]>>({
-    url: '/user/list'
-  })
-
   return rlt && rlt.data && rlt.data.data
 }
 

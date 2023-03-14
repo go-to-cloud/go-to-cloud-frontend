@@ -476,7 +476,8 @@ export default {
       email: 'Email',
       mobile: 'Mobile',
       detail: 'Detail',
-      delete: 'Delete'
+      delete: 'Delete',
+      allOrg: 'All Organization'
     },
     org: {
       title: 'Organization',

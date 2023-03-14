@@ -14,6 +14,7 @@ export type UserType = {
 }
 
 export type OrgType = {
+  key: number
   id: number
   name: string
   created_at: string

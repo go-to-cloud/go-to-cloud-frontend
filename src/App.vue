@@ -67,4 +67,11 @@ body {
 .@{prefix-cls}-grey-mode {
   filter: grayscale(100%);
 }
+
+.el-transfer {
+  --el-transfer-panel-width: 300px;
+}
+.el-transfer-panel__body {
+  padding-right: 30px;
+}
 </style>

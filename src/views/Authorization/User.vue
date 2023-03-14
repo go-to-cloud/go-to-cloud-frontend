@@ -223,17 +223,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ElDialog v-model="orgsDlgVisible" :title="t('authz.org.member')" draggable width="810px">
+  <ElDialog v-model="orgsDlgVisible" :title="t('authz.org.title')" draggable width="810px">
     <ElTransfer
       :data="orgList"
       v-model="joinedOrgs"
-      :titles="[t('authz.org.allMember'), t('authz.org.joinedMember')]"
+      :titles="[t('authz.user.allOrg'), t('authz.user.belongs')]"
       style="text-align: left; display: inline-block"
       filterable
       :filter-placeholder="t('authz.org.member_filter_placeholder')"
     >
       <template #default="{ option }">
-        <span>{{ option.name }} ({{ option.account }})</span>
+        <span>{{ option.name }}</span>
       </template>
     </ElTransfer>
     <template #footer>
