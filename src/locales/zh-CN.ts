@@ -477,6 +477,13 @@ export default {
       mobile: '联系电话',
       detail: '用户详情',
       delete: '删除用户',
+      deleteConfirm: '即将删除用户，确认是否继续？',
+      createSuccess: '用户创建成功',
+      updateSuccess: '用户更新成功',
+      deleteSuccess: '用户删除成功',
+      createFailure: '用户创建失败',
+      updateFailure: '用户更新失败',
+      deleteFailure: '用户删除失败',
       allOrg: '所有组织'
     },
     org: {

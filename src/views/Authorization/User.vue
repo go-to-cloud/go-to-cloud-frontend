@@ -2,13 +2,7 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import {
-  getAllMembersApi,
-  getJoinedOrgsApi,
-  getOrgListApi,
-  saveJoinedMembersApi,
-  saveJoinedOrgsApi
-} from '@/api/login'
+import { getAllMembersApi, getJoinedOrgsApi, getOrgListApi, saveJoinedOrgsApi } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { onMounted, ref } from 'vue'
 import { ElButton } from 'element-plus'
@@ -22,7 +16,7 @@ const { t } = useI18n()
 const request = useAxios()
 
 const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-const mobilePattern = /^1[3-9]\d{9}$/
+const mobilePattern = /^1[3-9]\d{1,10}$/
 const isEmail = (exp: string): boolean => {
   return emailPattern.test(exp)
 }
@@ -72,8 +66,9 @@ const columns: TableColumn[] = [
     label: t('authz.user.username')
   },
   {
-    field: 'belong_count',
-    label: t('authz.user.belongs')
+    field: 'belongsTo',
+    label: t('authz.user.belongs'),
+    width: 320
   },
   {
     field: 'email',
@@ -101,7 +96,6 @@ const close = () => {
   currentUser.value = {
     id: 0,
     key: 0,
-    belong_count: 0,
     name: '',
     email: '',
     mobile: '',
@@ -116,7 +110,6 @@ const showNewUserDlg = () => {
   currentUser.value = {
     id: 0,
     key: 0,
-    belong_count: 0,
     name: '',
     email: '',
     mobile: '',
@@ -139,14 +132,15 @@ const getAllMembers = async () => {
 
 const currentUser = ref<MemberData>({
   id: 0,
+  belongsTo: [],
   key: 0,
-  belong_count: 0,
   name: '',
   email: '',
   mobile: '',
   account: '',
   pinyin: '',
-  pinyin_init: ''
+  pinyin_init: '',
+  originPassword: ''
 })
 
 interface HandlerCommand {
@@ -177,7 +171,6 @@ const getAllOrgs = async () => {
 const actionHandler = async (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
-      console.log(command.data)
       isCreate.value = false
       userDlgVisible.value = true
       currentUser.value!.id = command.data.id
@@ -187,34 +180,36 @@ const actionHandler = async (command: HandlerCommand) => {
       currentUser.value!.email = command.data.email
       currentUser.value!.mobile = command.data.mobile
       break
+    case 'resetPassword':
+      break
     case 'belongs':
       await showJoinedOrgs(command.data.id)
       break
     case 'del':
-      ElMessageBox.confirm(t('authz.org.deleteConfirm'), t('common.confirmMsgTitle'), {
+      ElMessageBox.confirm(t('authz.user.deleteConfirm'), t('common.confirmMsgTitle'), {
         confirmButtonText: t('common.ok'),
         cancelButtonText: t('common.cancel'),
         type: 'warning'
       }).then(async () => {
         await request
           .delete<IResponse<RestfulResult>>({
-            url: '/user/org/' + command.data.id
+            url: '/user/' + command.data.id
           })
           .then(async (r) => {
             if (r.data.code == '200') {
               ElMessage({
                 type: 'success',
-                message: t('authz.org.deleteSuccess'),
+                message: t('authz.user.deleteSuccess'),
                 showClose: true,
                 center: true
               })
-              await getAllOrgs().then(() => close())
+              await getAllMembers().then(() => close())
             }
           })
           .catch((r) => {
             ElMessage({
               type: 'error',
-              message: t('authz.org.deleteFailure'),
+              message: t('authz.user.deleteFailure'),
               showClose: true,
               center: true
             })
@@ -240,6 +235,61 @@ const saveJoinedOrgs = async () => {
     }
   })
 }
+
+const save = async () => {
+  await request
+    .put<IResponse<RestfulResult>>({
+      url: '/user/',
+      data: currentUser.value
+    })
+    .then(async (r) => {
+      if (r.data.code == '200') {
+        ElMessage({
+          type: 'success',
+          message: t('authz.user.updateSuccess'),
+          showClose: true,
+          center: true
+        })
+        await getAllMembers().then(() => close())
+      }
+    })
+    .catch((r) => {
+      ElMessage({
+        type: 'error',
+        message: t('authz.user.updateFailure'),
+        showClose: true,
+        center: true
+      })
+    })
+}
+
+const submit = async () => {
+  await request
+    .post<IResponse<RestfulResult>>({
+      url: '/user/',
+      data: currentUser.value
+    })
+    .then(async (r) => {
+      if (r.data.code == '200') {
+        ElMessage({
+          type: 'success',
+          message: t('authz.user.createSuccess'),
+          showClose: true,
+          center: true
+        })
+        await getAllMembers().then(() => close())
+      }
+    })
+    .catch((r) => {
+      ElMessage({
+        type: 'error',
+        message: t('authz.user.createFailure'),
+        showClose: true,
+        center: true
+      })
+    })
+}
+
 onMounted(async () => {
   await getAllOrgs()
   await getAllMembers()
@@ -318,8 +368,8 @@ onMounted(async () => {
         <ElCol :span="10">
           <ElFormItem v-if="isCreate" :label="t('authz.user.password')" prop="password">
             <ElInput
-              v-model="currentUser.password"
-              :label="t('authz.user.mobile')"
+              v-model="currentUser.originPassword"
+              :label="t('authz.user.password')"
               autocomplete="off"
               minlength="6"
               show-password
@@ -347,6 +397,14 @@ onMounted(async () => {
     :title="t('authz.user.title')"
   >
     <Table :columns="columns" :data="memberList" :loading="loading" :selection="false">
+      <template #belongsTo="scope">
+        <ElSpace>
+          <span v-for="(n, index) in scope.row.belongsTo" :key="n"
+            ><ElTag v-if="index <= 2" type="success" effect="dark" round>{{ n }}</ElTag>
+            <ElTag v-if="index == 3" type="success" effect="light" round>...</ElTag></span
+          >
+        </ElSpace>
+      </template>
       <template #action="scope">
         <ElDropdown @command="actionHandler">
           <span class="el-dropdown-link">
@@ -363,6 +421,12 @@ onMounted(async () => {
                 <Icon icon="material-symbols:group" />
                 <ElLink :underline="false" style="margin-left: -2px">
                   {{ t('authz.user.belongs') }}
+                </ElLink>
+              </ElDropdownItem>
+              <ElDropdownItem :command="{ data: scope.row, cmd: 'resetPassword' }">
+                <Icon icon="fluent:key-reset-20-filled" />
+                <ElLink :underline="false" style="margin-left: -2px">
+                  {{ t('authz.user.reset_password') }}
                 </ElLink>
               </ElDropdownItem>
               <ElDropdownItem :command="{ data: scope.row, cmd: 'del' }" divided>

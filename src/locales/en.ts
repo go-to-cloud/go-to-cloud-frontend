@@ -477,6 +477,13 @@ export default {
       mobile: 'Mobile',
       detail: 'Detail',
       delete: 'Delete',
+      deleteConfirm: 'User will be deleted, Continue?',
+      createSuccess: 'User Created!',
+      updateSuccess: 'User Updated!',
+      deleteSuccess: 'User Deleted!',
+      createFailure: 'User Create Failed!',
+      updateFailure: 'User Update Failed!',
+      deleteFailure: 'User Delete Failed!',
       allOrg: 'All Organization'
     },
     org: {
