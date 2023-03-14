@@ -2,7 +2,7 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getAllMembersApi, getOrgListApi } from '@/api/login'
+import { getAllMembersApi, getJoinedOrgsApi, getOrgListApi } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { onMounted, ref } from 'vue'
 import { ElButton } from 'element-plus'
@@ -153,10 +153,10 @@ const joinedOrgs = ref<number[]>([])
 const showJoinedOrgs = async (memberId: number) => {
   joinedOrgs.value = []
   currentUser.value!.id = memberId
-  // await getJoinedOrgsApi(memberId).then((r) => {
-  //   joinedOrgs.value = r
-  orgsDlgVisible.value = true
-  // })
+  await getJoinedOrgsApi(memberId).then((r) => {
+    joinedOrgs.value = r
+    orgsDlgVisible.value = true
+  })
 }
 
 let orgList = ref<OrgType[]>([])
