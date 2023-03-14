@@ -2,7 +2,13 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
-import { getAllMembersApi, getJoinedOrgsApi, getOrgListApi } from '@/api/login'
+import {
+  getAllMembersApi,
+  getJoinedOrgsApi,
+  getOrgListApi,
+  saveJoinedMembersApi,
+  saveJoinedOrgsApi
+} from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
 import { onMounted, ref } from 'vue'
 import { ElButton } from 'element-plus'
@@ -217,6 +223,23 @@ const actionHandler = async (command: HandlerCommand) => {
       break
   }
 }
+
+const saveJoinedOrgs = async () => {
+  await saveJoinedOrgsApi(currentUser.value!.id, joinedOrgs.value).then(async (resp) => {
+    if (resp.code == '200') {
+      joinedOrgs.value = []
+      orgsDlgVisible.value = false
+      await getAllMembers()
+    } else {
+      ElMessage({
+        type: 'error',
+        message: t('authz.org.joinFailed'),
+        showClose: true,
+        center: true
+      })
+    }
+  })
+}
 onMounted(async () => {
   await getAllOrgs()
   await getAllMembers()
@@ -240,7 +263,7 @@ onMounted(async () => {
     <template #footer>
       <span>
         <ElButton @click="close()">{{ t('common.cancel') }}</ElButton>
-        <ElButton type="primary" @click="saveMembers">{{ t('common.update') }}</ElButton>
+        <ElButton type="primary" @click="saveJoinedOrgs">{{ t('common.update') }}</ElButton>
       </span>
     </template>
   </ElDialog>

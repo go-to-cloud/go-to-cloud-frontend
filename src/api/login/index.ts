@@ -76,6 +76,15 @@ export const saveJoinedMembersApi = async (
   return rlt && rlt.data
 }
 
+export const saveJoinedOrgsApi = async (userId: number, orgs: number[]): Promise<IResponse> => {
+  const rlt = await request.put({
+    url: '/user/' + userId + '/join',
+    data: { orgs: orgs }
+  })
+
+  return rlt && rlt.data
+}
+
 export const getAdminRoleApi = async (
   params: RoleParams
 ): Promise<IResponse<AppCustomRouteRecordRaw[]>> => {
