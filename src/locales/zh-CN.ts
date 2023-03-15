@@ -484,6 +484,11 @@ export default {
       createFailure: '用户创建失败',
       updateFailure: '用户更新失败',
       deleteFailure: '用户删除失败',
+      resetSuccess: '密码重置成功',
+      resetFailure: '密码重置失败',
+      new_password: '新的密码',
+      try_again: '再次生成',
+      copy_password: '复制密码',
       allOrg: '所有组织'
     },
     org: {

@@ -3,15 +3,17 @@ import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
 import { getAllMembersApi, getJoinedOrgsApi, getOrgListApi, saveJoinedOrgsApi } from '@/api/login'
-import { MemberData, OrgType } from '@/api/login/types'
+import { MemberData, OrgType, PasswordResetResult } from '@/api/login/types'
 import { onMounted, ref } from 'vue'
 import { ElButton } from 'element-plus'
-import { CirclePlus, Delete, Expand, MoreFilled } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox, FormRules } from 'element-plus/es'
+import { CirclePlus, Delete, Expand, MoreFilled, CopyDocument } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, ElNotification, FormRules } from 'element-plus/es'
 import { RestfulResult } from '@/api/common/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { isEmpty } from '@/utils/is'
+import useClipboard from 'vue-clipboard3'
 
+const { toClipboard } = useClipboard()
 const { t } = useI18n()
 const request = useAxios()
 
@@ -89,6 +91,8 @@ const isCreate = ref<boolean>(false)
 const memberList = ref<MemberData[]>([])
 const userDlgVisible = ref<boolean>(false)
 const orgsDlgVisible = ref<boolean>(false)
+const resetDlgVisible = ref<boolean>(false)
+const newPassword = ref<string>('')
 
 const close = () => {
   userDlgVisible.value = false
@@ -101,7 +105,9 @@ const close = () => {
     mobile: '',
     account: '',
     pinyin: '',
-    pinyin_init: ''
+    pinyin_init: '',
+    belongsTo: [],
+    originPassword: ''
   }
 }
 const showNewUserDlg = () => {
@@ -115,7 +121,9 @@ const showNewUserDlg = () => {
     mobile: '',
     account: '',
     pinyin: '',
-    pinyin_init: ''
+    pinyin_init: '',
+    belongsTo: [],
+    originPassword: ''
   }
 }
 
@@ -161,6 +169,16 @@ const showJoinedOrgs = async (memberId: number) => {
 
 let orgList = ref<OrgType[]>([])
 
+const copyPwd = () => {
+  toClipboard(newPassword.value).then((v: any) => {
+    ElNotification({
+      title: t('common.success'),
+      message: t('common.copied'),
+      type: 'success'
+    })
+  })
+}
+
 const getAllOrgs = async () => {
   const res = await getOrgListApi().catch(() => {})
   if (res) {
@@ -168,6 +186,27 @@ const getAllOrgs = async () => {
   }
 }
 
+const resetPassword = async (userId: number) => {
+  console.log(userId)
+  await request
+    .put<IResponse<PasswordResetResult>>({
+      url: '/user/' + userId + '/password/reset'
+    })
+    .then(async (r) => {
+      if (r.data.code == '200') {
+        resetDlgVisible.value = true
+        newPassword.value = r.data.data.newPassword
+      }
+    })
+    .catch((r) => {
+      ElMessage({
+        type: 'error',
+        message: t('authz.user.resetFailure'),
+        showClose: true,
+        center: true
+      })
+    })
+}
 const actionHandler = async (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
@@ -181,6 +220,14 @@ const actionHandler = async (command: HandlerCommand) => {
       currentUser.value!.mobile = command.data.mobile
       break
     case 'resetPassword':
+      ElMessageBox.confirm(t('authz.user.reset_password'), t('common.confirmMsgTitle'), {
+        confirmButtonText: t('common.ok'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }).then(async () => {
+        currentUser.value.id = command.data.id
+        await resetPassword(command.data.id)
+      })
       break
     case 'belongs':
       await showJoinedOrgs(command.data.id)
@@ -297,6 +344,26 @@ onMounted(async () => {
 </script>
 
 <template>
+  <ElDialog v-model="resetDlgVisible" :title="t('authz.user.resetSuccess')" width="30%">
+    <ElInput v-model="newPassword" readonly>
+      <template #prepend>{{ t('authz.user.new_password') }}</template>
+      <template #append>
+        <ElButton @click="copyPwd">
+          <ElIcon><CopyDocument /></ElIcon
+        ></ElButton>
+      </template>
+    </ElInput>
+    <template #footer>
+      <span class="dialog-footer">
+        <ElButton type="plain" @click="resetPassword(currentUser.value.id)">
+          {{ t('authz.user.try_again') }}
+        </ElButton>
+        <ElButton type="primary" @click="resetDlgVisible.value = false">
+          {{ t('common.close') }}
+        </ElButton>
+      </span>
+    </template>
+  </ElDialog>
   <ElDialog v-model="orgsDlgVisible" :title="t('authz.org.title')" draggable width="810px">
     <ElTransfer
       v-model="joinedOrgs"

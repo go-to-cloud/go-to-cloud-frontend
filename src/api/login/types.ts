@@ -34,3 +34,8 @@ export type MemberData = {
   pinyin_init: string
   originPassword: string
 }
+
+export type PasswordResetResult = {
+  success: boolean
+  newPassword: string
+}

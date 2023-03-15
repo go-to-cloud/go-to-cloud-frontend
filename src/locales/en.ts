@@ -484,6 +484,11 @@ export default {
       createFailure: 'User Create Failed!',
       updateFailure: 'User Update Failed!',
       deleteFailure: 'User Delete Failed!',
+      resetSuccess: 'Password Reset!',
+      resetFailure: 'Password Reset Failed!',
+      new_password: 'New Password',
+      try_again: 'Try Again',
+      copy_password: 'Copy Password',
       allOrg: 'All Organization'
     },
     org: {
