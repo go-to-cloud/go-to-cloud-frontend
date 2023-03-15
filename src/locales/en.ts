@@ -490,7 +490,8 @@ export default {
       new_password: 'New Password',
       copy_password: 'Copy Password',
       allOrg: 'All Organization',
-      kind: '角色'
+      kind: 'Role',
+      org_filter_placeholder: 'Organization Name'
     },
     org: {
       title: 'Organization',

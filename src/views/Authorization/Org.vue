@@ -9,7 +9,7 @@ import {
   saveJoinedMembersApi
 } from '@/api/login'
 import { MemberData, OrgType } from '@/api/login/types'
-import { h, onMounted, ref } from 'vue'
+import { h, onMounted, ref, unref } from 'vue'
 import { Delete, Expand, MoreFilled, UserFilled, CirclePlus } from '@element-plus/icons-vue'
 import { useAxios } from '@/hooks/web/useAxios'
 import { RestfulResult } from '@/api/common/types'
@@ -61,7 +61,7 @@ const getOrgList = async () => {
       loading.value = false
     })
   if (res) {
-    orgList.value = res
+    orgList.value = res as OrgType[]
   }
 }
 
@@ -72,7 +72,7 @@ const getAllMembers = async () => {
       loading.value = false
     })
   if (res) {
-    allMembers.value = res
+    allMembers.value = res as MemberData[]
   }
 }
 
@@ -238,6 +238,14 @@ const showNewOrgDlg = () => {
   currentOrg.value!.remark = ''
   bindDialogVisible.value = true
 }
+
+const filterUser = (query, item: MemberData) => {
+  return (
+    item.account.toLowerCase().includes(query.toLowerCase()) ||
+    item.pinyin.toLowerCase().includes(query.toLowerCase()) ||
+    item.pinyin_init.toLowerCase().includes(query.toLowerCase())
+  )
+}
 </script>
 
 <template>
@@ -248,6 +256,7 @@ const showNewOrgDlg = () => {
       :titles="[t('authz.org.allMember'), t('authz.org.joinedMember')]"
       style="text-align: left; display: inline-block"
       filterable
+      :filter-method="filterUser"
       :filter-placeholder="t('authz.org.member_filter_placeholder')"
     >
       <template #default="{ option }">

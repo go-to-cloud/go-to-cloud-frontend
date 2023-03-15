@@ -490,7 +490,8 @@ export default {
       new_password: '新的密码',
       copy_password: '复制密码',
       allOrg: '所有组织',
-      kind: '角色'
+      kind: '角色',
+      org_filter_placeholder: '搜索组织'
     },
     org: {
       title: '组织管理',
@@ -508,7 +509,7 @@ export default {
       updateFailure: '组织更新失败',
       deleteFailure: '组织删除失败',
       member: '管理成员',
-      member_filter_placeholder: '搜索用户',
+      member_filter_placeholder: '搜索用户，支持拼音',
       allMember: '所有成员',
       joinedMember: '组织成员',
       joinFailed: '保存组织成员失败'

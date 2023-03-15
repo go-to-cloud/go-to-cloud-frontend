@@ -12,7 +12,6 @@ import { RestfulResult } from '@/api/common/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { isEmpty } from '@/utils/is'
 import useClipboard from 'vue-clipboard3'
-import { i18n } from '@/plugins/vueI18n'
 import { useLocaleStore } from '@/store/modules/locale'
 
 const { toClipboard } = useClipboard()
@@ -111,38 +110,29 @@ const resetDlgVisible = ref<boolean>(false)
 const newPassword = ref<string>('')
 const allKinds = ref<KeyValuePair[]>([])
 
+const cleanedUser = {
+  id: 0,
+  key: 0,
+  name: '',
+  email: '',
+  mobile: '',
+  account: '',
+  pinyin: '',
+  pinyin_init: '',
+  belongsTo: [],
+  originPassword: '',
+  kind: []
+}
 const close = () => {
   resetDlgVisible.value = false
   userDlgVisible.value = false
   orgsDlgVisible.value = false
-  currentUser.value = {
-    id: 0,
-    key: 0,
-    name: '',
-    email: '',
-    mobile: '',
-    account: '',
-    pinyin: '',
-    pinyin_init: '',
-    belongsTo: [],
-    originPassword: ''
-  }
+  currentUser.value = cleanedUser
 }
 const showNewUserDlg = () => {
   isCreate.value = true
   userDlgVisible.value = true
-  currentUser.value = {
-    id: 0,
-    key: 0,
-    name: '',
-    email: '',
-    mobile: '',
-    account: '',
-    pinyin: '',
-    pinyin_init: '',
-    belongsTo: [],
-    originPassword: ''
-  }
+  currentUser.value = cleanedUser
 }
 
 const getAllMembers = async () => {
@@ -152,7 +142,7 @@ const getAllMembers = async () => {
       loading.value = false
     })
   if (res) {
-    memberList.value = res
+    memberList.value = res as MemberData[]
   }
 }
 
@@ -212,7 +202,7 @@ const copyPwd = () => {
 const getAllOrgs = async () => {
   const res = await getOrgListApi().catch(() => {})
   if (res) {
-    orgList.value = res
+    orgList.value = res as OrgType[]
   }
 }
 
@@ -247,6 +237,8 @@ const actionHandler = async (command: HandlerCommand) => {
       currentUser.value!.account = command.data.account
       currentUser.value!.email = command.data.email
       currentUser.value!.mobile = command.data.mobile
+      console.log(command.data)
+      currentUser.value!.kind = command.data.kind
       break
     case 'resetPassword':
       ElMessageBox.confirm(t('authz.user.reset_password'), t('common.confirmMsgTitle'), {
@@ -381,6 +373,10 @@ onMounted(async () => {
   await getAllMembers()
   await getAllKinds()
 })
+
+const filterOrg = (query, item: OrgType) => {
+  return item.name.toLowerCase().includes(query.toLowerCase())
+}
 </script>
 
 <template>
@@ -405,7 +401,8 @@ onMounted(async () => {
     <ElTransfer
       v-model="joinedOrgs"
       :data="orgList"
-      :filter-placeholder="t('authz.org.member_filter_placeholder')"
+      :filter-placeholder="t('authz.user.org_filter_placeholder')"
+      :filter-method="filterOrg"
       :titles="[t('authz.user.allOrg'), t('authz.user.belongs')]"
       filterable
       style="text-align: left; display: inline-block"
@@ -490,8 +487,7 @@ onMounted(async () => {
               multiple
               collapse-tags
               collapse-tags-tooltip
-              placeholder="Select"
-              style="width: 240px"
+              style="width: 300px"
             >
               <ElOption
                 v-for="item in allKinds"
