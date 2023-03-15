@@ -4,7 +4,7 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
 import { getAllMembersApi, getJoinedOrgsApi, getOrgListApi, saveJoinedOrgsApi } from '@/api/login'
 import { MemberData, OrgType, PasswordResetResult } from '@/api/login/types'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, unref } from 'vue'
 import { ElButton } from 'element-plus'
 import { CirclePlus, Delete, Expand, MoreFilled, CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, ElNotification, FormRules } from 'element-plus/es'
@@ -12,6 +12,8 @@ import { RestfulResult } from '@/api/common/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { isEmpty } from '@/utils/is'
 import useClipboard from 'vue-clipboard3'
+import { i18n } from '@/plugins/vueI18n'
+import { useLocaleStore } from '@/store/modules/locale'
 
 const { toClipboard } = useClipboard()
 const { t } = useI18n()
@@ -25,6 +27,13 @@ const isEmail = (exp: string): boolean => {
 const isMobile = (exp: string): boolean => {
   return mobilePattern.test(exp)
 }
+
+interface KeyValuePair {
+  key: string
+  valueCN: string
+  valueEN: string
+}
+
 const memberDataRules = ref<FormRules>({
   account: [
     {
@@ -34,6 +43,13 @@ const memberDataRules = ref<FormRules>({
     }
   ],
   name: [
+    {
+      required: true,
+      message: '',
+      trigger: 'blur'
+    }
+  ],
+  originPassword: [
     {
       required: true,
       message: '',
@@ -93,8 +109,10 @@ const userDlgVisible = ref<boolean>(false)
 const orgsDlgVisible = ref<boolean>(false)
 const resetDlgVisible = ref<boolean>(false)
 const newPassword = ref<string>('')
+const allKinds = ref<KeyValuePair[]>([])
 
 const close = () => {
+  resetDlgVisible.value = false
   userDlgVisible.value = false
   orgsDlgVisible.value = false
   currentUser.value = {
@@ -138,6 +156,17 @@ const getAllMembers = async () => {
   }
 }
 
+const getAllKinds = async () => {
+  await request
+    .get<IResponse<KeyValuePair[]>>({
+      url: '/user/kinds'
+    })
+    .then((resp) => {
+      console.log(resp)
+      allKinds.value = resp && resp.data && resp.data.data
+    })
+}
+
 const currentUser = ref<MemberData>({
   id: 0,
   belongsTo: [],
@@ -148,7 +177,8 @@ const currentUser = ref<MemberData>({
   account: '',
   pinyin: '',
   pinyin_init: '',
-  originPassword: ''
+  originPassword: '',
+  kind: []
 })
 
 interface HandlerCommand {
@@ -187,7 +217,6 @@ const getAllOrgs = async () => {
 }
 
 const resetPassword = async (userId: number) => {
-  console.log(userId)
   await request
     .put<IResponse<PasswordResetResult>>({
       url: '/user/' + userId + '/password/reset'
@@ -337,9 +366,20 @@ const submit = async () => {
     })
 }
 
+const localeStore = useLocaleStore()
+const currentLang = computed(() => localeStore.getCurrentLocale)
+
+const getVal = (item: KeyValuePair): string => {
+  if (unref(currentLang).lang == 'zh-CN') {
+    return item.valueCN
+  } else {
+    return item.valueEN
+  }
+}
 onMounted(async () => {
   await getAllOrgs()
   await getAllMembers()
+  await getAllKinds()
 })
 </script>
 
@@ -355,10 +395,7 @@ onMounted(async () => {
     </ElInput>
     <template #footer>
       <span class="dialog-footer">
-        <ElButton type="plain" @click="resetPassword(currentUser.value.id)">
-          {{ t('authz.user.try_again') }}
-        </ElButton>
-        <ElButton type="primary" @click="resetDlgVisible.value = false">
+        <ElButton type="primary" @click="close">
           {{ t('common.close') }}
         </ElButton>
       </span>
@@ -411,6 +448,21 @@ onMounted(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="10">
+          <ElFormItem v-if="isCreate" :label="t('authz.user.password')" prop="originPassword">
+            <ElInput
+              :placeholder="t('common.inputText') + t('authz.user.password')"
+              v-model="currentUser.originPassword"
+              :label="t('authz.user.password')"
+              autocomplete="off"
+              minlength="6"
+              show-password
+              type="password"
+            />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
+      <ElRow>
+        <ElCol :span="10">
           <ElFormItem :label="t('authz.user.email')" prop="email">
             <ElInput
               v-model="currentUser.email"
@@ -419,8 +471,7 @@ onMounted(async () => {
             />
           </ElFormItem>
         </ElCol>
-      </ElRow>
-      <ElRow>
+        <ElCol :span="1" />
         <ElCol :span="10">
           <ElFormItem :label="t('authz.user.mobile')" prop="mobile">
             <ElInput
@@ -433,15 +484,22 @@ onMounted(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem v-if="isCreate" :label="t('authz.user.password')" prop="password">
-            <ElInput
-              v-model="currentUser.originPassword"
-              :label="t('authz.user.password')"
-              autocomplete="off"
-              minlength="6"
-              show-password
-              type="password"
-            />
+          <ElFormItem :label="t('authz.user.kind')" prop="kind">
+            <ElSelect
+              v-model="currentUser.kind"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="Select"
+              style="width: 240px"
+            >
+              <ElOption
+                v-for="item in allKinds"
+                :key="item.key"
+                :label="getVal(item)"
+                :value="item.key"
+              />
+            </ElSelect>
           </ElFormItem>
         </ElCol>
       </ElRow>

@@ -33,6 +33,7 @@ export type MemberData = {
   pinyin: string
   pinyin_init: string
   originPassword: string
+  kind: string[]
 }
 
 export type PasswordResetResult = {

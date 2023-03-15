@@ -486,10 +486,11 @@ export default {
       deleteFailure: 'User Delete Failed!',
       resetSuccess: 'Password Reset!',
       resetFailure: 'Password Reset Failed!',
+      old_password: 'Old Password',
       new_password: 'New Password',
-      try_again: 'Try Again',
       copy_password: 'Copy Password',
-      allOrg: 'All Organization'
+      allOrg: 'All Organization',
+      kind: '角色'
     },
     org: {
       title: 'Organization',
