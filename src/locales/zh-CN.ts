@@ -109,8 +109,8 @@ export default {
     small: '小'
   },
   login: {
-    welcome: '欢迎使用本系统',
-    message: '开箱即用的中后台管理系统',
+    welcome: '欢迎使用GoToCloud',
+    message: '简单易用的持续集成和交付工具',
     username: '用户名',
     password: '密码',
     register: '注册',

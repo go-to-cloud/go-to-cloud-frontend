@@ -109,8 +109,8 @@ export default {
     small: 'Small'
   },
   login: {
-    welcome: 'Welcome to the system',
-    message: 'Backstage management system',
+    welcome: 'Welcome to GoToCloud',
+    message: 'Simple and easy-to-use CI/CD tool',
     username: 'Username',
     password: 'Password',
     register: 'Register',
