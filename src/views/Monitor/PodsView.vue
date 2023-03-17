@@ -31,6 +31,7 @@ import {
 } from '@/api/monitor'
 import { ElMessageBox } from 'element-plus/es'
 import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const route = useRoute()
 const reloadingPods = ref(false)
@@ -443,7 +444,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
               <template #dropdown>
                 <ElDropdownMenu>
                   <ElDropdownItem
-                    v-if="auth.includes(AuthCodes.PodViewLog)"
+                    v-if="auth.includes(Number(AuthCodes.PodViewLog))"
                     :command="{ id: scope.row.id, cmd: 'view_logs', form: scope.row }"
                   >
                     <ElLink :icon="ChatLineSquare" :underline="false">
@@ -451,7 +452,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
-                    v-if="auth.includes(AuthCodes.PodShell)"
+                    v-if="auth.includes(Number(AuthCodes.PodShell))"
                     :command="{ id: scope.row.id, cmd: 'shell', form: scope.row }"
                   >
                     <ElLink :underline="false">
@@ -460,7 +461,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
-                    v-if="auth.includes(AuthCodes.PodDelete)"
+                    v-if="auth.includes(Number(AuthCodes.PodDelete))"
                     :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
                     divided
                   >

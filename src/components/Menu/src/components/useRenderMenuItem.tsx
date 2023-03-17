@@ -18,7 +18,7 @@ export const useRenderMenuItem = (
   const renderMenuItem = (routers: AppRouteRecordRaw[], parentPath = '/') => {
     return routers.map((v) => {
       const meta = (v.meta ?? {}) as RouteMeta
-      if (!meta.hidden && auth.value.includes(v.meta.authCode)) {
+      if (!meta.hidden && (v.meta.authCode == 0 || auth.value.includes(v.meta.authCode))) {
         const { oneShowingChild, onlyOneChild } = hasOneShowingChild(v.children, v)
         const fullPath = isUrl(v.path) ? v.path : pathResolve(parentPath, v.path) // getAllParentPath<AppRouteRecordRaw>(allRouters, v.path).join('/')
 

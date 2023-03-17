@@ -1,7 +1,15 @@
 import { defineStore } from 'pinia'
+import { useAxios } from '@/hooks/web/useAxios'
 
 export interface VisibilityState {
-  auth: string[]
+  auth: Number[]
+}
+
+const request = useAxios()
+
+export const getAuthCodes = async (): Promise<Number[]> => {
+  const res = await request.get<IResponse<Number[]>>({ url: '/user/auths' })
+  return res && res.data && res.data.data
 }
 
 export const useVisibilityStore = defineStore({
@@ -10,15 +18,16 @@ export const useVisibilityStore = defineStore({
     auth: []
   }),
   getters: {
-    getAuthCodes(): string[] {
+    getAuthCodes(): Number[] {
+      console.log('getAuthCodes')
       return this.auth
     }
   },
   actions: {
-    setAuthCodes(kind: string): void {
-      // TODO: getAuthCodesByKind
-      // this.auth = { codes }
-      this.auth = [kind]
+    setAuthCodes(): void {
+      getAuthCodes().then((codes) => {
+        this.auth = codes
+      })
     }
   }
 })

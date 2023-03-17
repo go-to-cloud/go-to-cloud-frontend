@@ -14,7 +14,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     redirect: '/projects/index',
     name: 'Root',
     meta: {
-      hidden: true
+      hidden: true,
+      authCode: 0
     }
   },
   {
@@ -22,7 +23,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     component: () => import('@/views/Monitor/PodsView.vue'),
     name: 'MonitorPodsView',
     meta: {
-      hidden: true
+      hidden: true,
+      authCode: 0
     }
   },
   {
@@ -30,7 +32,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     component: () => import('@/views/Projects/Artifacts/Index.vue'),
     name: 'ProjectArtifact',
     meta: {
-      hidden: true
+      hidden: true,
+      authCode: 0
     }
   },
   {
@@ -46,7 +49,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     component: () => import('@/views/Projects/CD/Index.vue'),
     name: 'ProjectCD',
     meta: {
-      hidden: true
+      hidden: true,
+      authCode: 0
     }
   },
   {
@@ -54,7 +58,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     component: () => import('@/views/Projects/Codes/Index.vue'),
     name: 'ProjectCode',
     meta: {
-      hidden: true
+      hidden: true,
+      authCode: 0
     }
   },
 
@@ -67,12 +72,15 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
         path: '/redirect/:path(.*)',
         name: 'Redirect',
         component: () => import('@/views/Redirect/Redirect.vue'),
-        meta: {}
+        meta: {
+          authCode: 0
+        }
       }
     ],
     meta: {
       hidden: true,
-      noTagsView: true
+      noTagsView: true,
+      authCode: 0
     }
   },
   {
@@ -82,7 +90,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     meta: {
       hidden: true,
       title: t('router.login'),
-      noTagsView: true
+      noTagsView: true,
+      authCode: 0
     }
   },
   {
@@ -92,7 +101,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     meta: {
       hidden: true,
       title: '404',
-      noTagsView: true
+      noTagsView: true,
+      authCode: 0
     }
   }
 ]
@@ -119,7 +129,9 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/projects',
     component: Layout,
-    meta: {},
+    meta: {
+      authCode: 0
+    },
     name: 'Projects',
     children: [
       {
@@ -128,7 +140,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'ProjectIndex',
         meta: {
           title: t('router.projects'),
-          icon: 'game-icons:over-infinity'
+          icon: 'game-icons:over-infinity',
+          authCode: 0
         }
       }
     ]
@@ -140,7 +153,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     meta: {
       title: t('router.configure'),
       icon: 'bx:bxs-component',
-      alwaysShow: true
+      alwaysShow: true,
+      authCode: 0
     },
     children: [
       {
@@ -148,7 +162,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         component: () => import('@/views/Configure/CodeRepo.vue'),
         name: 'CodeRepo',
         meta: {
-          title: t('router.coderepo')
+          title: t('router.coderepo'),
+          authCode: 0
         }
       },
       {
@@ -156,7 +171,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         component: () => import('@/views/Configure/Builders.vue'),
         name: 'Builders',
         meta: {
-          title: t('router.builders')
+          title: t('router.builders'),
+          authCode: 0
         }
       },
       {
@@ -164,7 +180,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         component: () => import('@/views/Configure/Artifacts.vue'),
         name: 'Artifacts',
         meta: {
-          title: t('router.artifacts')
+          title: t('router.artifacts'),
+          authCode: 0
         }
       },
       {
@@ -172,7 +189,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         component: () => import('@/views/Configure/Kubernetes.vue'),
         name: 'Kubernetes',
         meta: {
-          title: t('router.k8s')
+          title: t('router.k8s'),
+          authCode: 0
         }
       }
     ]
@@ -200,7 +218,9 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/monitor',
     component: Layout,
-    meta: {},
+    meta: {
+      authCode: 0
+    },
     name: 'Monitor',
     children: [
       {
@@ -209,7 +229,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Apps',
         meta: {
           title: t('router.monitor'),
-          icon: 'ic:outline-screenshot-monitor'
+          icon: 'ic:outline-screenshot-monitor',
+          authCode: 0
         }
       }
     ]
@@ -222,7 +243,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     meta: {
       title: t('router.authorization'),
       icon: 'eos-icons:role-binding',
-      alwaysShow: true
+      alwaysShow: true,
+      authCode: 0
     },
     children: [
       {
@@ -230,7 +252,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         component: () => import('@/views/Authorization/User.vue'),
         name: 'User',
         meta: {
-          title: t('router.user')
+          title: t('router.user'),
+          authCode: 0
         }
       },
       // {
@@ -246,7 +269,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         component: () => import('@/views/Authorization/Org.vue'),
         name: 'Org',
         meta: {
-          title: t('router.org')
+          title: t('router.org'),
+          authCode: 0
         }
       }
     ]

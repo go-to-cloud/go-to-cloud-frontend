@@ -15,6 +15,7 @@ import { useRouter } from 'vue-router'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
 
 const { t } = useI18n()
 const { push } = useRouter()

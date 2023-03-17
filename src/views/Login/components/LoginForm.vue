@@ -12,6 +12,7 @@ import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from 'vue-router'
 import { useRouter } from 'vue-router'
 import { UserType } from '@/api/login/types'
 import { useValidator } from '@/hooks/web/useValidator'
+import { useVisibilityStore } from '@/store/modules/visibility'
 
 const { required } = useValidator()
 
@@ -114,6 +115,10 @@ const signIn = async () => {
 
         if (res) {
           wsCache.set(appStore.getUserInfo, res)
+
+          const vs = useVisibilityStore()
+          vs.setAuthCodes()
+
           // 是否使用动态路由
           if (appStore.getDynamicRouter) {
             await getRole()
