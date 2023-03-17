@@ -1,10 +1,15 @@
-import { ElSubMenu, ElMenuItem } from 'element-plus'
+import { ElMenuItem, ElSubMenu } from 'element-plus'
 import type { RouteMeta } from 'vue-router'
 import { hasOneShowingChild } from '../helper'
 import { isUrl } from '@/utils/is'
 import { useRenderMenuTitle } from './useRenderMenuTitle'
 import { useDesign } from '@/hooks/web/useDesign'
 import { pathResolve } from '@/utils/routerHelper'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { computed } from 'vue'
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
 
 export const useRenderMenuItem = (
   // allRouters: AppRouteRecordRaw[] = [],
@@ -13,7 +18,7 @@ export const useRenderMenuItem = (
   const renderMenuItem = (routers: AppRouteRecordRaw[], parentPath = '/') => {
     return routers.map((v) => {
       const meta = (v.meta ?? {}) as RouteMeta
-      if (!meta.hidden) {
+      if (!meta.hidden && auth.value.includes(v.meta.authCode)) {
         const { oneShowingChild, onlyOneChild } = hasOneShowingChild(v.children, v)
         const fullPath = isUrl(v.path) ? v.path : pathResolve(parentPath, v.path) // getAllParentPath<AppRouteRecordRaw>(allRouters, v.path).join('/')
 
