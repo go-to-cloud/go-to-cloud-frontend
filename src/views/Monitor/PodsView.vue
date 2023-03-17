@@ -12,7 +12,7 @@ import {
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebLinksAddon } from 'xterm-addon-web-links'
@@ -30,6 +30,7 @@ import {
   getPodShellWebSocket
 } from '@/api/monitor'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
 
 const route = useRoute()
 const reloadingPods = ref(false)
@@ -52,6 +53,7 @@ const getPodsDetail = async (force: boolean) => {
 
 const podsRefresher = ref<autoRefreshPods>()
 const selectedPod = ref<PodDetail>()
+const selectContainer = ref<string>()
 
 class autoRefreshPods {
   intervalId: NodeJS.Timer | null = null
@@ -291,7 +293,9 @@ onMounted(() => {
 onUnmounted(() => {
   podsRefresher.value?.stopTimer()
 })
-const selectContainer = ref<string>()
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
 </script>
 <template>
   <ElDialog
@@ -439,19 +443,24 @@ const selectContainer = ref<string>()
               <template #dropdown>
                 <ElDropdownMenu>
                   <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.PodViewLog)"
                     :command="{ id: scope.row.id, cmd: 'view_logs', form: scope.row }"
                   >
                     <ElLink :icon="ChatLineSquare" :underline="false">
                       {{ t('monitor.pod_logs') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'shell', form: scope.row }">
+                  <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.PodShell)"
+                    :command="{ id: scope.row.id, cmd: 'shell', form: scope.row }"
+                  >
                     <ElLink :underline="false">
                       <Icon :underline="false" icon="tabler:brand-powershell" />
                       {{ t('monitor.container_shell') }}
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.PodDelete)"
                     :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
                     divided
                   >
