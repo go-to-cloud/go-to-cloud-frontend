@@ -5,7 +5,6 @@ import { ConfigGlobal } from '@/components/ConfigGlobal'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useCache } from '@/hooks/web/useCache'
 import { setCssVar } from '@/utils'
-import { useVisibilityStore } from '@/store/modules/visibility'
 
 const { getPrefixCls } = useDesign()
 

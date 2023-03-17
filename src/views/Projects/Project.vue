@@ -7,7 +7,7 @@ import {
   updateProjectApi
 } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { ElButton, ElDialog, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import Icon from '@/components/Icon/src/Icon.vue'
@@ -15,7 +15,6 @@ import { useRouter } from 'vue-router'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 import { ElMessageBox } from 'element-plus/es'
-import { useVisibilityStore } from '@/store/modules/visibility'
 
 const { t } = useI18n()
 const { push } = useRouter()

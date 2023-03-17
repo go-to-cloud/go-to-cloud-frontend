@@ -12,7 +12,7 @@ import {
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebLinksAddon } from 'xterm-addon-web-links'
@@ -290,6 +290,8 @@ onMounted(() => {
   getPodsDetail(true)
   podsRefresher.value = new autoRefreshPods()
   podsRefresher.value.startTimer()
+  if (auth.value.length == 0) {
+  }
 })
 onUnmounted(() => {
   podsRefresher.value?.stopTimer()
@@ -297,6 +299,13 @@ onUnmounted(() => {
 
 const visibilityStore = useVisibilityStore()
 const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 <template>
   <ElDialog
@@ -444,7 +453,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
               <template #dropdown>
                 <ElDropdownMenu>
                   <ElDropdownItem
-                    v-if="auth.includes(Number(AuthCodes.PodViewLog))"
+                    v-if="auth.includes(AuthCodes.PodViewLog)"
                     :command="{ id: scope.row.id, cmd: 'view_logs', form: scope.row }"
                   >
                     <ElLink :icon="ChatLineSquare" :underline="false">
@@ -452,7 +461,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
-                    v-if="auth.includes(Number(AuthCodes.PodShell))"
+                    v-if="auth.includes(AuthCodes.PodShell)"
                     :command="{ id: scope.row.id, cmd: 'shell', form: scope.row }"
                   >
                     <ElLink :underline="false">
@@ -461,7 +470,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
-                    v-if="auth.includes(Number(AuthCodes.PodDelete))"
+                    v-if="auth.includes(AuthCodes.PodDelete)"
                     :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
                     divided
                   >

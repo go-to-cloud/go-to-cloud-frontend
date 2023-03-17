@@ -27,6 +27,7 @@ const { push } = useRouter()
 const route = useRoute()
 
 const { t } = useI18n()
+
 const podsDetailDlgVisible = ref(false)
 const scaleDlgVisible = ref(false)
 const loading = ref(true)

@@ -12,6 +12,7 @@ import { useAxios } from '@/hooks/web/useAxios'
 import { onMounted, ref } from 'vue'
 import { PasswordResetResult } from '@/api/login/types'
 import { ElMessage, ElNotification } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
 
 const request = useAxios()
 
@@ -42,6 +43,7 @@ const getUserInfo = async () => {
 
 onMounted(async () => {
   await getUserInfo()
+  await useVisibilityStore().setAuthCodes()
 })
 
 const resetPassword = async () => {
