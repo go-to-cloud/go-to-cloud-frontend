@@ -60,4 +60,4 @@ const setupAll = async () => {
   app.mount('#app')
 }
 
-await setupAll()
+setupAll().then(() => {})
