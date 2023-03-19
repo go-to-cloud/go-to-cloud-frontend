@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import {
   ElNotification,
   ElButton,
@@ -43,6 +43,8 @@ import {
   ArtifactRepoType,
   ArtifactType
 } from '@/api/configure/types'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const bindDialogVisible = ref(false)
 const artifactHistoryVisible = ref(false)
@@ -522,11 +524,21 @@ onMounted(() => {
   getOrganizations()
   getArtifactRepoList()
 })
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
   <Error
-    v-if="artifactTypes.length == 0"
+    v-if="artifactTypes.length === 0"
     type="artifactrepo_empty"
     @error-click="
       () => {
@@ -548,7 +560,11 @@ onMounted(() => {
         />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6" style="text-align: right">
+    <ElCol
+      v-if="auth.includes(AuthCodes.ResConfigureArtifactRepoBind)"
+      :span="6"
+      style="text-align: right"
+    >
       <ElButton :icon="Connection" type="primary" @click="show"
         >{{ t('artifacts.bind') }}
       </ElButton>
@@ -599,7 +615,11 @@ onMounted(() => {
                           {{ t('common.reload') }}
                         </ElLink></ElDropdownItem
                       >
-                      <ElDropdownItem divided :command="{ id: type.Id, cmd: 'remove', form: type }">
+                      <ElDropdownItem
+                        v-if="auth.includes(AuthCodes.ResConfigureArtifactRepoRemove)"
+                        divided
+                        :command="{ id: type.Id, cmd: 'remove', form: type }"
+                      >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.remove') }}
                         </ElLink>
@@ -685,6 +705,7 @@ onMounted(() => {
                         >
                       </ElDropdownItem>
                       <ElDropdownItem
+                        v-if="auth.includes(AuthCodes.ResConfigureArtifactDeleteHistory)"
                         divided
                         :command="{
                           id: scope.row.id,
@@ -697,6 +718,7 @@ onMounted(() => {
                         </ElLink>
                       </ElDropdownItem>
                       <ElDropdownItem
+                        v-if="auth.includes(AuthCodes.ResConfigureArtifactDeleteHistory)"
                         divided
                         :command="{
                           id: scope.row.id,
@@ -845,13 +867,19 @@ onMounted(() => {
           style="position: absolute; left: 10px"
           >{{ t('common.testing') }}</el-button
         >
-        <ElButton @click="close(artifactRepoFormRef)">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="dlgForCreate" type="primary" @click="submit(artifactRepoFormRef)">{{
-          t('common.ok')
-        }}</ElButton>
-        <ElButton v-if="!dlgForCreate" type="primary" @click="save(artifactRepoFormRef)">{{
-          t('common.update')
-        }}</ElButton>
+        <ElButton @click="close(artifactRepoFormRef)">{{ t('common.close') }}</ElButton>
+        <ElButton
+          v-if="dlgForCreate && auth.includes(AuthCodes.ResConfigureArtifactRepoBind)"
+          type="primary"
+          @click="submit(artifactRepoFormRef)"
+          >{{ t('common.ok') }}</ElButton
+        >
+        <ElButton
+          v-if="!dlgForCreate && auth.includes(AuthCodes.ResConfigureArtifactRepoUpdate)"
+          type="primary"
+          @click="save(artifactRepoFormRef)"
+          >{{ t('common.update') }}</ElButton
+        >
       </span>
     </template>
   </ElDialog>
@@ -881,7 +909,10 @@ onMounted(() => {
               circle
               @click="copyToClipboard(scope.row.fullName)"
           /></ElTooltip>
-          <ElTooltip :content="t('artifacts.docker.delete_image')">
+          <ElTooltip
+            v-if="auth.includes(AuthCodes.ResConfigureArtifactDeleteHistory)"
+            :content="t('artifacts.docker.delete_image')"
+          >
             <ElButton type="danger" :icon="Delete" circle @click="deleteImage(scope.row)"
           /></ElTooltip>
         </template>

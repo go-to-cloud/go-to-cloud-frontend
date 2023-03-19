@@ -19,7 +19,6 @@ export enum AuthCodes {
   ResProjectCDDelete = 10334, // 管理模块：删除部署方案
   ResProjectCDMonitor = 10335, // 管理模块：转到应用监控
   ResProjectArtifacts = 10340, // 管理模块：制品仓库
-  ResProjectArtifactDelete = 10341, // 管理模块：删除制品
 
   MainMenuConfigure = 20000, // MainMenuConfigure 主菜单->配置
   SubMenuConfigureCodeRepo = 20010, // 代码仓库
@@ -31,14 +30,14 @@ export enum AuthCodes {
   ResConfigureBuildNodeUpdate = 20022, // 更新构建节点
   ResConfigureBuildNodeRemove = 20023, // 卸载构建节点
   SubMenuConfigureArtifactRepo = 20030, // 制品仓库
-  ResArtifactRepoBind = 20031, // 绑定制品仓库
-  ResArtifactRepoUpdate = 20032, // 更新制品仓库
-  ResArtifactRepoRemove = 20033, // 移除制品仓库
-  ResArtifactDeleteHistory = 20034, // 删除历史制品
+  ResConfigureArtifactRepoBind = 20031, // 绑定制品仓库
+  ResConfigureArtifactRepoUpdate = 20032, // 更新制品仓库
+  ResConfigureArtifactRepoRemove = 20033, // 移除制品仓库
+  ResConfigureArtifactDeleteHistory = 20034, // 删除历史制品
   SubMenuConfigureDeployRepo = 20040, // 部署环境
-  ResDeployBind = 20041, // 绑定部署环境
-  ResDeployUpdate = 20042, // 更新部署环境
-  ResDeployRemove = 20043, // 移除部署环境
+  ResConfigureDeployBind = 20041, // 绑定部署环境
+  ResConfigureDeployUpdate = 20042, // 更新部署环境
+  ResConfigureDeployRemove = 20043, // 移除部署环境
 
   MainMenuMonitor = 30000, // MainMenuMonitor 主菜单->应用监控
   ResourceMonitorScale = 30010, // 伸缩副本

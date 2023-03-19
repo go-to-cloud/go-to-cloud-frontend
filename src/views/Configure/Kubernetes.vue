@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Error } from '@/components/Error'
 import { ElButton, ElMessageBox, FormInstance, FormRules } from 'element-plus'
@@ -17,6 +17,8 @@ import {
 import { getOrganizationsApi } from '@/api/common'
 import { K8sRepoData } from '@/api/configure/types'
 import { Connection, Delete, Expand, MoreFilled, Search } from '@element-plus/icons-vue'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { t } = useI18n()
 
@@ -88,12 +90,11 @@ const clusterDetailFormRule = ref<FormRules>({
 const k8sDataList = ref<K8sRepoData[]>([])
 
 const getClusterList = async (params?: Params) => {
-  await getK8sRepoApi(
-    params || {
-      pageIndex: 1,
-      pageSize: 20
-    }
-  ).then((resp) => {
+  await getK8sRepoApi().then((resp) => {
+    // params || {
+    //   pageIndex: 1,
+    //   pageSize: 20
+    // }
     k8sDataList.value = resp
   })
 }
@@ -269,6 +270,16 @@ function errorClick() {
   dlgForCreate.value = true
   bindDialogVisible.value = true
 }
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
@@ -281,7 +292,11 @@ function errorClick() {
         <ElInput v-model="keywords" :placeholder="t('k8s.name')" :suffix-icon="Search" clearable />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6" style="text-align: right">
+    <ElCol
+      v-if="auth.includes(AuthCodes.ResConfigureDeployBind)"
+      :span="6"
+      style="text-align: right"
+    >
       <ElButton
         :icon="Connection"
         type="primary"
@@ -334,7 +349,11 @@ function errorClick() {
                       {{ t('common.viewDetail') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                  <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.ResConfigureDeployRemove)"
+                    divided
+                    :command="{ id: scope.row.id, cmd: 'del' }"
+                  >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('k8s.remove') }}
                     </ElLink>
@@ -420,13 +439,19 @@ function errorClick() {
           style="position: absolute; left: 10px"
           >{{ t('common.testing') }}</ElButton
         >
-        <ElButton @click="close(clusterDetailFormRef)">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="dlgForCreate" type="primary" @click="submit(clusterDetailFormRef)">{{
-          t('common.ok')
-        }}</ElButton>
-        <ElButton v-if="!dlgForCreate" type="primary" @click="save(clusterDetailFormRef)">{{
-          t('common.update')
-        }}</ElButton>
+        <ElButton @click="close(clusterDetailFormRef)">{{ t('common.close') }}</ElButton>
+        <ElButton
+          v-if="dlgForCreate && auth.includes(AuthCodes.ResConfigureDeployBind)"
+          type="primary"
+          @click="submit(clusterDetailFormRef)"
+          >{{ t('common.ok') }}</ElButton
+        >
+        <ElButton
+          v-if="!dlgForCreate && auth.includes(AuthCodes.ResConfigureDeployUpdate)"
+          type="primary"
+          @click="save(clusterDetailFormRef)"
+          >{{ t('common.update') }}</ElButton
+        >
       </span>
     </template>
   </Dialog>

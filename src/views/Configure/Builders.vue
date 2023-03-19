@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
-import { Delete, Expand, MoreFilled, Search, Platform } from '@element-plus/icons-vue'
+import {
+  Delete,
+  Expand,
+  MoreFilled,
+  Search,
+  Platform,
+  InfoFilled,
+  Connection
+} from '@element-plus/icons-vue'
 import { BuilderNodesOnk8s, NewBuilderNodes, NodeType, Params } from '@/api/configure/types'
 import {
   getBuilderNodesOnK8sApi,
@@ -13,6 +21,9 @@ import {
 import { Org } from '@/api/common/types'
 import { getAvailableNodesApi, getOrganizationsApi } from '@/api/common'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import Error from '@/components/Error/src/Error.vue'
+import { AuthCodes } from '@/api/constants/auths'
 
 const bindDialogVisible = ref(false)
 const { t } = useI18n()
@@ -321,6 +332,16 @@ const describeContainerColor = (current: number, available: number): string => {
     return '#B70707FF'
   }
 }
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
@@ -441,13 +462,19 @@ const describeContainerColor = (current: number, available: number): string => {
     </ElTabs>
     <template #footer>
       <span>
-        <ElButton @click="bindDialogVisible = false">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="dlgForCreate" type="primary" @click="submit()">{{
-          t('common.install')
-        }}</ElButton>
-        <ElButton v-if="!dlgForCreate" type="primary" @click="update()">{{
-          t('common.update')
-        }}</ElButton>
+        <ElButton @click="bindDialogVisible = false">{{ t('common.close') }}</ElButton>
+        <ElButton
+          v-if="dlgForCreate && auth.includes(AuthCodes.ResConfigureBuildNodeBind)"
+          type="primary"
+          @click="submit()"
+          >{{ t('common.install') }}</ElButton
+        >
+        <ElButton
+          v-if="!dlgForCreate && auth.includes(AuthCodes.ResConfigureBuildNodeUpdate)"
+          type="primary"
+          @click="update()"
+          >{{ t('common.update') }}</ElButton
+        >
       </span>
     </template>
   </ElDialog>
@@ -464,7 +491,11 @@ const describeContainerColor = (current: number, available: number): string => {
         />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6" style="text-align: right">
+    <ElCol
+      v-if="auth.includes(AuthCodes.ResConfigureBuildNodeBind)"
+      :span="6"
+      style="text-align: right"
+    >
       <ElButton :icon="Connection" type="primary" @click="bindDialogVisible = true"
         >{{ t('builder.install') }}
       </ElButton>
@@ -528,7 +559,11 @@ const describeContainerColor = (current: number, available: number): string => {
                       {{ t('common.viewDetail') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                  <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.ResConfigureBuildNodeRemove)"
+                    divided
+                    :command="{ id: scope.row.id, cmd: 'del' }"
+                  >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('builder.uninstall') }}
                     </ElLink>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import {
   bindRepoApi,
@@ -16,6 +16,8 @@ import { Dialog } from '@/components/Dialog'
 import { Connection, Delete, Expand, MagicStick, MoreFilled, Search } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { Org } from '@/api/common/types'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const bindDialogVisible = ref(false)
 
@@ -389,10 +391,20 @@ function errorClick() {
   dlgForCreate.value = true
   bindDialogVisible.value = true
 }
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
-  <Error type="coderepo_empty" @error-click="errorClick" v-if="codeRepoDataList.length == 0" />
+  <Error type="coderepo_empty" @error-click="errorClick" v-if="codeRepoDataList.length === 0" />
   <ElRow justify="space-between" v-if="codeRepoDataList.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>
@@ -406,7 +418,11 @@ function errorClick() {
         />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6" style="text-align: right">
+    <ElCol
+      v-if="auth.includes(AuthCodes.ResConfigureCodeRepoBind)"
+      :span="6"
+      style="text-align: right"
+    >
       <ElButton
         :icon="Connection"
         type="primary"
@@ -464,7 +480,11 @@ function errorClick() {
                       {{ t('common.viewDetail') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                  <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.ResConfigureCodeRepoRemove)"
+                    divided
+                    :command="{ id: scope.row.id, cmd: 'del' }"
+                  >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('coderepo.remove') }}
                     </ElLink>
@@ -615,13 +635,19 @@ function errorClick() {
           style="position: absolute; left: 10px"
           >{{ t('common.testing') }}</ElButton
         >
-        <ElButton @click="close(codeRepoDetailFormRef)">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="dlgForCreate" type="primary" @click="submit(codeRepoDetailFormRef)">{{
-          t('common.ok')
-        }}</ElButton>
-        <ElButton v-if="!dlgForCreate" type="primary" @click="save(codeRepoDetailFormRef)">{{
-          t('common.update')
-        }}</ElButton>
+        <ElButton @click="close(codeRepoDetailFormRef)">{{ t('common.close') }}</ElButton>
+        <ElButton
+          v-if="dlgForCreate && auth.includes(AuthCodes.ResConfigureCodeRepoBind)"
+          type="primary"
+          @click="submit(codeRepoDetailFormRef)"
+          >{{ t('common.ok') }}</ElButton
+        >
+        <ElButton
+          v-if="!dlgForCreate && auth.includes(AuthCodes.ResConfigureCodeRepoUpdate)"
+          type="primary"
+          @click="save(codeRepoDetailFormRef)"
+          >{{ t('common.update') }}</ElButton
+        >
       </span>
     </template>
   </Dialog>

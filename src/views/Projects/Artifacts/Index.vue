@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import { ElNotification, ElButton, ElDivider, ElMessage } from 'element-plus'
 import useClipboard from 'vue-clipboard3'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
@@ -23,6 +23,8 @@ import {
 } from '@/api/configure/types'
 import { useRoute, useRouter } from 'vue-router'
 import { useAxios } from '@/hooks/web/useAxios'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { path, params } = useRoute()
 const artifactHistoryVisible = ref(false)
@@ -145,7 +147,6 @@ const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'refresh':
       repoSelected(command.id + '')
-      break
       break
     ////// for artifact below /////
     case 'view_artifact_history':
