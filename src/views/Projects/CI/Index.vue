@@ -4,7 +4,7 @@ import { CirclePlus, Delete, MoreFilled, Search, Memo } from '@element-plus/icon
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watchEffect } from 'vue'
 
 import { useIcon } from '@/hooks/web/useIcon'
 import {
@@ -30,6 +30,8 @@ import {
 import { getArtifactRepoApi } from '@/api/configure/artifact'
 import { ArtifactRepoData } from '@/api/configure/types'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const tSize = ref(24)
 const t01 = useIcon({ icon: 'material-symbols:filter-1', color: '#3385ff', size: tSize.value })
@@ -316,6 +318,16 @@ onMounted(() => {
 onUnmounted(() => {
   pipelineRefresh.value!.stopTimer()
 })
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 <template>
   <ElDialog
@@ -503,7 +515,7 @@ onUnmounted(() => {
           />
         </ElSpace>
       </ElCol>
-      <ElCol :span="6" style="text-align: right">
+      <ElCol v-if="auth.includes(AuthCodes.ResProjectCINew)" :span="6" style="text-align: right">
         <ElButton :icon="CirclePlus" @click="showNewPlanDlg" type="primary">
           {{ t('project.ci.new_plan') }}</ElButton
         >
@@ -548,7 +560,17 @@ onUnmounted(() => {
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn fixed="right" prop="id" :label="t('common.action')" width="80">
+        <ElTableColumn
+          v-if="
+            auth.includes(AuthCodes.ResProjectCIDelete) ||
+            auth.includes(AuthCodes.ResProjectCIStart) ||
+            auth.includes(AuthCodes.ResProjectCIHistory)
+          "
+          fixed="right"
+          prop="id"
+          :label="t('common.action')"
+          width="80"
+        >
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">

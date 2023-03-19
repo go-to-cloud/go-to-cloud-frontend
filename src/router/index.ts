@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import type { App } from 'vue'
 import { Layout } from '@/utils/routerHelper'
 import { useI18n } from '@/hooks/web/useI18n'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { t } = useI18n()
 
@@ -15,7 +16,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     name: 'Root',
     meta: {
       hidden: true,
-      authCode: 0
+      authCode: AuthCodes.MainMenuProject
     }
   },
   {
@@ -24,7 +25,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     name: 'MonitorPodsView',
     meta: {
       hidden: true,
-      authCode: 0
+      authCode: AuthCodes.MainMenuMonitor
     }
   },
   {
@@ -33,7 +34,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     name: 'ProjectArtifact',
     meta: {
       hidden: true,
-      authCode: 0
+      authCode: AuthCodes.ResProjectArtifacts
     }
   },
   {
@@ -41,7 +42,8 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     component: () => import('@/views/Projects/CI/Index.vue'),
     name: 'ProjectCI',
     meta: {
-      hidden: true
+      hidden: true,
+      authCode: AuthCodes.ResProjectCI
     }
   },
   {
@@ -50,7 +52,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     name: 'ProjectCD',
     meta: {
       hidden: true,
-      authCode: 0
+      authCode: AuthCodes.ResProjectCD
     }
   },
   {
@@ -59,7 +61,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     name: 'ProjectCode',
     meta: {
       hidden: true,
-      authCode: 0
+      authCode: AuthCodes.ResProjectSourceCode
     }
   },
 
@@ -130,7 +132,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     path: '/projects',
     component: Layout,
     meta: {
-      authCode: 0
+      authCode: AuthCodes.MainMenuProject
     },
     name: 'Projects',
     children: [
@@ -141,7 +143,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         meta: {
           title: t('router.projects'),
           icon: 'game-icons:over-infinity',
-          authCode: 0
+          authCode: AuthCodes.MainMenuProject
         }
       }
     ]
@@ -154,7 +156,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
       title: t('router.configure'),
       icon: 'bx:bxs-component',
       alwaysShow: true,
-      authCode: 0
+      authCode: AuthCodes.MainMenuConfigure
     },
     children: [
       {
@@ -163,7 +165,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'CodeRepo',
         meta: {
           title: t('router.coderepo'),
-          authCode: 0
+          authCode: AuthCodes.SubMenuConfigureCodeRepo
         }
       },
       {
@@ -172,7 +174,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Builders',
         meta: {
           title: t('router.builders'),
-          authCode: 0
+          authCode: AuthCodes.SubMenuConfigureBuildNode
         }
       },
       {
@@ -181,7 +183,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Artifacts',
         meta: {
           title: t('router.artifacts'),
-          authCode: 0
+          authCode: AuthCodes.SubMenuConfigureArtifactRepo
         }
       },
       {
@@ -190,7 +192,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Kubernetes',
         meta: {
           title: t('router.k8s'),
-          authCode: 0
+          authCode: AuthCodes.SubMenuConfigureDeployRepo
         }
       }
     ]
@@ -219,7 +221,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     path: '/monitor',
     component: Layout,
     meta: {
-      authCode: 0
+      authCode: AuthCodes.MainMenuMonitor
     },
     name: 'Monitor',
     children: [
@@ -230,7 +232,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         meta: {
           title: t('router.monitor'),
           icon: 'ic:outline-screenshot-monitor',
-          authCode: 0
+          authCode: AuthCodes.MainMenuMonitor
         }
       }
     ]
@@ -244,7 +246,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
       title: t('router.authorization'),
       icon: 'eos-icons:role-binding',
       alwaysShow: true,
-      authCode: 0
+      authCode: AuthCodes.MainMenuUsers
     },
     children: [
       {
@@ -253,7 +255,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'User',
         meta: {
           title: t('router.user'),
-          authCode: 0
+          authCode: AuthCodes.SubMenuUser
         }
       },
       // {
@@ -270,7 +272,7 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'Org',
         meta: {
           title: t('router.org'),
-          authCode: 0
+          authCode: AuthCodes.SubMenuOrgs
         }
       }
     ]

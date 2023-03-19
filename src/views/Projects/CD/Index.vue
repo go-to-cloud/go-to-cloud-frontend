@@ -5,12 +5,14 @@ import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watchEffect } from 'vue'
 import { DeploymentApps, UpdateResult } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { newDeployment, startRollback } from '@/api/projects'
 import Icon from '@/components/Icon/src/Icon.vue'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -312,6 +314,16 @@ onMounted(() => {
   getK8sRepo()
 })
 onUnmounted(() => {})
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 <template>
   <ElDialog
@@ -352,10 +364,10 @@ onUnmounted(() => {})
             <template #default="scope">
               {{ scope.row.artifactName }}
               <ElDivider direction="vertical" />
-              <ElTag effect="light" type="success" v-if="scope.row.artifactTag == 'latest'">{{
+              <ElTag effect="light" type="success" v-if="scope.row.artifactTag === 'latest'">{{
                 t('project.cd.deploy_version_latest')
               }}</ElTag>
-              <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
+              <ElTag effect="dark" v-if="scope.row.artifactTag !== 'latest'">{{
                 scope.row.artifactTag
               }}</ElTag>
             </template>
@@ -685,7 +697,7 @@ onUnmounted(() => {})
           />
         </ElSpace>
       </ElCol>
-      <ElCol :span="6" style="text-align: right">
+      <ElCol v-if="auth.includes(AuthCodes.ResProjectCDNew)" :span="6" style="text-align: right">
         <ElButton :icon="CirclePlus" @click="showNewDeploymentDlg" type="primary">
           {{ t('project.cd.new_app') }}</ElButton
         >
@@ -713,10 +725,10 @@ onUnmounted(() => {})
             <template #default="scope">
               {{ scope.row.artifactName }}
               <ElDivider direction="vertical" />
-              <ElTag effect="light" type="success" v-if="scope.row.artifactTag == 'latest'">{{
+              <ElTag effect="light" type="success" v-if="scope.row.artifactTag === 'latest'">{{
                 t('project.cd.deploy_version_latest')
               }}</ElTag>
-              <ElTag effect="dark" v-if="scope.row.artifactTag != 'latest'">{{
+              <ElTag effect="dark" v-if="scope.row.artifactTag !== 'latest'">{{
                 scope.row.artifactTag
               }}</ElTag>
             </template>
@@ -750,7 +762,18 @@ onUnmounted(() => {})
               {{ scope.row.lastDeployAt }}
             </template>
           </ElTableColumn>
-          <ElTableColumn :label="t('project.cd.action')" fixed="right" width="120" align="center">
+          <ElTableColumn
+            v-if="
+              auth.includes(AuthCodes.ResProjectCDStart) ||
+              auth.includes(AuthCodes.ResProjectCDHistory) ||
+              auth.includes(AuthCodes.ResProjectCDDelete) ||
+              auth.includes(AuthCodes.ResProjectCDMonitor)
+            "
+            :label="t('project.cd.action')"
+            fixed="right"
+            width="120"
+            align="center"
+          >
             <template #default="scope">
               <ElDropdown @command="actionHandler">
                 <span class="el-dropdown-link">
@@ -759,28 +782,50 @@ onUnmounted(() => {})
                 <template #dropdown>
                   <ElDropdownMenu>
                     <ElDropdownItem :command="{ id: scope.row.id, cmd: 'deploy' }">
-                      <ElLink v-if="scope.row.lastDeployAt == null" :underline="false">
+                      <ElLink
+                        v-if="
+                          scope.row.lastDeployAt == null &&
+                          auth.includes(AuthCodes.ResProjectCDStart)
+                        "
+                        :underline="false"
+                      >
                         <Icon icon="material-symbols:play-circle" />
                         {{ t('project.cd.first_deploy') }}
                       </ElLink>
-                      <ElLink v-if="scope.row.lastDeployAt != null" :underline="false">
+                      <ElLink
+                        v-if="
+                          scope.row.lastDeployAt != null &&
+                          auth.includes(AuthCodes.ResProjectCDStart)
+                        "
+                        :underline="false"
+                      >
                         <Icon icon="material-symbols:play-circle" />
                         {{ t('project.cd.redeploy') }}
                       </ElLink>
                     </ElDropdownItem>
-                    <ElDropdownItem :command="{ id: scope.row.id, cmd: 'history' }">
+                    <ElDropdownItem
+                      v-if="auth.includes(AuthCodes.ResProjectCDHistory)"
+                      :command="{ id: scope.row.id, cmd: 'history' }"
+                    >
                       <ElLink :underline="false">
                         <Icon icon="icon-park-solid:history-query" />
                         {{ t('project.cd.deploy_history') }}</ElLink
                       >
                     </ElDropdownItem>
-                    <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                    <ElDropdownItem
+                      v-if="auth.includes(AuthCodes.ResProjectCDHistory)"
+                      divided
+                      :command="{ id: scope.row.id, cmd: 'del' }"
+                    >
                       <ElLink :icon="Delete" :underline="false" type="danger">
                         {{ t('project.cd.delete_deployment') }}
                       </ElLink>
                     </ElDropdownItem>
                     <ElDropdownItem
-                      v-if="scope.row.lastDeployAt != null"
+                      v-if="
+                        scope.row.lastDeployAt != null &&
+                        auth.includes(AuthCodes.ResProjectCDMonitor)
+                      "
                       divided
                       :command="{ id: scope.row.id, cmd: 'jump_to_monitor', form: scope.row }"
                     >

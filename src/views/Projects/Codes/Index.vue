@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { ElButton, ElDialog, ElMessage, FormInstance } from 'element-plus'
 import { ScmType } from '@/api/configure/types'
 import { CircleCloseFilled, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
@@ -15,6 +15,8 @@ import { BindCodeRepoGroup, CodeRepoKVP, ImportedSourceCodeData } from '@/api/pr
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { t } = useI18n()
 const { path, params } = useRoute()
@@ -132,6 +134,16 @@ const actionHandler = (command: HandlerCommand) => {
 }
 
 getSourceCodeList()
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
@@ -158,7 +170,12 @@ getSourceCodeList()
             />
           </ElOptionGroup>
         </ElSelect>
-        <ElButton @click="importSourceCode" type="primary"><Icon icon="uil:import" /></ElButton>
+        <ElButton
+          v-if="auth.includes(AuthCodes.ResProjectSourceCodeImport)"
+          @click="importSourceCode"
+          type="primary"
+          ><Icon icon="uil:import"
+        /></ElButton>
         <ElButton @click="bindDialogVisible = false" :icon="CircleCloseFilled" type="danger"
           >关闭</ElButton
         ></ElSpace
@@ -183,7 +200,11 @@ getSourceCodeList()
           />
         </ElSpace>
       </ElCol>
-      <ElCol :span="6" style="text-align: right">
+      <ElCol
+        v-if="auth.includes(AuthCodes.ResProjectSourceCodeImport)"
+        :span="6"
+        style="text-align: right"
+      >
         <ElButton @click="showImportGit" type="primary">
           <ElSpace> <Icon icon="uil:import" /> {{ t('coderepo.git.import') }}</ElSpace></ElButton
         >
@@ -217,7 +238,12 @@ getSourceCodeList()
       </ElTableColumn>
       <ElTableColumn prop="latestBuildAt" :label="t('project.latest_ci')" />
       <ElTableColumn prop="updatedAt" :label="t('project.updatedAt')" width="200" />
-      <ElTableColumn fixed="right" prop="id" :label="t('common.action')">
+      <ElTableColumn
+        v-if="auth.includes(AuthCodes.ResProjectSourceDelete)"
+        fixed="right"
+        prop="id"
+        :label="t('common.action')"
+      >
         <template #default="scope">
           <ElDropdown @command="actionHandler">
             <span class="el-dropdown-link">

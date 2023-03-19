@@ -7,7 +7,7 @@ import {
   updateProjectApi
 } from '@/api/projects'
 import { ProjectData } from '@/api/projects/types'
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { ElButton, ElDialog, ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import Icon from '@/components/Icon/src/Icon.vue'
@@ -15,6 +15,8 @@ import { useRouter } from 'vue-router'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { t } = useI18n()
 const { push } = useRouter()
@@ -238,6 +240,16 @@ const actionHandler = (command: HandlerCommand) => {
     }
   }
 }
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
@@ -294,13 +306,19 @@ const actionHandler = (command: HandlerCommand) => {
     </ElForm>
     <template #footer>
       <span>
-        <ElButton @click="close(newProjectFormRef)">{{ t('common.cancel') }}</ElButton>
-        <ElButton v-if="dlgForCreate" type="primary" @click="submit(newProjectFormRef)">{{
-          t('common.ok')
-        }}</ElButton>
-        <ElButton v-if="!dlgForCreate" type="primary" @click="save(newProjectFormRef)">{{
-          t('common.update')
-        }}</ElButton>
+        <ElButton @click="close(newProjectFormRef)">{{ t('common.close') }}</ElButton>
+        <ElButton
+          v-if="dlgForCreate && auth.includes(AuthCodes.ResProjectNew)"
+          type="primary"
+          @click="submit(newProjectFormRef)"
+          >{{ t('common.ok') }}</ElButton
+        >
+        <ElButton
+          v-if="!dlgForCreate && auth.includes(AuthCodes.ResProjectUpdate)"
+          type="primary"
+          @click="save(newProjectFormRef)"
+          >{{ t('common.update') }}</ElButton
+        >
       </span>
     </template>
   </ElDialog>
@@ -317,7 +335,7 @@ const actionHandler = (command: HandlerCommand) => {
         />
       </ElSpace>
     </ElCol>
-    <ElCol :span="6" style="text-align: right">
+    <ElCol v-if="auth.includes(AuthCodes.ResProjectNew)" :span="6" style="text-align: right">
       <ElButton :icon="Plus" @click="openDlg(true)" type="primary">{{
         t('project.create')
       }}</ElButton>
@@ -378,7 +396,11 @@ const actionHandler = (command: HandlerCommand) => {
                       {{ t('common.viewDetail') }}
                     </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                  <ElDropdownItem
+                    v-if="auth.includes(AuthCodes.ResProjectDelete)"
+                    divided
+                    :command="{ id: scope.row.id, cmd: 'del' }"
+                  >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('project.remove') }}
                     </ElLink>
