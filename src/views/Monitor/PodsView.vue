@@ -453,7 +453,6 @@ watchEffect(async () => {
               <template #dropdown>
                 <ElDropdownMenu>
                   <ElDropdownItem
-                    v-if="auth.includes(AuthCodes.PodViewLog)"
                     :command="{ id: scope.row.id, cmd: 'view_logs', form: scope.row }"
                   >
                     <ElLink :icon="ChatLineSquare" :underline="false">
@@ -461,7 +460,7 @@ watchEffect(async () => {
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
-                    v-if="auth.includes(AuthCodes.PodShell)"
+                    v-if="auth.includes(AuthCodes.ResourceMonitorShell)"
                     :command="{ id: scope.row.id, cmd: 'shell', form: scope.row }"
                   >
                     <ElLink :underline="false">
@@ -470,7 +469,7 @@ watchEffect(async () => {
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem
-                    v-if="auth.includes(AuthCodes.PodDelete)"
+                    v-if="auth.includes(AuthCodes.ResourceMonitorDeletePod)"
                     :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
                     divided
                   >

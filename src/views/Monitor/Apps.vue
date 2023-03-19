@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { ElButton, ElDivider, ElMessage, Action } from 'element-plus'
 import { Delete, Expand, MoreFilled, Refresh, Search, RefreshRight } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
@@ -21,6 +21,8 @@ import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus/es'
+import { useVisibilityStore } from '@/store/modules/visibility'
+import { AuthCodes } from '@/api/constants/auths'
 
 const { path, params } = useRoute()
 const { push } = useRouter()
@@ -205,6 +207,16 @@ onMounted(() => {
 onUnmounted(() => {
   deploymentsRefresh.value!.stopTimer()
 })
+
+const visibilityStore = useVisibilityStore()
+const auth = computed(() => visibilityStore.getAuthCodes)
+
+// 防止手动页面刷新后状态丢失
+watchEffect(async () => {
+  if (visibilityStore.auth.length === 0) {
+    await visibilityStore.setAuthCodes()
+  }
+})
 </script>
 
 <template>
@@ -219,7 +231,7 @@ onUnmounted(() => {
         <ElInputNumber v-model="replicasNum" :min="0" :max="100" />
       </ElCol>
       <ElCol :span="1" />
-      <ElCol :span="5">
+      <ElCol v-if="auth.includes(AuthCodes.ResourceMonitorScale)" :span="5">
         <ElButton type="success" @click="startScaleReplicas">{{ t('monitor.start') }}</ElButton>
       </ElCol>
     </ElFormItem>
@@ -235,7 +247,7 @@ onUnmounted(() => {
       </ElCol>
     </ElFormItem>
   </ElDialog>
-  <Error v-if="k8sWithApp.length == 0" type="k8srepo_empty" @error-click="() => {}" />
+  <Error v-if="k8sWithApp.length === 0" type="k8srepo_empty" @error-click="() => {}" />
   <ElRow justify="space-between" v-if="k8sWithApp.length > 0">
     <ElCol :span="18">
       <ElSpace wrap>
@@ -345,9 +357,9 @@ onUnmounted(() => {
                   size="small"
                   effect="dark"
                   :type="
-                    item.type == 'Available'
+                    item.type === 'Available'
                       ? 'success'
-                      : item.type == 'Progressing'
+                      : item.type === 'Progressing'
                       ? 'primary'
                       : 'danger'
                   "
@@ -370,6 +382,7 @@ onUnmounted(() => {
                         </ElLink>
                       </ElDropdownItem>
                       <ElDropdownItem
+                        v-if="auth.includes(AuthCodes.ResourceMonitorScale)"
                         :command="{ id: scope.row.id, cmd: 'scale', form: scope.row }"
                       >
                         <ElLink :underline="false">
@@ -378,6 +391,7 @@ onUnmounted(() => {
                         >
                       </ElDropdownItem>
                       <ElDropdownItem
+                        v-if="auth.includes(AuthCodes.ResourceMonitorRestart)"
                         :command="{ id: scope.row.id, cmd: 'restart', form: scope.row }"
                       >
                         <ElLink :icon="RefreshRight" :underline="false">
@@ -385,6 +399,7 @@ onUnmounted(() => {
                         >
                       </ElDropdownItem>
                       <ElDropdownItem
+                        v-if="auth.includes(AuthCodes.ResourceMonitorDelete)"
                         divided
                         :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
                       >
