@@ -594,11 +594,10 @@ watchEffect(async () => {
           </ElFormItem>
         </ElCol>
       </ElRow>
-      <ElRow>
+      <ElRow v-if="codeRepoDetailForm.origin === ScmType.Github">
         <ElCol :span="18">
           <ElFormItem :label="t('authz.user.account')" prop="user">
             <ElInput
-              v-if="codeRepoDetailForm.origin === ScmType.Github"
               v-model="codeRepoDetailForm.user"
               :placeholder="t('common.inputText') + t('authz.user.account')"
             />
