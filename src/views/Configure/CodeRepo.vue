@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import {
@@ -88,6 +88,7 @@ const codeRepoDetailForm = ref({
   name: '',
   origin: ScmType.Gitlab,
   isPublic: false,
+  user: '',
   url: '',
   token: '',
   remark: '',
@@ -100,6 +101,7 @@ function resetForm() {
     name: '',
     origin: ScmType.Gitlab,
     isPublic: false,
+    user: '',
     url: '',
     token: '',
     remark: '',
@@ -189,7 +191,7 @@ const supportedCodeRepoTypes: Array<CodeRepoType> = [
     RepoName: 'Github',
     Type: ScmType.Github,
     Items: null,
-    Enabled: false
+    Enabled: true
   },
   {
     RepoName: 'Gitee',
@@ -397,15 +399,13 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
 <template>
-  <Error type="coderepo_empty" @error-click="errorClick" v-if="codeRepoDataList.length === 0" />
-  <ElRow justify="space-between" v-if="codeRepoDataList.length > 0">
+  <Error v-if="codeRepoDataList.length === 0" type="coderepo_empty" @error-click="errorClick" />
+  <ElRow v-if="codeRepoDataList.length > 0" justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.coderepo') }}</span>
@@ -438,15 +438,15 @@ watchEffect(async () => {
   </ElRow>
   <ElTabs v-if="codeRepoDataList.length > 0">
     <ElTabPane :label="t('coderepo.all')">
-      <ElTable style="width: 100%" :data="codeRepoDataList">
-        <ElTableColumn prop="name" :label="t('coderepo.name')" width="350">
+      <ElTable :data="codeRepoDataList" style="width: 100%">
+        <ElTableColumn :label="t('coderepo.name')" prop="name" width="350">
           <template #default="scope">
             <ElSpace>
               <Icon
-                :icon="GetIcon(scope.row.origin)[0]"
                 :color="GetIcon(scope.row.origin)[1]"
-                width="24"
+                :icon="GetIcon(scope.row.origin)[0]"
                 height="24"
+                width="24"
               />
               <span>{{ scope.row.name }}</span>
             </ElSpace>
@@ -456,18 +456,18 @@ watchEffect(async () => {
           <template #default="scope">
             <ElSpace>
               <ElTag
-                style="cursor: default"
                 v-for="item in scope.row.orgLites"
                 :key="item.orgId"
                 :closable="false"
+                style="cursor: default"
                 >{{ item.orgName }}
               </ElTag>
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
-        <ElTableColumn prop="updatedAt" :label="t('coderepo.updatedAt')" width="200" />
-        <ElTableColumn fixed="right" prop="id" :label="t('coderepo.action')" width="80">
+        <ElTableColumn :label="t('common.remark')" prop="remark" width="300" />
+        <ElTableColumn :label="t('coderepo.updatedAt')" prop="updatedAt" width="200" />
+        <ElTableColumn :label="t('coderepo.action')" fixed="right" prop="id" width="80">
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">
@@ -482,8 +482,8 @@ watchEffect(async () => {
                   </ElDropdownItem>
                   <ElDropdownItem
                     v-if="auth.includes(AuthCodes.ResConfigureCodeRepoRemove)"
-                    divided
                     :command="{ id: scope.row.id, cmd: 'del' }"
+                    divided
                   >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('coderepo.remove') }}
@@ -499,20 +499,20 @@ watchEffect(async () => {
   </ElTabs>
   <Dialog
     v-model="bindDialogVisible"
+    :fullscreen="false"
     :title="t('coderepo.bind')"
     @close="close(codeRepoDetailFormRef)"
-    :fullscreen="false"
   >
     <ElForm
       ref="codeRepoDetailFormRef"
-      status-icon
+      :model="codeRepoDetailForm"
       :rules="codeRepoDetailFormRule"
       label-position="top"
-      :model="codeRepoDetailForm"
+      status-icon
     >
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem prop="name" :label="t('coderepo.name')">
+          <ElFormItem :label="t('coderepo.name')" prop="name">
             <ElInput
               v-model="codeRepoDetailForm.name"
               :label="t('coderepo.name')"
@@ -527,10 +527,6 @@ watchEffect(async () => {
             <div
               v-for="type in supportedCodeRepoTypes"
               :key="type.Type"
-              @mouseover="codeRepoTypeHover = type.Type"
-              @mouseleave="codeRepoTypeHover = -1"
-              @click="type.Enabled ? (codeRepoDetailForm.origin = type.Type) : true"
-              class="radio-sel"
               :class="
                 type.Type === codeRepoTypeHover || type.Type === codeRepoDetailForm.origin
                   ? type.Enabled
@@ -538,12 +534,16 @@ watchEffect(async () => {
                     : 'radio-sel-hover-disabled'
                   : ''
               "
+              class="radio-sel"
+              @click="type.Enabled ? (codeRepoDetailForm.origin = type.Type) : true"
+              @mouseleave="codeRepoTypeHover = -1"
+              @mouseover="codeRepoTypeHover = type.Type"
             >
               <Icon
-                :icon="GetIcon(type.Type)[0]"
                 :color="GetIcon(type.Type)[1]"
-                width="44"
+                :icon="GetIcon(type.Type)[0]"
                 height="44"
+                width="44"
               />
               {{ type.RepoName }}
               <div
@@ -555,8 +555,8 @@ watchEffect(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="orgs" :label="t('common.organization')">
-            <ElSelect multiple v-model="codeRepoDetailForm.orgs" style="width: 100%">
+          <ElFormItem :label="t('common.organization')" prop="orgs">
+            <ElSelect v-model="codeRepoDetailForm.orgs" multiple style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"
@@ -571,15 +571,15 @@ watchEffect(async () => {
         <ElFormItem :label="t('coderepo.type')">
           <ElSwitch
             v-model="codeRepoDetailForm.isPublic"
-            disabled
-            :inactive-text="t('visibility.private')"
             :active-text="t('visibility.public')"
+            :inactive-text="t('visibility.private')"
+            disabled
           />
         </ElFormItem>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="url" :label="t('coderepo.url')">
+          <ElFormItem :label="t('coderepo.url')" prop="url">
             <ElInput
               v-model="codeRepoDetailForm.url"
               :placeholder="t('common.inputText') + t('coderepo.url')"
@@ -594,15 +594,26 @@ watchEffect(async () => {
           </ElFormItem>
         </ElCol>
       </ElRow>
+      <ElRow>
+        <ElCol :span="18">
+          <ElFormItem :label="t('authz.user.account')" prop="user">
+            <ElInput
+              v-if="codeRepoDetailForm.origin === ScmType.Github"
+              v-model="codeRepoDetailForm.user"
+              :placeholder="t('common.inputText') + t('authz.user.account')"
+            />
+          </ElFormItem>
+        </ElCol>
+      </ElRow>
       <ElRow v-if="!codeRepoDetailForm.isPublic">
         <ElCol :span="10">
           <ElFormItem :label="t('coderepo.token')">
             <ElInput
-              type="password"
-              show-password
-              autocomplete="off"
               v-model="codeRepoDetailForm.token"
               :placeholder="t('common.inputText') + t('coderepo.token')"
+              autocomplete="off"
+              show-password
+              type="password"
             >
               <template #append>
                 <ElIcon>
@@ -618,8 +629,8 @@ watchEffect(async () => {
           <ElFormItem :label="t('common.remark')">
             <ElInput
               v-model="codeRepoDetailForm.remark"
-              show-word-limit
               maxlength="200"
+              show-word-limit
               type="textarea"
             />
           </ElFormItem>
@@ -629,10 +640,10 @@ watchEffect(async () => {
     <template #footer>
       <span>
         <ElButton
-          @click="testing(codeRepoDetailFormRef)"
           :disabled="!isUrl(codeRepoDetailForm.url)"
-          type="success"
           style="position: absolute; left: 10px"
+          type="success"
+          @click="testing(codeRepoDetailFormRef)"
           >{{ t('common.testing') }}</ElButton
         >
         <ElButton @click="close(codeRepoDetailFormRef)">{{ t('common.close') }}</ElButton>

@@ -1,8 +1,8 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
-import { ElButton, ElDivider, ElMessage, Action } from 'element-plus'
-import { Delete, Expand, MoreFilled, Refresh, Search, RefreshRight } from '@element-plus/icons-vue'
+import { Action, ElButton, ElDivider, ElMessage } from 'element-plus'
+import { Delete, Expand, MoreFilled, Refresh, RefreshRight, Search } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
@@ -124,6 +124,7 @@ function isFirstTabInit(a: K8sRepoWithAppData): boolean {
     a.id === nodeTabSelected.value
   )
 }
+
 const startScaleReplicas = async () => {
   let k8sRepoId = nodeTabSelected.value
   await scaleReplicasApi(selectedDeploymentId.value, k8sRepoId, replicasNum.value).then((resp) => {
@@ -196,6 +197,7 @@ class autoRefreshDeployments {
     }
   }
 }
+
 const deploymentsRefresh = ref<autoRefreshDeployments>()
 
 onMounted(() => {
@@ -213,22 +215,20 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
 <template>
   <ElDialog
-    :title="t('monitor.pods_detail')"
     v-model="podsDetailDlgVisible"
-    width="280px"
+    :title="t('monitor.pods_detail')"
     draggable
+    width="280px"
   >
     <ElFormItem>
       <ElCol :span="17">
-        <ElInputNumber v-model="replicasNum" :min="0" :max="100" />
+        <ElInputNumber v-model="replicasNum" :max="100" :min="0" />
       </ElCol>
       <ElCol :span="1" />
       <ElCol v-if="auth.includes(AuthCodes.ResourceMonitorScale)" :span="5">
@@ -236,10 +236,10 @@ watchEffect(async () => {
       </ElCol>
     </ElFormItem>
   </ElDialog>
-  <ElDialog :title="t('monitor.scale')" v-model="scaleDlgVisible" width="280px" draggable>
+  <ElDialog v-model="scaleDlgVisible" :title="t('monitor.scale')" draggable width="280px">
     <ElFormItem>
       <ElCol :span="17">
-        <ElInputNumber v-model="replicasNum" :min="0" :max="100" />
+        <ElInputNumber v-model="replicasNum" :max="100" :min="0" />
       </ElCol>
       <ElCol :span="1" />
       <ElCol :span="5">
@@ -248,7 +248,7 @@ watchEffect(async () => {
     </ElFormItem>
   </ElDialog>
   <Error v-if="k8sWithApp.length === 0" type="k8srepo_empty" @error-click="() => {}" />
-  <ElRow justify="space-between" v-if="k8sWithApp.length > 0">
+  <ElRow v-if="k8sWithApp.length > 0" justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.monitor') }}</span>
@@ -262,38 +262,38 @@ watchEffect(async () => {
       </ElSpace>
     </ElCol>
     <ElCol :span="6" style="text-align: right">
-      <ElButton :disabled="reloadingApps" :icon="Refresh" @click="repoSelected(true)" type="success"
+      <ElButton :disabled="reloadingApps" :icon="Refresh" type="success" @click="repoSelected(true)"
         >{{ t('monitor.refresh') }}
       </ElButton>
     </ElCol>
   </ElRow>
   <ElTabs
     v-if="k8sWithApp.length > 0"
+    v-model="selectedRepoTab"
     class="nodes-tabs"
     tab-position="left"
     @tab-change="repoSelected(true)"
-    v-model="selectedRepoTab"
   >
     <ElTabPane v-for="node in k8sWithApp" :key="node.id" style="padding: 20px">
       <template #label>
         <div
-          @mouseover="nodeTabHover = node.id"
-          @mouseleave="nodeTabHover = 0"
-          @click="nodeTabSelected = node.id"
           :class="isFirstTabInit(node) ? 'node-tab-focus' : ''"
+          @click="nodeTabSelected = node.id"
+          @mouseleave="nodeTabHover = 0"
+          @mouseover="nodeTabHover = node.id"
         >
           <ElSpace :size="10" alignment="center" style="width: 200px">
             <Icon
-              style="margin-top: 0"
-              :icon="GetIcon(node.type)[0]"
               :color="GetIcon(node.type)[1]"
-              width="40"
+              :icon="GetIcon(node.type)[0]"
               height="40"
+              style="margin-top: 0"
+              width="40"
             />
             <div style="height: 80px; margin-top: 4px">
-              <div style="margin: -15px 0 0 5px; height: 40px; text-align: left">{{
-                node.name
-              }}</div>
+              <div style="margin: -15px 0 0 5px; height: 40px; text-align: left"
+                >{{ node.name }}
+              </div>
               <div
                 style="
                   margin: -10px 0 0 5px;
@@ -309,53 +309,50 @@ watchEffect(async () => {
           </ElSpace>
         </div>
       </template>
-      <ElSpace :size="10" direction="vertical" alignment="start" fill fill-ratio="100">
+      <ElSpace :size="10" alignment="start" direction="vertical" fill fill-ratio="100">
         <span class="header_title">{{ node.name }}</span>
         <div v-if="node.type === NodeType.K8s">
           <ElTable :data="node.items" style="width: 100%">
-            <ElTableColumn fixed prop="name" :label="t('monitor.appName')" width="250">
+            <ElTableColumn :label="t('monitor.appName')" fixed prop="name" width="250">
               <template #default="scope">
-                <ElLink :underline="false">{{ scope.row.name }} </ElLink>
+                <ElLink :underline="false">{{ scope.row.name }}</ElLink>
               </template>
             </ElTableColumn>
             <ElTableColumn
+              :filter-method="nsFilterHandler"
+              :filters="namespacesPair"
+              :label="t('monitor.namespace')"
               fixed
               prop="namespace"
-              :label="t('monitor.namespace')"
               width="180"
-              :filters="namespacesPair"
-              :filter-method="nsFilterHandler"
             >
               <template #default="scope">
                 <ElTag round type="success">
                   {{ scope.row.namespace }}
                 </ElTag>
-              </template></ElTableColumn
-            >
-            <ElTableColumn fixed prop="pods" :label="t('monitor.pod_number')" width="120">
+              </template>
+            </ElTableColumn>
+            <ElTableColumn :label="t('monitor.pod_number')" fixed prop="pods" width="120">
               <template #default="scope">
                 {{ scope.row.availablePods }} /
                 {{ scope.row.availablePods + scope.row.unavailablePods }}
               </template>
             </ElTableColumn>
-            <ElTableColumn fixed prop="replicas" :label="t('monitor.replicas')" width="120">
+            <ElTableColumn :label="t('monitor.replicas')" fixed prop="replicas" width="120">
               <template #default="scope">
                 {{ scope.row.replicas }}
               </template>
             </ElTableColumn>
-            <ElTableColumn fixed prop="replicas" :label="t('monitor.publish_time')" width="120">
+            <ElTableColumn :label="t('monitor.publish_time')" fixed prop="replicas" width="120">
               <template #default="scope">
                 {{ calcAge(scope.row.createdAt) }}
-              </template> </ElTableColumn
-            ><ElTableColumn fixed prop="conditions" :label="t('monitor.conditions')" width="220">
+              </template>
+            </ElTableColumn>
+            <ElTableColumn :label="t('monitor.conditions')" fixed prop="conditions" width="220">
               <template #default="scope">
                 <ElTag
-                  style="margin-right: 10px"
                   v-for="item in scope.row.conditions"
                   :key="item.type"
-                  round
-                  size="small"
-                  effect="dark"
                   :type="
                     item.type === 'Available'
                       ? 'success'
@@ -363,12 +360,16 @@ watchEffect(async () => {
                       ? 'primary'
                       : 'danger'
                   "
+                  effect="dark"
+                  round
+                  size="small"
+                  style="margin-right: 10px"
                 >
                   {{ item.type }}
                 </ElTag>
-              </template></ElTableColumn
-            >
-            <ElTableColumn fixed="right" prop="id" :label="t('monitor.action')" width="80">
+              </template>
+            </ElTableColumn>
+            <ElTableColumn :label="t('monitor.action')" fixed="right" prop="id" width="80">
               <template #default="scope">
                 <ElDropdown @command="actionHandler">
                   <span class="el-dropdown-link">
@@ -387,21 +388,21 @@ watchEffect(async () => {
                       >
                         <ElLink :underline="false">
                           <Icon icon="fluent:scale-fill-24-regular" style="margin-right: 5px" />
-                          {{ t('monitor.scale') }}</ElLink
-                        >
+                          {{ t('monitor.scale') }}
+                        </ElLink>
                       </ElDropdownItem>
                       <ElDropdownItem
                         v-if="auth.includes(AuthCodes.ResourceMonitorRestart)"
                         :command="{ id: scope.row.id, cmd: 'restart', form: scope.row }"
                       >
                         <ElLink :icon="RefreshRight" :underline="false">
-                          {{ t('monitor.restart') }}</ElLink
-                        >
+                          {{ t('monitor.restart') }}
+                        </ElLink>
                       </ElDropdownItem>
                       <ElDropdownItem
                         v-if="auth.includes(AuthCodes.ResourceMonitorDelete)"
-                        divided
                         :command="{ id: scope.row.id, cmd: 'delete', form: scope.row }"
+                        divided
                       >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('monitor.delete_deployment') }}
@@ -426,6 +427,7 @@ watchEffect(async () => {
   font-size: 12px;
   color: rgb(96, 108, 128);
 }
+
 .header_title {
   font-size: 18px;
   font-weight: 500;
@@ -486,6 +488,7 @@ watchEffect(async () => {
 .el-tabs {
   --el-tabs-header-height: 80px;
 }
+
 .node-tab-focus {
   background-color: rgb(245, 247, 250);
   margin: 0 -18px 0 -20px;

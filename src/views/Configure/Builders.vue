@@ -1,15 +1,15 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { ElButton, ElDivider, ElMessage, FormInstance, FormRules } from 'element-plus'
 import {
+  Connection,
   Delete,
   Expand,
-  MoreFilled,
-  Search,
-  Platform,
   InfoFilled,
-  Connection
+  MoreFilled,
+  Platform,
+  Search
 } from '@element-plus/icons-vue'
 import { BuilderNodesOnk8s, NewBuilderNodes, NodeType, Params } from '@/api/configure/types'
 import {
@@ -40,6 +40,7 @@ onMounted(() => {
 onUnmounted(() => {
   nodeRefresh.value!.stopTimer()
 })
+
 class autoRefreshNodes {
   intervalId: NodeJS.Timer | null = null
 
@@ -338,9 +339,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
@@ -357,9 +356,9 @@ watchEffect(async () => {
   />
   <ElDialog
     v-model="bindDialogVisible"
-    :title="t('builder.install')"
-    :fullscreen="false"
     :draggable="true"
+    :fullscreen="false"
+    :title="t('builder.install')"
   >
     <ElTabs type="border-card">
       <ElTabPane>
@@ -372,16 +371,16 @@ watchEffect(async () => {
           </ElTooltip>
         </template>
         <ElForm
-          label-position="top"
-          :model="newBuilderNode"
           ref="newBuilderNodeRef"
+          :model="newBuilderNode"
           :rules="newBuilderNodeRule"
+          label-position="top"
         >
           <ElFormItem :label="t('builder.node_name')" prop="name">
-            <ElInput :disabled="!dlgForCreate" v-model="newBuilderNode.name" />
+            <ElInput v-model="newBuilderNode.name" :disabled="!dlgForCreate" />
           </ElFormItem>
-          <ElFormItem prop="orgs" :label="t('common.organization')">
-            <ElSelect multiple v-model="newBuilderNode.orgs" style="width: 100%">
+          <ElFormItem :label="t('common.organization')" prop="orgs">
+            <ElSelect v-model="newBuilderNode.orgs" multiple style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"
@@ -391,7 +390,7 @@ watchEffect(async () => {
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('builder.max_worker')">
-            <ElInputNumber :min="1" controls-position="right" v-model="newBuilderNode.maxWorkers" />
+            <ElInputNumber v-model="newBuilderNode.maxWorkers" :min="1" controls-position="right" />
           </ElFormItem>
           <ElFormItem prop="workspace">
             <template #label>
@@ -404,9 +403,9 @@ watchEffect(async () => {
               </ElTooltip>
             </template>
             <ElInput
-              placeholder="gotocloud-agent"
-              :disabled="!dlgForCreate"
               v-model="newBuilderNode.workspace"
+              :disabled="!dlgForCreate"
+              placeholder="gotocloud-agent"
             />
           </ElFormItem>
           <ElFormItem prop="kubeconfig">
@@ -420,11 +419,11 @@ watchEffect(async () => {
               </ElTooltip>
             </template>
             <ElInput
-              type="textarea"
-              :placeholder="kubeconfig_demo"
-              :disabled="!dlgForCreate"
               v-model="newBuilderNode.kubeConfig"
               :autosize="{ minRows: 3, maxRows: 6 }"
+              :disabled="!dlgForCreate"
+              :placeholder="kubeconfig_demo"
+              type="textarea"
             />
           </ElFormItem>
           <ElFormItem prop="remark">
@@ -432,9 +431,9 @@ watchEffect(async () => {
               {{ t('common.remark') }}
             </template>
             <ElInput
-              type="textarea"
               v-model="newBuilderNode.remark"
               :autosize="{ minRows: 3, maxRows: 6 }"
+              type="textarea"
             />
           </ElFormItem>
         </ElForm>
@@ -478,7 +477,7 @@ watchEffect(async () => {
       </span>
     </template>
   </ElDialog>
-  <ElRow justify="space-between" v-if="builderNodesOnK8s.length > 0">
+  <ElRow v-if="builderNodesOnK8s.length > 0" justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.builders') }}</span>
@@ -503,27 +502,27 @@ watchEffect(async () => {
   </ElRow>
   <ElTabs v-if="builderNodesOnK8s.length > 0">
     <ElTabPane :label="t('builder.all')">
-      <ElTable style="width: 100%" :data="builderNodesOnK8s">
-        <ElTableColumn prop="name" :label="t('builder.node_name')" width="350">
+      <ElTable :data="builderNodesOnK8s" style="width: 100%">
+        <ElTableColumn :label="t('builder.node_name')" prop="name" width="350">
           <template #default="scope">
             <ElSpace>
               <Icon
-                :icon="GetIcon(scope.row.nodeType)[0]"
                 :color="GetIcon(scope.row.nodeType)[1]"
-                width="24"
+                :icon="GetIcon(scope.row.nodeType)[0]"
                 height="24"
+                width="24"
               />
               <span>{{ scope.row.name }}</span>
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="remark" :label="t('builder.workload')" width="300">
+        <ElTableColumn :label="t('builder.workload')" prop="remark" width="300">
           <template #default="scope">
             {{ t('builder.available_nodes_number') }}: {{ scope.row.availableWorkers }} /
             {{ scope.row.maxWorkers }}
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="pod_status" :label="t('builder.node_status')" width="300">
+        <ElTableColumn :label="t('builder.node_status')" prop="pod_status" width="300">
           <template #default="scope">
             <span v-for="s in scope.row.maxWorkers" :key="s"
               ><ElIcon :color="describeContainerColor(s, scope.row.availableWorkers)"
@@ -536,17 +535,17 @@ watchEffect(async () => {
           <template #default="scope">
             <ElSpace>
               <ElTag
-                style="cursor: default"
                 v-for="item in scope.row.orgLites"
                 :key="item.orgId"
                 :closable="false"
+                style="cursor: default"
                 >{{ item.orgName }}
               </ElTag>
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
-        <ElTableColumn fixed="right" prop="id" :label="t('coderepo.action')" width="80">
+        <ElTableColumn :label="t('common.remark')" prop="remark" width="300" />
+        <ElTableColumn :label="t('coderepo.action')" fixed="right" prop="id" width="80">
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">
@@ -561,8 +560,8 @@ watchEffect(async () => {
                   </ElDropdownItem>
                   <ElDropdownItem
                     v-if="auth.includes(AuthCodes.ResConfigureBuildNodeRemove)"
-                    divided
                     :command="{ id: scope.row.id, cmd: 'del' }"
+                    divided
                   >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('builder.uninstall') }}

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
 import {
   createProjectApi,
@@ -159,6 +159,7 @@ const close = (formEl: FormInstance | undefined) => {
 function resetForm() {
   newProjectForm.value = { id: 0, name: '', remark: '', orgId: null, org: null }
 }
+
 const keywords = ref('')
 const loading = ref(true)
 
@@ -246,30 +247,28 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
 <template>
   <ElDialog
     v-model="bindDialogVisible"
-    :title="dlgTitle()"
-    @close="close(newProjectFormRef)"
-    height
     :fullscreen="false"
+    :title="dlgTitle()"
+    height
+    @close="close(newProjectFormRef)"
   >
     <ElForm
       ref="newProjectFormRef"
-      status-icon
-      label-position="top"
       :model="newProjectForm"
       :rules="newProjectFormRule"
+      label-position="top"
+      status-icon
     >
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem prop="name" :label="t('project.name')">
+          <ElFormItem :label="t('project.name')" prop="name">
             <ElInput
               v-model="newProjectForm.name"
               :label="t('project.name')"
@@ -280,15 +279,16 @@ watchEffect(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="orgId" :label="t('common.organization')">
-            <ElSelect v-model="newProjectForm.orgId" style="width: 100%" :disabled="!dlgForCreate">
+          <ElFormItem :label="t('common.organization')" prop="orgId">
+            <ElSelect v-model="newProjectForm.orgId" :disabled="!dlgForCreate" style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"
                 :label="org.name"
                 :value="org.id"
-              /> </ElSelect
-          ></ElFormItem>
+              />
+            </ElSelect>
+          </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
@@ -296,8 +296,8 @@ watchEffect(async () => {
           <ElFormItem :label="t('common.remark')">
             <ElInput
               v-model="newProjectForm.remark"
-              show-word-limit
               maxlength="200"
+              show-word-limit
               type="textarea"
             />
           </ElFormItem>
@@ -336,54 +336,54 @@ watchEffect(async () => {
       </ElSpace>
     </ElCol>
     <ElCol v-if="auth.includes(AuthCodes.ResProjectNew)" :span="6" style="text-align: right">
-      <ElButton :icon="Plus" @click="openDlg(true)" type="primary">{{
-        t('project.create')
-      }}</ElButton>
+      <ElButton :icon="Plus" type="primary" @click="openDlg(true)"
+        >{{ t('project.create') }}
+      </ElButton>
     </ElCol>
   </ElRow>
   <ElTabs>
     <ElTabPane :label="t('project.all')">
       <ElTable :data="projectDataList">
-        <ElTableColumn prop="name" :label="t('project.name')" width="450" />
-        <ElTableColumn prop="org" :label="t('common.organization')" width="300">
+        <ElTableColumn :label="t('project.name')" prop="name" width="450" />
+        <ElTableColumn :label="t('common.organization')" prop="org" width="300">
           <template #default="scope">
-            <ElTag style="cursor: default" :closable="false">
+            <ElTag :closable="false" style="cursor: default">
               {{ scope.row.org }}
             </ElTag>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="id" :label="t('project.modules')" width="300">
+        <ElTableColumn :label="t('project.modules')" prop="id" width="300">
           <template #default="scope">
             <ElSpace>
               <ElTooltip :content="t('project.toolset.code')">
-                <ElLink @click="toolsetClicked('codes', scope.row.id)" :underline="false">
+                <ElLink :underline="false" @click="toolsetClicked('codes', scope.row.id)">
                   <Icon class="toolset" icon="mdi:code-braces-box" />
                 </ElLink>
               </ElTooltip>
               <ElTooltip :content="t('project.toolset.ci')">
-                <ElLink @click="toolsetClicked('ci', scope.row.id)" :underline="false">
+                <ElLink :underline="false" @click="toolsetClicked('ci', scope.row.id)">
                   <Icon class="toolset" icon="ant-design:ci-circle-filled" />
                 </ElLink>
               </ElTooltip>
               <ElTooltip v-if="false" :content="t('project.toolset.delivery')">
-                <ElLink @click="toolsetClicked('delivery', scope.row.id)" :underline="false">
+                <ElLink :underline="false" @click="toolsetClicked('delivery', scope.row.id)">
                   <Icon class="toolset" icon="mdi:truck-delivery" />
                 </ElLink>
               </ElTooltip>
               <ElTooltip :content="t('project.toolset.cd')">
-                <ElLink @click="toolsetClicked('cd', scope.row.id)" :underline="false">
+                <ElLink :underline="false" @click="toolsetClicked('cd', scope.row.id)">
                   <Icon class="toolset" icon="ic:round-rocket-launch" />
                 </ElLink>
               </ElTooltip>
               <ElTooltip :content="t('project.toolset.artifact')">
-                <ElLink @click="toolsetClicked('artifacts', scope.row.id)" :underline="false">
+                <ElLink :underline="false" @click="toolsetClicked('artifacts', scope.row.id)">
                   <Icon class="toolset" icon="cib:azure-artifacts" />
                 </ElLink>
               </ElTooltip>
             </ElSpace>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="action" :label="t('project.action')" width="300">
+        <ElTableColumn :label="t('project.action')" prop="action" width="300">
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">
@@ -398,8 +398,8 @@ watchEffect(async () => {
                   </ElDropdownItem>
                   <ElDropdownItem
                     v-if="auth.includes(AuthCodes.ResProjectDelete)"
-                    divided
                     :command="{ id: scope.row.id, cmd: 'del' }"
+                    divided
                   >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('project.remove') }}
@@ -407,8 +407,8 @@ watchEffect(async () => {
                   </ElDropdownItem>
                 </ElDropdownMenu>
               </template>
-            </ElDropdown></template
-          >
+            </ElDropdown>
+          </template>
         </ElTableColumn>
       </ElTable>
     </ElTabPane>

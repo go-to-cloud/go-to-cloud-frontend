@@ -1,12 +1,12 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ElButton, ElMessage, ElNotification, FormInstance, FormRules } from 'element-plus'
-import { CirclePlus, Delete, Expand, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
+import { CirclePlus, Delete, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
 import { computed, onMounted, onUnmounted, reactive, ref, watchEffect } from 'vue'
-import { DeploymentApps, UpdateResult } from '@/api/projects/types'
+import { DeploymentApps } from '@/api/projects/types'
 import { useAxios } from '@/hooks/web/useAxios'
 import { newDeployment, startRollback } from '@/api/projects'
 import Icon from '@/components/Icon/src/Icon.vue'
@@ -32,6 +32,7 @@ interface KeyValuePair {
   id: number
   name: string
 }
+
 interface TextValuePair {
   text: string
   value: string
@@ -220,6 +221,7 @@ interface HandlerCommand {
   cmd: string
   form: DeploymentApps | null
 }
+
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'del': {
@@ -320,9 +322,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 <template>
@@ -334,12 +334,12 @@ watchEffect(async () => {
   >
     <ElSkeleton :loading="historyLoading" animated>
       <template #template>
-        <ElSkeletonItem variant="text" style="margin-right: 16px" />
-        <ElSkeletonItem variant="text" style="width: 30%" />
-        <ElSkeletonItem variant="text" style="margin-right: 16px" />
-        <ElSkeletonItem variant="text" style="width: 30%" />
-        <ElSkeletonItem variant="text" style="margin-right: 16px" />
-        <ElSkeletonItem variant="text" style="width: 30%" />
+        <ElSkeletonItem style="margin-right: 16px" variant="text" />
+        <ElSkeletonItem style="width: 30%" variant="text" />
+        <ElSkeletonItem style="margin-right: 16px" variant="text" />
+        <ElSkeletonItem style="width: 30%" variant="text" />
+        <ElSkeletonItem style="margin-right: 16px" variant="text" />
+        <ElSkeletonItem style="width: 30%" variant="text" />
       </template>
       <template #default>
         <ElTable :data="deploymentHistoryData" style="width: 100%">
@@ -349,36 +349,38 @@ watchEffect(async () => {
             </template>
           </ElTableColumn>
           <ElTableColumn
-            prop="k8sName"
+            :filter-method="nsFilterHandler"
+            :filters="namespacesPair"
             :label="t('project.cd.target_env')"
+            prop="k8sName"
             width="180"
-            :filters="namespacesPair"
+          />
+          <ElTableColumn
             :filter-method="nsFilterHandler"
-          /><ElTableColumn
-            prop="namespace"
+            :filters="namespacesPair"
             :label="t('project.cd.namespace')"
+            prop="namespace"
             width="180"
-            :filters="namespacesPair"
-            :filter-method="nsFilterHandler"
-          /><ElTableColumn :label="t('project.cd.artifact_name')" width="250">
+          />
+          <ElTableColumn :label="t('project.cd.artifact_name')" width="250">
             <template #default="scope">
               {{ scope.row.artifactName }}
               <ElDivider direction="vertical" />
-              <ElTag effect="light" type="success" v-if="scope.row.artifactTag === 'latest'">{{
-                t('project.cd.deploy_version_latest')
-              }}</ElTag>
-              <ElTag effect="dark" v-if="scope.row.artifactTag !== 'latest'">{{
-                scope.row.artifactTag
-              }}</ElTag>
+              <ElTag v-if="scope.row.artifactTag === 'latest'" effect="light" type="success"
+                >{{ t('project.cd.deploy_version_latest') }}
+              </ElTag>
+              <ElTag v-if="scope.row.artifactTag !== 'latest'" effect="dark"
+                >{{ scope.row.artifactTag }}
+              </ElTag>
             </template>
           </ElTableColumn>
           <ElTableColumn :label="t('project.cd.env_vars')" width="200">
             <template #default="scope">
               <ElRow>
-                <ElCol :key="vars" :span="24" v-for="(vars, index) in scope.row.env">
+                <ElCol v-for="(vars, index) in scope.row.env" :key="vars" :span="24">
                   <ElTag v-if="index <= 2" style="margin: 3px"
-                    >{{ vars.text }}:{{ vars.value }}</ElTag
-                  >
+                    >{{ vars.text }}:{{ vars.value }}
+                  </ElTag>
                   <span v-if="index > 2">...</span>
                 </ElCol>
               </ElRow>
@@ -387,10 +389,10 @@ watchEffect(async () => {
           <ElTableColumn :label="t('project.cd.port_mapping')" width="180">
             <template #default="scope">
               <ElRow>
-                <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
+                <ElCol v-for="(port, index) in scope.row.ports" :key="port" :span="24">
                   <ElTag v-if="index <= 2" style="margin: 3px"
-                    >{{ port.text }}:{{ port.value }}</ElTag
-                  >
+                    >{{ port.text }}:{{ port.value }}
+                  </ElTag>
                   <span v-if="index > 2">...</span>
                 </ElCol>
               </ElRow>
@@ -403,25 +405,27 @@ watchEffect(async () => {
                 :content="tooltipRollbackTo(scope.row)"
                 placement="right"
               >
-                <ElButton @click="rollback(scope.row.id, scope.row.deploymentId)"
-                  ><Icon icon="eos-icons:snapshot-rollback" /></ElButton
-              ></ElTooltip>
+                <ElButton @click="rollback(scope.row.id, scope.row.deploymentId)">
+                  <Icon icon="eos-icons:snapshot-rollback" />
+                </ElButton>
+              </ElTooltip>
             </template>
-          </ElTableColumn> </ElTable
-      ></template>
+          </ElTableColumn>
+        </ElTable>
+      </template>
     </ElSkeleton>
   </ElDialog>
-  <ElDialog v-model="tplDialogVisible" :title="t('project.cd.new_app')" draggable :size="formSize">
+  <ElDialog v-model="tplDialogVisible" :size="formSize" :title="t('project.cd.new_app')" draggable>
     <div style="height: 500px">
       <ElScrollbar>
-        <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
+        <ElForm ref="ruleFormRef" :model="ruleForm" :rules="rules" label-position="top">
           <ElSpace>
             <ElFormItem :label="t('project.cd.target_env')" prop="k8s" style="margin-right: 8px">
               <ElSelect
                 v-model="ruleForm.k8s"
-                @change="k8sRepoSelected"
-                style="width: 200px"
                 :placeholder="t('common.selectText') + t('project.cd.target_env')"
+                style="width: 200px"
+                @change="k8sRepoSelected"
               >
                 <ElOption
                   v-for="item in k8sRepos"
@@ -437,12 +441,12 @@ watchEffect(async () => {
               style="margin-right: 8px"
             >
               <ElSelect
-                :disabled="ruleForm.k8s === ''"
-                style="width: 200px"
                 v-model="ruleForm.namespace"
+                :disabled="ruleForm.k8s === ''"
+                :placeholder="t('common.selectText') + t('project.cd.namespace')"
                 allow-create
                 filterable
-                :placeholder="t('common.selectText') + t('project.cd.namespace')"
+                style="width: 200px"
               >
                 <ElOption v-for="item in namespaces" :key="item" :label="item" :value="item" />
               </ElSelect>
@@ -450,13 +454,13 @@ watchEffect(async () => {
           </ElSpace>
           <ElFormItem :label="t('project.cd.artifact_name')" prop="artifact">
             <ElSelect
-              style="width: 200px"
               v-model="ruleForm.artifact"
-              value-key="id"
               :placeholder="t('common.selectText') + t('project.cd.artifact_name')"
+              :remote-method="queryArtifacts"
               filterable
               remote
-              :remote-method="queryArtifacts"
+              style="width: 200px"
+              value-key="id"
               @change="artifactSelected"
             >
               <ElOption
@@ -469,11 +473,11 @@ watchEffect(async () => {
           </ElFormItem>
           <ElFormItem :label="t('project.cd.deploy_version')" prop="tag">
             <ElSelect
-              :disabled="ruleForm.artifact == null"
-              style="width: 200px"
               v-model="ruleForm.artifactTag"
-              class="inline-input w-50"
+              :disabled="ruleForm.artifact == null"
               :placeholder="t('common.selectText') + t('project.cd.deploy_version')"
+              class="inline-input w-50"
+              style="width: 200px"
             >
               <ElOptionGroup label="最新版本">
                 <ElOption key="latest" label="latest" value="latest" />
@@ -484,57 +488,57 @@ watchEffect(async () => {
             </ElSelect>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.replicate_num')" prop="replicate">
-            <ElInputNumber style="width: 200px" v-model="ruleForm.replicate" :min="1" />
+            <ElInputNumber v-model="ruleForm.replicate" :min="1" style="width: 200px" />
           </ElFormItem>
           <ElFormItem :label="t('project.cd.port_mapping')">
-            <ElSpace direction="vertical" :size="10">
+            <ElSpace :size="10" direction="vertical">
               <ElFormItem v-for="(port, index) in ports.portMapping" :key="port.text">
                 <ElCol :span="8">
                   <ElInput
-                    class="w-50"
-                    :controls="false"
                     v-model="port.text"
-                    :min="1"
+                    :controls="false"
                     :max="65535"
+                    :min="1"
+                    class="w-50"
                     oninput="value=value.replace(/\D/g,'')"
                     placeholder="80"
                   >
                     <template #prepend>{{ t('project.cd.service_port') }}</template>
                   </ElInput>
                 </ElCol>
-                <ElCol class="text-center" :span="1" />
+                <ElCol :span="1" class="text-center" />
                 <ElCol :span="8">
-                  <ElInput class="w-50" :controls="false" v-model="port.value" placeholder="80">
+                  <ElInput v-model="port.value" :controls="false" class="w-50" placeholder="80">
                     <template #prepend>{{ t('project.cd.container_port') }}</template>
                   </ElInput>
                 </ElCol>
                 <ElCol :span="2">
                   <ElButton
-                    type="primary"
                     :icon="Plus"
+                    circle
                     plain
                     style="margin-left: 10px"
-                    circle
+                    type="primary"
                     @click="addPorts"
                   />
                 </ElCol>
                 <ElCol :span="2">
                   <ElButton
                     v-if="ports.portMapping.length <= 1"
-                    disabled
-                    type="danger"
                     :icon="Delete"
+                    circle
+                    disabled
                     plain
                     style="margin-left: 10px"
-                    circle
+                    type="danger"
                   />
                   <ElButton
                     v-if="ports.portMapping.length > 1"
-                    type="danger"
                     :icon="Delete"
+                    circle
                     plain
                     style="margin-left: 10px"
-                    circle
+                    type="danger"
                     @click="removePort(index)"
                   />
                 </ElCol>
@@ -542,52 +546,52 @@ watchEffect(async () => {
             </ElSpace>
           </ElFormItem>
           <ElFormItem :label="t('project.cd.env_vars')">
-            <ElSpace direction="vertical" :size="10">
+            <ElSpace :size="10" direction="vertical">
               <ElFormItem v-for="(vars, index) in env" :key="vars">
                 <ElCol :span="8">
                   <ElInput
-                    class="w-50"
-                    :controls="false"
                     v-model="vars.text"
+                    :controls="false"
                     :placeholder="t('project.cd.env_vars_key')"
+                    class="w-50"
                   />
                 </ElCol>
-                <ElCol class="text-center" :span="1" />
+                <ElCol :span="1" class="text-center" />
                 <ElCol :span="8">
                   <ElInput
-                    class="w-50"
-                    :controls="false"
                     v-model="vars.value"
+                    :controls="false"
                     :placeholder="t('project.cd.env_vars_value')"
+                    class="w-50"
                   />
                 </ElCol>
                 <ElCol :span="2">
                   <ElButton
-                    type="primary"
                     :icon="Plus"
+                    circle
                     plain
                     style="margin-left: 10px"
-                    circle
+                    type="primary"
                     @click="addVars"
                   />
                 </ElCol>
                 <ElCol :span="2">
                   <ElButton
                     v-if="env.length <= 1"
-                    disabled
-                    type="danger"
                     :icon="Delete"
+                    circle
+                    disabled
                     plain
                     style="margin-left: 10px"
-                    circle
+                    type="danger"
                   />
                   <ElButton
                     v-if="env.length > 1"
-                    type="danger"
                     :icon="Delete"
+                    circle
                     plain
                     style="margin-left: 10px"
-                    circle
+                    type="danger"
                     @click="removeVars(index)"
                   />
                 </ElCol>
@@ -602,8 +606,8 @@ watchEffect(async () => {
                   <ElInput
                     v-model="ruleForm.cpuRequest"
                     :controls="false"
-                    placeholder="1000"
                     oninput="value=value.replace(/\D/g,'')"
+                    placeholder="1000"
                   >
                     <template #prepend>{{ t('project.cd.resource_limit.cpu_request') }}</template>
                   </ElInput>
@@ -613,8 +617,8 @@ watchEffect(async () => {
                   <ElInput
                     v-model="ruleForm.cpuLimits"
                     :controls="false"
-                    placeholder="2000"
                     oninput="value=value.replace(/\D/g,'')"
+                    placeholder="2000"
                   >
                     <template #prepend>{{ t('project.cd.resource_limit.cpu_limit') }}</template>
                   </ElInput>
@@ -625,8 +629,8 @@ watchEffect(async () => {
                   <ElInput
                     v-model="ruleForm.memRequest"
                     :controls="false"
-                    placeholder="500"
                     oninput="value=value.replace(/\D/g,'')"
+                    placeholder="500"
                   >
                     <template #prepend>{{ t('project.cd.resource_limit.mem_request') }}</template>
                   </ElInput>
@@ -636,8 +640,8 @@ watchEffect(async () => {
                   <ElInput
                     v-model="ruleForm.memLimits"
                     :controls="false"
-                    placeholder="2000"
                     oninput="value=value.replace(/\D/g,'')"
+                    placeholder="2000"
                   >
                     <template #prepend>{{ t('project.cd.resource_limit.mem_limit') }}</template>
                   </ElInput>
@@ -650,12 +654,12 @@ watchEffect(async () => {
             <ElCol :span="9">
               <ElInput
                 v-model="ruleForm.healthcheck"
-                :placeholder="t('project.cd.health_checker')"
                 :formatter="(value) => `/${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
                 :parser="(value) => value.replace(/\/\s?|(,*)/g, '')"
+                :placeholder="t('project.cd.health_checker')"
               />
             </ElCol>
-            <ElCol class="text-center" :span="1" />
+            <ElCol :span="1" class="text-center" />
             <ElCol :span="9">
               <ElFormItem prop="date2">
                 <ElInput
@@ -678,7 +682,7 @@ watchEffect(async () => {
         {{ t('common.submit') }}
       </ElButton>
       <ElButton type="primary" @click="submit(ruleFormRef, true)">
-        <Icon style="margin-right: 5px" icon="ic:round-rocket-launch" />
+        <Icon icon="ic:round-rocket-launch" style="margin-right: 5px" />
         {{ t('project.cd.submitAndDeploy') }}
       </ElButton>
     </template>
@@ -698,48 +702,50 @@ watchEffect(async () => {
         </ElSpace>
       </ElCol>
       <ElCol v-if="auth.includes(AuthCodes.ResProjectCDNew)" :span="6" style="text-align: right">
-        <ElButton :icon="CirclePlus" @click="showNewDeploymentDlg" type="primary">
-          {{ t('project.cd.new_app') }}</ElButton
-        >
+        <ElButton :icon="CirclePlus" type="primary" @click="showNewDeploymentDlg">
+          {{ t('project.cd.new_app') }}
+        </ElButton>
       </ElCol>
     </ElRow>
     <ElDivider />
     <ElScrollbar max-height="500px">
-      <ElSpace wrap :size="30">
+      <ElSpace :size="30" wrap>
         <ElTable :data="deploymentsData" style="width: 100%">
           <ElTableColumn
+            :filter-method="nsFilterHandler"
+            :filters="namespacesPair"
+            :label="t('project.cd.target_env')"
             fixed
             prop="k8sName"
-            :label="t('project.cd.target_env')"
             width="180"
-            :filters="namespacesPair"
+          />
+          <ElTableColumn
             :filter-method="nsFilterHandler"
-          /><ElTableColumn
+            :filters="namespacesPair"
+            :label="t('project.cd.namespace')"
             fixed
             prop="namespace"
-            :label="t('project.cd.namespace')"
             width="180"
-            :filters="namespacesPair"
-            :filter-method="nsFilterHandler"
-          /><ElTableColumn fixed :label="t('project.cd.artifact_name')" width="250">
+          />
+          <ElTableColumn :label="t('project.cd.artifact_name')" fixed width="250">
             <template #default="scope">
               {{ scope.row.artifactName }}
               <ElDivider direction="vertical" />
-              <ElTag effect="light" type="success" v-if="scope.row.artifactTag === 'latest'">{{
-                t('project.cd.deploy_version_latest')
-              }}</ElTag>
-              <ElTag effect="dark" v-if="scope.row.artifactTag !== 'latest'">{{
-                scope.row.artifactTag
-              }}</ElTag>
+              <ElTag v-if="scope.row.artifactTag === 'latest'" effect="light" type="success"
+                >{{ t('project.cd.deploy_version_latest') }}
+              </ElTag>
+              <ElTag v-if="scope.row.artifactTag !== 'latest'" effect="dark"
+                >{{ scope.row.artifactTag }}
+              </ElTag>
             </template>
           </ElTableColumn>
           <ElTableColumn :label="t('project.cd.env_vars')" width="200">
             <template #default="scope">
               <ElRow>
-                <ElCol :key="vars" :span="24" v-for="(vars, index) in scope.row.env">
+                <ElCol v-for="(vars, index) in scope.row.env" :key="vars" :span="24">
                   <ElTag v-if="index <= 2" style="margin: 3px"
-                    >{{ vars.text }}:{{ vars.value }}</ElTag
-                  >
+                    >{{ vars.text }}:{{ vars.value }}
+                  </ElTag>
                   <span v-if="index > 2">...</span>
                 </ElCol>
               </ElRow>
@@ -748,10 +754,10 @@ watchEffect(async () => {
           <ElTableColumn :label="t('project.cd.port_mapping')" width="200">
             <template #default="scope">
               <ElRow>
-                <ElCol :key="port" :span="24" v-for="(port, index) in scope.row.ports">
+                <ElCol v-for="(port, index) in scope.row.ports" :key="port" :span="24">
                   <ElTag v-if="index <= 2" style="margin: 3px"
-                    >{{ port.text }}:{{ port.value }}</ElTag
-                  >
+                    >{{ port.text }}:{{ port.value }}
+                  </ElTag>
                   <span v-if="index > 2">...</span>
                 </ElCol>
               </ElRow>
@@ -770,9 +776,9 @@ watchEffect(async () => {
               auth.includes(AuthCodes.ResProjectCDMonitor)
             "
             :label="t('project.cd.action')"
+            align="center"
             fixed="right"
             width="120"
-            align="center"
           >
             <template #default="scope">
               <ElDropdown @command="actionHandler">
@@ -809,13 +815,13 @@ watchEffect(async () => {
                     >
                       <ElLink :underline="false">
                         <Icon icon="icon-park-solid:history-query" />
-                        {{ t('project.cd.deploy_history') }}</ElLink
-                      >
+                        {{ t('project.cd.deploy_history') }}
+                      </ElLink>
                     </ElDropdownItem>
                     <ElDropdownItem
                       v-if="auth.includes(AuthCodes.ResProjectCDHistory)"
-                      divided
                       :command="{ id: scope.row.id, cmd: 'del' }"
+                      divided
                     >
                       <ElLink :icon="Delete" :underline="false" type="danger">
                         {{ t('project.cd.delete_deployment') }}
@@ -826,8 +832,8 @@ watchEffect(async () => {
                         scope.row.lastDeployAt != null &&
                         auth.includes(AuthCodes.ResProjectCDMonitor)
                       "
-                      divided
                       :command="{ id: scope.row.id, cmd: 'jump_to_monitor', form: scope.row }"
+                      divided
                     >
                       <ElLink :underline="false" type="primary">
                         <Icon icon="material-symbols:text-select-jump-to-end" />

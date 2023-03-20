@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ElButton, ElCard, FormInstance, FormRules } from 'element-plus'
-import { CirclePlus, Delete, MoreFilled, Search, Memo } from '@element-plus/icons-vue'
+import { CirclePlus, Delete, Memo, MoreFilled, Search } from '@element-plus/icons-vue'
 import { ContentDetailWrap } from '@/components/ContentDetailWrap'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -223,6 +223,7 @@ interface HandlerCommand {
   cmd: string
   form: BuildPlanCard
 }
+
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'del': {
@@ -324,32 +325,30 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 <template>
   <ElDialog
     v-model="historyDialogVisible"
     :title="t('project.ci.build_history')"
-    width="90%"
     draggable
+    width="90%"
   >
     <ElTable :data="buildHistory" style="width: 100%">
-      <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
-      <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
-      <ElTableColumn fixed prop="branch.name" :label="t('project.ci.code_branch')" width="180" />
+      <ElTableColumn :label="t('project.ci.plan_name')" fixed prop="name" width="250" />
+      <ElTableColumn :label="t('project.ci.build_env')" fixed prop="buildEnv" width="180" />
+      <ElTableColumn :label="t('project.ci.code_branch')" fixed prop="branch.name" width="180" />
       <ElTableColumn :label="t('project.ci.build_at')" width="300">
         <template #default="scope">
           <span v-if="scope.row.lastBuildResult != 0"
             >{{ scope.row.lastBuildAt }} <ElDivider direction="vertical"
           /></span>
           <ElTag
-            :type="buildResultType(scope.row.lastBuildResult)"
             :effect="buildResultEffect(scope.row.lastBuildResult)"
-            >{{ buildResultText(scope.row.lastBuildResult) }}</ElTag
-          >
+            :type="buildResultType(scope.row.lastBuildResult)"
+            >{{ buildResultText(scope.row.lastBuildResult) }}
+          </ElTag>
         </template>
       </ElTableColumn>
       <ElTableColumn :label="t('project.ci.steps')" width="160">
@@ -383,15 +382,15 @@ watchEffect(async () => {
   <ElDialog v-model="tplDialogVisible" :title="t('project.ci.new_plan')" draggable>
     <div style="height: 500px">
       <ElScrollbar>
-        <ElForm label-position="top" :model="ruleForm" ref="ruleFormRef" :rules="rules">
+        <ElForm ref="ruleFormRef" :model="ruleForm" :rules="rules" label-position="top">
           <ElTimeline style="margin-top: 10px">
-            <ElTimelineItem size="large" placement="top">
+            <ElTimelineItem placement="top" size="large">
               <ElCard>
                 <ElFormItem :label="t('project.ci.build_env')">
                   <ElSelect
                     v-model="ruleForm.buildEnv"
-                    @change="buildEnvSelected"
                     :placeholder="t('common.selectText')"
+                    @change="buildEnvSelected"
                   >
                     <ElOptionGroup
                       v-for="group in buildEnvList"
@@ -404,23 +403,25 @@ watchEffect(async () => {
                         :label="item.label"
                         :value="item.value"
                       />
-                    </ElOptionGroup> </ElSelect
-                ></ElFormItem>
+                    </ElOptionGroup>
+                  </ElSelect>
+                </ElFormItem>
               </ElCard>
             </ElTimelineItem>
-            <ElTimelineItem size="large" :icon="t01" placement="top">
+            <ElTimelineItem :icon="t01" placement="top" size="large">
               <ElCard>
                 <ElFormItem :label="t('project.ci.plan_name')" prop="name">
                   <ElInput v-model="ruleForm.name" />
                 </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" :icon="t02" placement="top">
+              </ElCard>
+            </ElTimelineItem>
+            <ElTimelineItem :icon="t02" placement="top" size="large">
               <ElCard :header="t('project.ci.code_repo_header')">
                 <ElFormItem :label="t('project.ci.code_repo')">
                   <ElSelect
                     v-model="ruleForm.source_code_id"
-                    @change="gitSelected"
                     :placeholder="t('common.selectText')"
+                    @change="gitSelected"
                   >
                     <ElOption
                       v-for="item in sourceCodeList"
@@ -440,8 +441,9 @@ watchEffect(async () => {
                     />
                   </ElSelect>
                 </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" :icon="t03" placement="top">
+              </ElCard>
+            </ElTimelineItem>
+            <ElTimelineItem :icon="t03" placement="top" size="large">
               <ElCard>
                 <template #header>
                   <div class="card-header">
@@ -449,16 +451,18 @@ watchEffect(async () => {
                     <ElSwitch
                       v-model="ruleForm.qa_enabled"
                       :active-text="t('project.ci.stage_enable')"
-                  /></div>
+                    />
+                  </div>
                 </template>
                 <ElFormItem :label="t('project.ci.unit_test')">
-                  <ElInput :disabled="!ruleForm.qa_enabled" v-model="ruleForm.unit_test" />
+                  <ElInput v-model="ruleForm.unit_test" :disabled="!ruleForm.qa_enabled" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.lint_check')">
-                  <ElInput :disabled="!ruleForm.qa_enabled" v-model="ruleForm.lint_check" />
+                  <ElInput v-model="ruleForm.lint_check" :disabled="!ruleForm.qa_enabled" />
                 </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" :icon="t04" placement="top">
+              </ElCard>
+            </ElTimelineItem>
+            <ElTimelineItem :icon="t04" placement="top" size="large">
               <ElCard>
                 <template #header>
                   <div class="card-header">
@@ -466,18 +470,19 @@ watchEffect(async () => {
                     <ElSwitch
                       v-model="ruleForm.artifact_enabled"
                       :active-text="t('project.ci.stage_enable')"
-                  /></div>
+                    />
+                  </div>
                 </template>
                 <ElFormItem :label="t('project.ci.dockerfile')" prop="dockerfile">
-                  <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.dockerfile" />
+                  <ElInput v-model="ruleForm.dockerfile" :disabled="!ruleForm.artifact_enabled" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.artifact_name')" prop="image_name">
-                  <ElInput :disabled="!ruleForm.artifact_enabled" v-model="ruleForm.image_name" />
+                  <ElInput v-model="ruleForm.image_name" :disabled="!ruleForm.artifact_enabled" />
                 </ElFormItem>
                 <ElFormItem :label="t('project.ci.artifact_repo')">
                   <ElSelect
-                    :disabled="!ruleForm.artifact_enabled"
                     v-model="ruleForm.artifact_repo_id"
+                    :disabled="!ruleForm.artifact_enabled"
                     :placeholder="t('common.selectText')"
                   >
                     <ElOption
@@ -488,8 +493,9 @@ watchEffect(async () => {
                     />
                   </ElSelect>
                 </ElFormItem>
-              </ElCard> </ElTimelineItem
-            ><ElTimelineItem size="large" placement="top">
+              </ElCard>
+            </ElTimelineItem>
+            <ElTimelineItem placement="top" size="large">
               <ElSpace />
             </ElTimelineItem>
           </ElTimeline>
@@ -498,7 +504,7 @@ watchEffect(async () => {
     </div>
     <template #footer>
       <el-button @click="tplDialogVisible = false">{{ t('common.close') }}</el-button>
-      <el-button type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }} </el-button>
+      <el-button type="primary" @click="submit(ruleFormRef)"> {{ t('common.submit') }}</el-button>
     </template>
   </ElDialog>
   <ContentDetailWrap :title="t('project.toolset.ci')" @back="push('/projects/index')">
@@ -516,27 +522,27 @@ watchEffect(async () => {
         </ElSpace>
       </ElCol>
       <ElCol v-if="auth.includes(AuthCodes.ResProjectCINew)" :span="6" style="text-align: right">
-        <ElButton :icon="CirclePlus" @click="showNewPlanDlg" type="primary">
-          {{ t('project.ci.new_plan') }}</ElButton
-        >
+        <ElButton :icon="CirclePlus" type="primary" @click="showNewPlanDlg">
+          {{ t('project.ci.new_plan') }}
+        </ElButton>
       </ElCol>
     </ElRow>
     <ElDivider />
-    <ElSpace wrap :size="30">
+    <ElSpace :size="30" wrap>
       <ElTable :data="planCards" style="width: 100%">
-        <ElTableColumn fixed prop="name" :label="t('project.ci.plan_name')" width="250" />
-        <ElTableColumn fixed prop="buildEnv" :label="t('project.ci.build_env')" width="180" />
-        <ElTableColumn fixed prop="branch.name" :label="t('project.ci.code_branch')" width="180" />
+        <ElTableColumn :label="t('project.ci.plan_name')" fixed prop="name" width="250" />
+        <ElTableColumn :label="t('project.ci.build_env')" fixed prop="buildEnv" width="180" />
+        <ElTableColumn :label="t('project.ci.code_branch')" fixed prop="branch.name" width="180" />
         <ElTableColumn :label="t('project.ci.last_build')" width="300">
           <template #default="scope">
             <span v-if="scope.row.lastBuildResult != 0"
               >{{ scope.row.lastBuildAt }} <ElDivider direction="vertical"
             /></span>
             <ElTag
-              :type="buildResultType(scope.row.lastBuildResult)"
               :effect="buildResultEffect(scope.row.lastBuildResult)"
-              >{{ buildResultText(scope.row.lastBuildResult) }}</ElTag
-            >
+              :type="buildResultType(scope.row.lastBuildResult)"
+              >{{ buildResultText(scope.row.lastBuildResult) }}
+            </ElTag>
           </template>
         </ElTableColumn>
         <ElTableColumn :label="t('project.ci.steps')" width="160">
@@ -566,9 +572,9 @@ watchEffect(async () => {
             auth.includes(AuthCodes.ResProjectCIStart) ||
             auth.includes(AuthCodes.ResProjectCIHistory)
           "
+          :label="t('common.action')"
           fixed="right"
           prop="id"
-          :label="t('common.action')"
           width="80"
         >
           <template #default="scope">
@@ -589,17 +595,17 @@ watchEffect(async () => {
                   </ElDropdownItem>
                   <ElDropdownItem v-if="scope.row.buildingNow">
                     <ElLink :underline="false">
-                      <Icon size="20" icon="typcn:cancel" />
+                      <Icon icon="typcn:cancel" size="20" />
                       {{ t('project.ci.cancel_building') }}
                     </ElLink>
                   </ElDropdownItem>
                   <ElDropdownItem :command="{ id: scope.row.id, cmd: 'build_history' }">
                     <ElLink :underline="false">
                       <Icon icon="icon-park-solid:history-query" />
-                      {{ t('project.ci.build_history') }}</ElLink
-                    >
+                      {{ t('project.ci.build_history') }}
+                    </ElLink>
                   </ElDropdownItem>
-                  <ElDropdownItem divided :command="{ id: scope.row.id, cmd: 'del' }">
+                  <ElDropdownItem :command="{ id: scope.row.id, cmd: 'del' }" divided>
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('project.ci.delete_plan') }}
                     </ElLink>

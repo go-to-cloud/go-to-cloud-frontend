@@ -1,11 +1,11 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
 import { computed, onMounted, ref, watchEffect } from 'vue'
 import {
-  ElNotification,
   ElButton,
   ElDivider,
   ElMessage,
+  ElNotification,
   FormInstance,
   FormRules
 } from 'element-plus'
@@ -288,10 +288,12 @@ const artifactRepoForm = ref({
   remark: '',
   orgs: ref(Array<number>())
 })
+
 function show() {
   resetForm()
   bindDialogVisible.value = true
 }
+
 function resetForm() {
   artifactRepoForm.value = {
     id: 0,
@@ -467,6 +469,7 @@ const actionHandler = (command: HandlerCommand) => {
       break
   }
 }
+
 function isFirstTabInit(a: ArtifactType): boolean {
   return a.Id === artifactTabHover.value || a.Id === artifactTabSelected.value
 }
@@ -530,9 +533,7 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
@@ -547,7 +548,7 @@ watchEffect(async () => {
       }
     "
   />
-  <ElRow justify="space-between" v-if="artifactTypes.length > 0">
+  <ElRow v-if="artifactTypes.length > 0" justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.artifacts') }}</span>
@@ -579,102 +580,103 @@ watchEffect(async () => {
     <ElTabPane v-for="type in artifactTypes" :key="type.Id" style="padding: 20px">
       <template #label>
         <div
-          @mouseover="artifactTabHover = type.Id"
-          @mouseleave="artifactTabHover = 0"
-          @click="artifactTabSelected = type.Id"
           :class="isFirstTabInit(type) ? 'artifact-tab-focus' : ''"
+          @click="artifactTabSelected = type.Id"
+          @mouseleave="artifactTabHover = 0"
+          @mouseover="artifactTabHover = type.Id"
         >
           <ElSpace :size="10" alignment="center" style="width: 200px">
             <Icon
-              style="margin-top: 0"
-              :icon="GetIcon(type)[0]"
               :color="GetIcon(type)[1]"
-              width="40"
+              :icon="GetIcon(type)[0]"
               height="40"
+              style="margin-top: 0"
+              width="40"
             />
             <div style="height: 80px; margin-top: 4px">
-              <div style="margin: -15px 0 0 5px; height: 40px; text-align: left">{{
-                type.RepoName
-              }}</div>
+              <div style="margin: -15px 0 0 5px; height: 40px; text-align: left"
+                >{{ type.RepoName }}
+              </div>
               <div style="margin: -10px 0 0 5px; height: 40px; font-size: 12px; color: #606c80">
                 <span>{{ GetTypeName(type) }} {{ t('common.repo') }} </span>
                 <ElDivider direction="vertical" />
                 <ElDropdown class="tab-action" @command="actionHandler">
                   <span>
-                    {{ t('common.action')
-                    }}<ElIcon class="el-icon--right"> <ArrowDown /> </ElIcon></span
-                  ><template #dropdown>
+                    {{ t('common.action') }}<ElIcon class="el-icon--right"> <ArrowDown /> </ElIcon
+                  ></span>
+                  <template #dropdown>
                     <ElDropdownMenu>
-                      <ElDropdownItem :command="{ id: type.Id, cmd: 'view', form: type }"
-                        ><ElLink :icon="Expand" :underline="false">
+                      <ElDropdownItem :command="{ id: type.Id, cmd: 'view', form: type }">
+                        <ElLink :icon="Expand" :underline="false">
                           {{ t('common.edit') }}
-                        </ElLink></ElDropdownItem
-                      >
-                      <ElDropdownItem :command="{ id: type.Id, cmd: 'refresh', form: type }"
-                        ><ElLink :icon="Refresh" :underline="false">
+                        </ElLink>
+                      </ElDropdownItem>
+                      <ElDropdownItem :command="{ id: type.Id, cmd: 'refresh', form: type }">
+                        <ElLink :icon="Refresh" :underline="false">
                           {{ t('common.reload') }}
-                        </ElLink></ElDropdownItem
-                      >
+                        </ElLink>
+                      </ElDropdownItem>
                       <ElDropdownItem
                         v-if="auth.includes(AuthCodes.ResConfigureArtifactRepoRemove)"
-                        divided
                         :command="{ id: type.Id, cmd: 'remove', form: type }"
+                        divided
                       >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.remove') }}
                         </ElLink>
                       </ElDropdownItem>
                     </ElDropdownMenu>
-                  </template></ElDropdown
-                ></div
-              >
+                  </template>
+                </ElDropdown>
+              </div>
             </div>
           </ElSpace>
         </div>
       </template>
-      <ElSpace :size="10" direction="vertical" alignment="start" fill fill-ratio="100">
+      <ElSpace :size="10" alignment="start" direction="vertical" fill fill-ratio="100">
         <span class="header_title">{{ type.RepoName }}</span>
         <div v-if="type.Type === ArtifactRepoType.Docker">
           <ElTable :data="type.Items" style="width: 100%">
-            <ElTableColumn fixed prop="name" :label="t('artifacts.docker.list')" width="250">
+            <ElTableColumn :label="t('artifacts.docker.list')" fixed prop="name" width="250">
               <template #default="scope">
                 <ElLink :underline="false"
                   >{{ scope.row.name }}
-                  <ElTooltip placement="right" :content="t('artifacts.docker.copy_latest_image')">
-                    <ElIcon @click="copyToClipboard(scope.row.fullName)" style="left: 5px"
-                      ><CopyDocument
-                    /></ElIcon> </ElTooltip
-                ></ElLink>
+                  <ElTooltip :content="t('artifacts.docker.copy_latest_image')" placement="right">
+                    <ElIcon style="left: 5px" @click="copyToClipboard(scope.row.fullName)">
+                      <CopyDocument />
+                    </ElIcon>
+                  </ElTooltip>
+                </ElLink>
               </template>
             </ElTableColumn>
             <ElTableColumn
+              :label="t('artifacts.docker.latest_version')"
               fixed
               prop="latestVersion"
-              :label="t('artifacts.docker.latest_version')"
               width="180"
             >
               <template #default="scope">
                 <ElTag round type="success">
                   {{ scope.row.latestVersion }}
                 </ElTag>
-              </template></ElTableColumn
-            >
+              </template>
+            </ElTableColumn>
             <ElTableColumn
+              :label="t('artifacts.docker.latest_push_at')"
               fixed
               prop="publishedAt"
-              :label="t('artifacts.docker.latest_push_at')"
               width="180"
             />
             <ElTableColumn
-              prop="publishCounter"
               :label="t('artifacts.docker.publish_counter')"
+              prop="publishCounter"
               width="160"
             >
               <template #default="scope">
-                <ElLink type="info" :underline="false">{{ scope.row.tags.length }}</ElLink>
+                <ElLink :underline="false" type="info">{{ scope.row.tags.length }}</ElLink>
               </template>
             </ElTableColumn>
-            <ElTableColumn fixed="right" prop="id" :label="t('artifacts.docker.action')" width="80">
+            <ElTableColumn :label="t('artifacts.docker.action')" fixed="right" prop="id" width="80">
               <template #default="scope">
                 <ElDropdown @command="actionHandler">
                   <span class="el-dropdown-link">
@@ -701,17 +703,17 @@ watchEffect(async () => {
                         }"
                       >
                         <ElLink :icon="CopyDocument" :underline="false">
-                          {{ t('artifacts.docker.copy_latest_image') }}</ElLink
-                        >
+                          {{ t('artifacts.docker.copy_latest_image') }}
+                        </ElLink>
                       </ElDropdownItem>
                       <ElDropdownItem
                         v-if="auth.includes(AuthCodes.ResConfigureArtifactDeleteHistory)"
-                        divided
                         :command="{
                           id: scope.row.id,
                           cmd: 'delete_latest_image',
                           item: scope.row
                         }"
+                        divided
                       >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.delete_latest_image') }}
@@ -719,12 +721,12 @@ watchEffect(async () => {
                       </ElDropdownItem>
                       <ElDropdownItem
                         v-if="auth.includes(AuthCodes.ResConfigureArtifactDeleteHistory)"
-                        divided
                         :command="{
                           id: scope.row.id,
                           cmd: 'delete_all_images',
                           item: scope.row
                         }"
+                        divided
                       >
                         <ElLink :icon="Delete" :underline="false" type="danger">
                           {{ t('artifacts.docker.delete_all_images') }}
@@ -740,16 +742,16 @@ watchEffect(async () => {
       </ElSpace>
     </ElTabPane>
   </ElTabs>
-  <ElDialog v-model="bindDialogVisible" :title="t('artifacts.bind')" :fullscreen="false">
+  <ElDialog v-model="bindDialogVisible" :fullscreen="false" :title="t('artifacts.bind')">
     <ElForm
-      :rules="artifactRepoFormRule"
       ref="artifactRepoFormRef"
       :model="artifactRepoForm"
+      :rules="artifactRepoFormRule"
       label-position="top"
     >
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem prop="name" :label="t('artifacts.name')">
+          <ElFormItem :label="t('artifacts.name')" prop="name">
             <ElInput
               v-model="artifactRepoForm.name"
               :label="t('artifacts.name')"
@@ -764,10 +766,6 @@ watchEffect(async () => {
             <div
               v-for="type in supportedArtifactTypes"
               :key="type.Id"
-              @mouseover="artifactTypeHover = type.Id"
-              @mouseleave="artifactTypeHover = 0"
-              @click="type.Enabled ? (artifactRepoForm.type = type.Id) : true"
-              class="radio-sel"
               :class="
                 type.Id === artifactTypeHover || type.Id == artifactRepoForm.type
                   ? type.Enabled
@@ -775,8 +773,12 @@ watchEffect(async () => {
                     : 'radio-sel-hover-disabled'
                   : ''
               "
+              class="radio-sel"
+              @click="type.Enabled ? (artifactRepoForm.type = type.Id) : true"
+              @mouseleave="artifactTypeHover = 0"
+              @mouseover="artifactTypeHover = type.Id"
             >
-              <Icon :icon="GetIcon(type)[0]" :color="GetIcon(type)[1]" width="44" height="44" />
+              <Icon :color="GetIcon(type)[1]" :icon="GetIcon(type)[0]" height="44" width="44" />
               {{ GetTypeName(type) }}
               <div
                 :class="
@@ -791,27 +793,28 @@ watchEffect(async () => {
         <ElFormItem :label="t('artifacts.security_type')">
           <ElSwitch
             v-model="artifactRepoForm.isSecurity"
-            :inactive-text="t('artifacts.security.insecurity')"
             :active-text="t('artifacts.security.security')"
+            :inactive-text="t('artifacts.security.insecurity')"
           />
         </ElFormItem>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="orgs" :label="t('common.organization')">
-            <ElSelect multiple v-model="artifactRepoForm.orgs" style="width: 100%">
+          <ElFormItem :label="t('common.organization')" prop="orgs">
+            <ElSelect v-model="artifactRepoForm.orgs" multiple style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"
                 :label="org.name"
                 :value="org.id"
-              /> </ElSelect
-          ></ElFormItem>
+              />
+            </ElSelect>
+          </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="url" :label="t('artifacts.url')">
+          <ElFormItem :label="t('artifacts.url')" prop="url">
             <ElInput
               v-model="artifactRepoForm.url"
               :placeholder="t('common.inputText') + t('artifacts.url')"
@@ -821,7 +824,7 @@ watchEffect(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem prop="user" :label="t('artifacts.user')">
+          <ElFormItem :label="t('artifacts.user')" prop="user">
             <ElInput
               v-model="artifactRepoForm.user"
               :placeholder="t('common.inputText') + t('artifacts.user')"
@@ -831,12 +834,12 @@ watchEffect(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem prop="password" :label="t('artifacts.password')">
+          <ElFormItem :label="t('artifacts.password')" prop="password">
             <ElInput
-              type="password"
               v-model="artifactRepoForm.password"
-              autocomplete="false"
               :placeholder="t('common.inputText') + t('artifacts.password')"
+              autocomplete="false"
+              type="password"
             />
           </ElFormItem>
         </ElCol>
@@ -846,8 +849,8 @@ watchEffect(async () => {
           <ElFormItem :label="t('common.remark')">
             <ElInput
               v-model="artifactRepoForm.remark"
-              show-word-limit
               maxlength="200"
+              show-word-limit
               type="textarea"
             />
           </ElFormItem>
@@ -857,14 +860,14 @@ watchEffect(async () => {
     <template #footer>
       <span>
         <el-button
-          @click="testing(artifactRepoFormRef)"
           :disabled="
             artifactRepoForm.url === '' ||
             artifactRepoForm.user === '' ||
             artifactRepoForm.password === ''
           "
-          type="success"
           style="position: absolute; left: 10px"
+          type="success"
+          @click="testing(artifactRepoFormRef)"
           >{{ t('common.testing') }}</el-button
         >
         <ElButton @click="close(artifactRepoFormRef)">{{ t('common.close') }}</ElButton>
@@ -887,14 +890,14 @@ watchEffect(async () => {
     <ElTable :data="currentArtifactHistory">
       <ElTableColumn :label="t('artifacts.docker.tag_version')">
         <template #default="scope">
-          <ElBadge :hidden="!scope.row.isLatest" value="new" style="margin-top: 8px">
+          <ElBadge :hidden="!scope.row.isLatest" style="margin-top: 8px" value="new">
             <ElTag v-if="scope.row.isLatest" type="success">
               {{ scope.row.tags }}
             </ElTag>
           </ElBadge>
           <ElTag v-if="!scope.row.isLatest" type="info"> {{ scope.row.tags }}</ElTag>
-        </template></ElTableColumn
-      >
+        </template>
+      </ElTableColumn>
       <ElTableColumn :label="t('artifacts.docker.push_at')">
         <template #default="scope">
           {{ scope.row.publishedAt }}
@@ -904,17 +907,18 @@ watchEffect(async () => {
         <template #default="scope">
           <ElTooltip :content="t('artifacts.docker.copy_image')">
             <ElButton
-              type="primary"
               :icon="CopyDocument"
               circle
+              type="primary"
               @click="copyToClipboard(scope.row.fullName)"
-          /></ElTooltip>
+            />
+          </ElTooltip>
           <ElTooltip
             v-if="auth.includes(AuthCodes.ResConfigureArtifactDeleteHistory)"
             :content="t('artifacts.docker.delete_image')"
           >
-            <ElButton type="danger" :icon="Delete" circle @click="deleteImage(scope.row)"
-          /></ElTooltip>
+            <ElButton :icon="Delete" circle type="danger" @click="deleteImage(scope.row)" />
+          </ElTooltip>
         </template>
       </ElTableColumn>
     </ElTable>
@@ -926,6 +930,7 @@ watchEffect(async () => {
   flex-direction: row;
   justify-content: space-between;
 }
+
 .tab-action {
   position: relative;
   top: 32px;
@@ -933,6 +938,7 @@ watchEffect(async () => {
   font-size: 12px;
   color: rgb(96, 108, 128);
 }
+
 .header_title {
   font-size: 18px;
   font-weight: 500;
@@ -993,6 +999,7 @@ watchEffect(async () => {
 .el-tabs {
   --el-tabs-header-height: 80px;
 }
+
 .artifact-tab-focus {
   background-color: rgb(245, 247, 250);
   margin: 0 -18px 0 -20px;

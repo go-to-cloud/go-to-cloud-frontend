@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
 import { computed, ref, watchEffect } from 'vue'
 import { ElButton, ElDialog, ElMessage, FormInstance } from 'element-plus'
@@ -140,22 +140,20 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
 <template>
-  <ElDialog v-model="bindDialogVisible" :title="t('coderepo.git.import')" :fullscreen="false">
+  <ElDialog v-model="bindDialogVisible" :fullscreen="false" :title="t('coderepo.git.import')">
     <ElForm
       ref="codeRepoDetailFormRef"
-      status-icon
-      label-position="top"
       :model="codeRepoDetailForm"
+      label-position="top"
+      status-icon
     >
       <ElSpace wrap>
-        <ElSelect @change="gitSelected" v-model="selectedGit" :placeholder="t('common.selectText')">
+        <ElSelect v-model="selectedGit" :placeholder="t('common.selectText')" @change="gitSelected">
           <template #prefix>{{ gitHost }}</template>
           <ElOptionGroup
             v-for="group in bindCodeRepoGroups"
@@ -172,14 +170,15 @@ watchEffect(async () => {
         </ElSelect>
         <ElButton
           v-if="auth.includes(AuthCodes.ResProjectSourceCodeImport)"
-          @click="importSourceCode"
           type="primary"
-          ><Icon icon="uil:import"
-        /></ElButton>
-        <ElButton @click="bindDialogVisible = false" :icon="CircleCloseFilled" type="danger"
-          >关闭</ElButton
-        ></ElSpace
-      >
+          @click="importSourceCode"
+        >
+          <Icon icon="uil:import" />
+        </ElButton>
+        <ElButton :icon="CircleCloseFilled" type="danger" @click="bindDialogVisible = false"
+          >关闭
+        </ElButton>
+      </ElSpace>
       <template #footer>
         <span>
           <ElButton @click="close(codeRepoDetailFormRef)">{{ t('common.cancel') }}</ElButton>
@@ -205,44 +204,48 @@ watchEffect(async () => {
         :span="6"
         style="text-align: right"
       >
-        <ElButton @click="showImportGit" type="primary">
-          <ElSpace> <Icon icon="uil:import" /> {{ t('coderepo.git.import') }}</ElSpace></ElButton
-        >
+        <ElButton type="primary" @click="showImportGit">
+          <ElSpace>
+            <Icon icon="uil:import" />
+            {{ t('coderepo.git.import') }}
+          </ElSpace>
+        </ElButton>
       </ElCol>
     </ElRow>
     <ElTable :data="sourceCodeList">
-      <ElTableColumn prop="url" min-width="60%" :label="t('coderepo.git.name')">
+      <ElTableColumn :label="t('coderepo.git.name')" min-width="60%" prop="url">
         <template #default="scope">
           <ElSpace>
             <Icon
-              :icon="GetIcon(scope.row.codeRepoOrigin)[0]"
               :color="GetIcon(scope.row.codeRepoOrigin)[1]"
-              width="24"
+              :icon="GetIcon(scope.row.codeRepoOrigin)[0]"
               height="24"
-            /><span>
-              <ElTooltip effect="dark" :content="scope.row.url">
+              width="24"
+            />
+            <span>
+              <ElTooltip :content="scope.row.url" effect="dark">
                 <ElLink
-                  style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap"
-                  :underline="false"
-                  target="_blank"
                   :href="scope.row.url"
+                  :underline="false"
+                  style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap"
+                  target="_blank"
                   >{{ scope.row.url
                   }}<Icon
-                    width="20"
+                    class="el-icon--right"
                     height="20"
                     icon="iconoir:open-new-window"
-                    class="el-icon--right" /></ElLink></ElTooltip
+                    width="20" /></ElLink></ElTooltip
             ></span>
           </ElSpace>
         </template>
       </ElTableColumn>
-      <ElTableColumn prop="latestBuildAt" :label="t('project.latest_ci')" />
-      <ElTableColumn prop="updatedAt" :label="t('project.updatedAt')" width="200" />
+      <ElTableColumn :label="t('project.latest_ci')" prop="latestBuildAt" />
+      <ElTableColumn :label="t('project.updatedAt')" prop="updatedAt" width="200" />
       <ElTableColumn
         v-if="auth.includes(AuthCodes.ResProjectSourceDelete)"
+        :label="t('common.action')"
         fixed="right"
         prop="id"
-        :label="t('common.action')"
       >
         <template #default="scope">
           <ElDropdown @command="actionHandler">

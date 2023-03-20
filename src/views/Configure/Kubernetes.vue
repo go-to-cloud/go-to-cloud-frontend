@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Error } from '@/components/Error'
@@ -236,6 +236,7 @@ interface HandlerCommand {
   cmd: string
   form: K8sRepoData
 }
+
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'del': {
@@ -266,6 +267,7 @@ const actionHandler = (command: HandlerCommand) => {
     }
   }
 }
+
 function errorClick() {
   dlgForCreate.value = true
   bindDialogVisible.value = true
@@ -276,15 +278,13 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
-  if (visibilityStore.auth.length === 0) {
-    await visibilityStore.setAuthCodes()
-  }
+  await visibilityStore.setAuthCodes()
 })
 </script>
 
 <template>
   <Error v-if="k8sDataList.length === 0" type="k8srepo_empty" @error-click="errorClick" />
-  <ElRow justify="space-between" v-if="k8sDataList.length > 0">
+  <ElRow v-if="k8sDataList.length > 0" justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
         <span class="header_title">{{ t('router.coderepo') }}</span>
@@ -306,14 +306,14 @@ watchEffect(async () => {
             bindDialogVisible = true
           }
         "
-        >{{ t('k8s.bind') }}</ElButton
-      >
+        >{{ t('k8s.bind') }}
+      </ElButton>
     </ElCol>
   </ElRow>
   <ElTabs v-if="k8sDataList.length > 0">
     <ElTabPane :label="t('k8s.all')">
-      <ElTable style="width: 100%" :data="k8sDataList">
-        <ElTableColumn prop="name" :label="t('k8s.name')" width="350">
+      <ElTable :data="k8sDataList" style="width: 100%">
+        <ElTableColumn :label="t('k8s.name')" prop="name" width="350">
           <template #default="scope">
             <ElSpace>
               <span>{{ scope.row.name }}</span>
@@ -324,19 +324,19 @@ watchEffect(async () => {
           <template #default="scope">
             <ElSpace>
               <ElTag
-                style="cursor: default"
                 v-for="item in scope.row.orgLites"
                 :key="item.orgId"
                 :closable="false"
-                >{{ item.orgName }}</ElTag
-              >
-            </ElSpace></template
-          >
+                style="cursor: default"
+                >{{ item.orgName }}
+              </ElTag>
+            </ElSpace>
+          </template>
         </ElTableColumn>
-        <ElTableColumn prop="serverVersion" :label="t('k8s.serverVer')" width="150" />
-        <ElTableColumn prop="remark" :label="t('common.remark')" width="300" />
-        <ElTableColumn prop="updatedAt" :label="t('k8s.updatedAt')" width="200" />
-        <ElTableColumn fixed="right" prop="id" :label="t('k8s.action')" width="80">
+        <ElTableColumn :label="t('k8s.serverVer')" prop="serverVersion" width="150" />
+        <ElTableColumn :label="t('common.remark')" prop="remark" width="300" />
+        <ElTableColumn :label="t('k8s.updatedAt')" prop="updatedAt" width="200" />
+        <ElTableColumn :label="t('k8s.action')" fixed="right" prop="id" width="80">
           <template #default="scope">
             <ElDropdown @command="actionHandler">
               <span class="el-dropdown-link">
@@ -351,8 +351,8 @@ watchEffect(async () => {
                   </ElDropdownItem>
                   <ElDropdownItem
                     v-if="auth.includes(AuthCodes.ResConfigureDeployRemove)"
-                    divided
                     :command="{ id: scope.row.id, cmd: 'del' }"
+                    divided
                   >
                     <ElLink :icon="Delete" :underline="false" type="danger">
                       {{ t('k8s.remove') }}
@@ -368,20 +368,20 @@ watchEffect(async () => {
   </ElTabs>
   <Dialog
     v-model="bindDialogVisible"
+    :fullscreen="false"
     :title="t('k8s.bind')"
     @close="close(clusterDetailFormRef)"
-    :fullscreen="false"
   >
     <ElForm
       ref="clusterDetailFormRef"
-      status-icon
+      :model="clusterDetailForm"
       :rules="clusterDetailFormRule"
       label-position="top"
-      :model="clusterDetailForm"
+      status-icon
     >
       <ElRow>
         <ElCol :span="10">
-          <ElFormItem prop="name" :label="t('k8s.name')">
+          <ElFormItem :label="t('k8s.name')" prop="name">
             <ElInput
               v-model="clusterDetailForm.name"
               :label="t('k8s.name')"
@@ -392,25 +392,26 @@ watchEffect(async () => {
       </ElRow>
       <ElRow>
         <ElCol :span="18">
-          <ElFormItem prop="orgs" :label="t('common.organization')">
-            <ElSelect multiple v-model="clusterDetailForm.orgs" style="width: 100%">
+          <ElFormItem :label="t('common.organization')" prop="orgs">
+            <ElSelect v-model="clusterDetailForm.orgs" multiple style="width: 100%">
               <ElOption
                 v-for="org in Organizations"
                 :key="org.id"
                 :label="org.name"
                 :value="org.id"
-              /> </ElSelect
-          ></ElFormItem>
+              />
+            </ElSelect>
+          </ElFormItem>
         </ElCol>
       </ElRow>
       <ElRow>
         <ElCol :span="18">
           <ElFormItem :label="t('k8s.kubeconfig')">
             <ElInput
-              :readonly="!dlgForCreate"
-              :disabled="!dlgForCreate"
-              :autosize="{ minRows: 6, maxRows: 9 }"
               v-model="clusterDetailForm.kubeconfig"
+              :autosize="{ minRows: 6, maxRows: 9 }"
+              :disabled="!dlgForCreate"
+              :readonly="!dlgForCreate"
               show-word-limit
               type="textarea"
             />
@@ -422,8 +423,8 @@ watchEffect(async () => {
           <ElFormItem :label="t('common.remark')">
             <ElInput
               v-model="clusterDetailForm.remark"
-              show-word-limit
               maxlength="200"
+              show-word-limit
               type="textarea"
             />
           </ElFormItem>
@@ -433,10 +434,10 @@ watchEffect(async () => {
     <template #footer>
       <span>
         <ElButton
-          @click="testing(clusterDetailFormRef)"
           :disabled="isEmpty(clusterDetailForm.kubeconfig)"
-          type="success"
           style="position: absolute; left: 10px"
+          type="success"
+          @click="testing(clusterDetailFormRef)"
           >{{ t('common.testing') }}</ElButton
         >
         <ElButton @click="close(clusterDetailFormRef)">{{ t('common.close') }}</ElButton>
