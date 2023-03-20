@@ -48,7 +48,9 @@ docker-compose up -f ...TODO
 
 ### 开发环境
 
-- node `v16.16.0`
+- [vue-element-plus-admin](https://github.com/PanJiaChen/vue-element-admin) `v1.6`
+- NodeJS `v16.16.0`
+> NodeJS推荐使用[nvm](https://github.com/nvm-sh/nvm)管理，`Windows`平台：[nvm-windows](https://github.com/coreybutler/nvm-windows)
 
 ### 准备工作
 
