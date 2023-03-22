@@ -742,7 +742,7 @@ watchEffect(async () => {
       </ElSpace>
     </ElTabPane>
   </ElTabs>
-  <ElDialog v-model="bindDialogVisible" :fullscreen="false" :title="t('artifacts.bind')">
+  <ElDialog v-model="bindDialogVisible" draggable :fullscreen="false" :title="t('artifacts.bind')">
     <ElForm
       ref="artifactRepoFormRef"
       :model="artifactRepoForm"
