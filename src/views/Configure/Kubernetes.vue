@@ -287,7 +287,7 @@ watchEffect(async () => {
   <ElRow v-if="k8sDataList.length > 0" justify="space-between">
     <ElCol :span="18">
       <ElSpace wrap>
-        <span class="header_title">{{ t('router.coderepo') }}</span>
+        <span class="header_title">{{ t('router.k8s') }}</span>
         <ElDivider direction="vertical" />
         <ElInput v-model="keywords" :placeholder="t('k8s.name')" :suffix-icon="Search" clearable />
       </ElSpace>
