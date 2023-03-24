@@ -213,7 +213,7 @@ watchEffect(async () => {
       </ElCol>
     </ElRow>
     <ElTable :data="sourceCodeList">
-      <ElTableColumn :label="t('coderepo.git.name')" min-width="60%" prop="url">
+      <ElTableColumn :label="t('coderepo.git.name')" width="600" prop="url">
         <template #default="scope">
           <ElSpace>
             <Icon
@@ -239,8 +239,8 @@ watchEffect(async () => {
           </ElSpace>
         </template>
       </ElTableColumn>
-      <ElTableColumn :label="t('project.latest_ci')" prop="latestBuildAt" />
-      <ElTableColumn :label="t('project.updatedAt')" prop="updatedAt" width="200" />
+      <ElTableColumn :label="t('project.latest_ci')" prop="latestBuildAt" width="250" />
+      <ElTableColumn :label="t('project.updatedAt')" prop="updatedAt" width="250" />
       <ElTableColumn
         v-if="auth.includes(AuthCodes.ResProjectSourceDelete)"
         :label="t('common.action')"
