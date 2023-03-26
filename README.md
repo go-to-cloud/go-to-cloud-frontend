@@ -32,18 +32,6 @@
 
 [使用文档](https://go-to-cloud.github.io)
 
-## QuickStart 快速开始
-
-### 在线体验
-
-[https://demo.gotocloud.vip](https://demo.gotocloud.vip)
-
-### Docker-Compose
-
-```bash
-docker-compose up -f ...TODO
-``` 
-
 ## Develop 开发环境
 
 ### 开发环境
