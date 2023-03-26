@@ -27,7 +27,7 @@
 
 ## Install 安装
 
-[使用文档](https://go-to-cloud.github.io)
+[使用文档](https://go-to-cloud.github.io/go-to-cloud-press)
 
 ## Develop 开发环境
 
