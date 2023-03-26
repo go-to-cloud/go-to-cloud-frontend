@@ -5,13 +5,13 @@ COPY package.json .
 ENV NPM_CONFIG_LOGLEVEL warn
 ENV NPM_CONFIG_REGISTRY https://registry.npm.taobao.org
 
-RUN yarn install --loglevel notice
+RUN npm install
 
 COPY . .
-RUN yarn run build
+RUN npm run build:pro
 
 #
 FROM nginx:stable
 
 ADD ./deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /root/app/dist /usr/share/nginx/html
+COPY --from=build /root/app/dist-pro /usr/share/nginx/html
