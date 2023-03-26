@@ -180,7 +180,9 @@ const getRole = async () => {
     <template #tool>
       <div class="flex justify-between items-center w-[100%]">
         <ElCheckbox v-model="remember" :label="t('login.remember')" size="small" />
-        <ElLink type="primary" :underline="false">{{ t('login.forgetPassword') }}</ElLink>
+        <ElLink v-if="false" type="primary" :underline="false">{{
+          t('login.forgetPassword')
+        }}</ElLink>
       </div>
     </template>
 

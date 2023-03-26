@@ -441,7 +441,7 @@ export default {
     pod_number: 'Pods数量',
     replicas: '副本数量',
     publish_time: '发布时间',
-    conditions: 'Pod状态',
+    conditions: '应用状态',
     action: '操作',
     scale: '伸缩副本',
     restart: '重启应用',

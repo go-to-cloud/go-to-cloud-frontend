@@ -140,15 +140,17 @@ const getArtifactRepo = async () => {
 }
 
 const getBuildCmd = async (env: string) => {
-  await getBuildCmdApi(env).then((dat) => {
-    if (ruleForm) {
-      ruleForm.unit_test = dat.unitTest
-      ruleForm.lint_check = dat.lintCheck
-    }
-  })
+  await getBuildCmdApi(env)
+    .then((dat) => {
+      if (ruleForm) {
+        ruleForm.unit_test = dat.unitTest
+        ruleForm.lint_check = dat.lintCheck
+      }
+    })
+    .catch((r) => {})
 }
 const buildEnvSelected = async function (val: string) {
-  await getBuildCmd(val)
+  //await getBuildCmd(val)
 }
 const gitSelected = async function (val: string) {
   await getSourceCodeBranches(Number(val))
@@ -391,6 +393,8 @@ watchEffect(async () => {
                     v-model="ruleForm.buildEnv"
                     :placeholder="t('common.selectText')"
                     @change="buildEnvSelected"
+                    allow-create
+                    filterable
                   >
                     <ElOptionGroup
                       v-for="group in buildEnvList"
@@ -464,7 +468,7 @@ watchEffect(async () => {
             </ElTimelineItem>
             <ElTimelineItem :icon="t03" placement="top" size="large">
               <ElCard>
-                <template #header>
+                <template #header v-if="false">
                   <div class="card-header">
                     <span>{{ t('project.ci.artifact_header') }}</span>
                     <ElSwitch
