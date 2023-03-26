@@ -1,6 +1,3 @@
-<div align="center">
-<img alt="GOTOCLOUD LOGO" height="120" src="https://gitee.com/go-to-cloud/go-to-cloud-frontend/raw/main/src/assets/imgs/logo.png" title="GOTOCLOUD" width="120"/>
-</div>
 
 # GO-TO-CLOUD 面向小型团队的快速部署工具
 
