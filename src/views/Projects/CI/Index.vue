@@ -439,7 +439,7 @@ watchEffect(async () => {
                   <ElSelect v-model="ruleForm.branch" :placeholder="t('common.selectText')">
                     <ElOption
                       v-for="item in branchList"
-                      :key="item.Sha"
+                      :key="item.Name"
                       :label="item.Name"
                       :value="{ sha: item.Sha, name: item.Name }"
                     />
