@@ -17,13 +17,13 @@ const config: {
     base: '/api',
 
     // 打包开发环境接口前缀
-    dev: '',
+    dev: '/api',
 
     // 打包生产环境接口前缀
-    pro: '',
+    pro: '/api',
 
     // 打包测试环境接口前缀
-    test: ''
+    test: '/api'
   },
 
   /**
