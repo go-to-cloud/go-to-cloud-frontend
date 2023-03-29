@@ -566,7 +566,7 @@ watchEffect(async () => {
       :span="6"
       style="text-align: right"
     >
-      <ElButton :icon="Connection" type="primary" @click="show"
+      <ElButton :icon="Connection" type="primary" @click="show()"
         >{{ t('artifacts.bind') }}
       </ElButton>
     </ElCol>

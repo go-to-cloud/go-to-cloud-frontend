@@ -171,7 +171,7 @@ watchEffect(async () => {
         <ElButton
           v-if="auth.includes(AuthCodes.ResProjectSourceCodeImport)"
           type="primary"
-          @click="importSourceCode"
+          @click="importSourceCode()"
         >
           <Icon icon="uil:import" />
         </ElButton>
@@ -204,7 +204,7 @@ watchEffect(async () => {
         :span="6"
         style="text-align: right"
       >
-        <ElButton type="primary" @click="showImportGit">
+        <ElButton type="primary" @click="showImportGit()">
           <ElSpace>
             <Icon icon="uil:import" />
             {{ t('coderepo.git.import') }}
