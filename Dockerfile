@@ -2,10 +2,7 @@ FROM node:16-alpine as build
 WORKDIR /root/app
 COPY package.json .
 
-ENV NPM_CONFIG_LOGLEVEL warn
-ENV NPM_CONFIG_REGISTRY https://registry.npm.taobao.org
-
-RUN npm install
+RUN ["npm", "install", "--registry=https://registry.npmmirror.com"]
 
 COPY . .
 RUN npm run build:pro
