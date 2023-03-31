@@ -197,7 +197,7 @@ const supportedCodeRepoTypes: Array<CodeRepoType> = [
     RepoName: 'Gitee',
     Type: ScmType.Gitee,
     Items: null,
-    Enabled: false
+    Enabled: true
   }
 ]
 
