@@ -150,7 +150,7 @@ const startRestartDeployment = async () => {
 const actionHandler = (command: HandlerCommand) => {
   switch (command.cmd) {
     case 'view':
-      push('/monitor/' + command.form.id + '/pods?from=' + nodeTabSelected.value)
+      push('/monitor/' + nodeTabSelected.value + '/pods?from=' + command.form.id)
       break
     case 'scale':
       scaleDlgVisible.value = true

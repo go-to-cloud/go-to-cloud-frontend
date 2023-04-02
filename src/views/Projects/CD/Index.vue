@@ -500,7 +500,6 @@ watchEffect(async () => {
                     :max="65535"
                     :min="1"
                     class="w-50"
-                    oninput="value=value.replace(/\D/g,'')"
                     placeholder="80"
                   >
                     <template #prepend>{{ t('project.cd.service_port') }}</template>
@@ -508,7 +507,14 @@ watchEffect(async () => {
                 </ElCol>
                 <ElCol :span="1" class="text-center" />
                 <ElCol :span="8">
-                  <ElInput v-model="port.value" :controls="false" class="w-50" placeholder="80">
+                  <ElInput
+                    v-model="port.value"
+                    :controls="false"
+                    class="w-50"
+                    placeholder="80"
+                    :max="65535"
+                    :min="1"
+                  >
                     <template #prepend>{{ t('project.cd.container_port') }}</template>
                   </ElInput>
                 </ElCol>

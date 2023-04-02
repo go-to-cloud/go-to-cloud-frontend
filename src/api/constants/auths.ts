@@ -41,7 +41,7 @@ export enum AuthCodes {
 
   MainMenuMonitor = 30000, // MainMenuMonitor 主菜单->应用监控
   ResourceMonitorScale = 30010, // 伸缩副本
-  ResourceMonitorRestart = 30011, // 重新应用
+  ResourceMonitorRestart = 30011, // 重新启动
   ResourceMonitorDelete = 30012, // 删除应用
   ResourceMonitorShell = 30013, // 容器Shell
   ResourceMonitorDeletePod = 30014, // 删除容器
