@@ -441,7 +441,7 @@ watchEffect(async () => {
                       v-for="item in branchList"
                       :key="item.Name"
                       :label="item.Name"
-                      :value="{ sha: item.Sha, name: item.Name }"
+                      :value="item.Name"
                     />
                   </ElSelect>
                 </ElFormItem>
