@@ -190,7 +190,6 @@ const getProjectList = async (params?: Params) => {
 getProjectList()
 
 const toolsetClicked = (type: string, id: number) => {
-  console.log('/projects/' + type + '/' + id)
   push('/projects/' + type + '/' + id)
 }
 

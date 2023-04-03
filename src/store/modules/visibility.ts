@@ -19,14 +19,12 @@ export const useVisibilityStore = defineStore({
   }),
   getters: {
     getAuthCodes(): Number[] {
-      console.log(this.auth)
       return this.auth
     }
   },
   actions: {
     async setAuthCodes(): Promise<void> {
       this.auth = await getAuthCodes()
-      console.log(this.auth)
     }
   }
 })

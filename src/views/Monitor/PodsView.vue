@@ -234,7 +234,6 @@ const xTermShellShow = (container: string | '') => {
     }
   })
   xTermShell.value.onData((msg) => {
-    console.log(msg)
     wsPodShell.value!.send(
       JSON.stringify({
         operation: 'stdin',
@@ -280,7 +279,6 @@ const xTermLogShow = (container: string | '') => {
 }
 const backTo = () => {
   if (route.query.redirect) {
-    console.log(route.query.redirect.toString())
     push(route.query.redirect.toString())
   } else {
     push('/monitor/apps?from=' + route.query.from)

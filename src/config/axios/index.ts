@@ -7,6 +7,10 @@ import qs from 'qs'
 import { config } from '@/config/axios/config'
 import { useCache } from '@/hooks/web/useCache'
 import { UserType } from '@/api/login/types'
+import { resetRouter } from '@/router'
+import { useTagsViewStore } from '@/store/modules/tagsView'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 // import { UserType } from '@/api/login/types'
 
@@ -20,6 +24,9 @@ const service: AxiosInstance = axios.create({
   timeout: config.request_timeout // 请求超时时间
 })
 const { wsCache } = useCache()
+
+const tagsViewStore = useTagsViewStore()
+
 // request拦截器
 service.interceptors.request.use(
   (config: AxiosRequestConfig) => {
@@ -70,6 +77,12 @@ service.interceptors.response.use(
   },
   (error: AxiosError) => {
     console.log('err' + error) // for debug
+    if (error.response?.status == 401) {
+      wsCache.clear()
+      tagsViewStore.delAllViews()
+      resetRouter() // 重置静态路由表
+      router.replace('/login').then((_) => {})
+    }
     ElMessage.error(error.message)
     return Promise.reject(error)
   }

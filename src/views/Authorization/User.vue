@@ -152,7 +152,6 @@ const getAllKinds = async () => {
       url: '/user/kinds'
     })
     .then((resp) => {
-      console.log(resp)
       allKinds.value = resp && resp.data && resp.data.data
     })
 }
@@ -237,7 +236,6 @@ const actionHandler = async (command: HandlerCommand) => {
       currentUser.value!.account = command.data.account
       currentUser.value!.email = command.data.email
       currentUser.value!.mobile = command.data.mobile
-      console.log(command.data)
       currentUser.value!.kind = command.data.kind
       break
     case 'resetPassword':
