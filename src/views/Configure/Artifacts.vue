@@ -54,7 +54,6 @@ const { t } = useI18n()
 const { toClipboard } = useClipboard()
 
 const loading = ref(true)
-const keywords = ref('')
 const Organizations = ref<Array<Org>>(new Array<Org>())
 const dlgForCreate = ref(true)
 
@@ -64,6 +63,7 @@ const repoSelected = async (name: string) => {
 
   await getRepoItemApi(artifactId).then((resp) => {
     artifact!.Items = resp
+    currentArtifacts.value = resp
   })
 }
 
@@ -535,6 +535,20 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const currentArtifacts = ref<ArtifactRepoItem[]>([])
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  if (currentArtifacts.value) {
+    return currentArtifacts.value.filter(
+      (data) =>
+        !filterKeywords.value ||
+        data.fullName.toLowerCase().includes(filterKeywords.value.toLowerCase())
+    )
+  } else {
+    return []
+  }
+})
 </script>
 
 <template>
@@ -554,7 +568,7 @@ watchEffect(async () => {
         <span class="header_title">{{ t('router.artifacts') }}</span>
         <ElDivider direction="vertical" />
         <ElInput
-          v-model="keywords"
+          v-model="filterKeywords"
           :placeholder="t('artifacts.name')"
           :suffix-icon="Search"
           clearable
@@ -636,7 +650,7 @@ watchEffect(async () => {
       <ElSpace :size="10" alignment="start" direction="vertical" fill fill-ratio="100">
         <span class="header_title">{{ type.RepoName }}</span>
         <div v-if="type.Type === ArtifactRepoType.Docker">
-          <ElTable :data="type.Items" style="width: 100%">
+          <ElTable :data="filterData" style="width: 100%">
             <ElTableColumn :label="t('artifacts.docker.list')" fixed prop="name" width="250">
               <template #default="scope">
                 <ElLink :underline="false"

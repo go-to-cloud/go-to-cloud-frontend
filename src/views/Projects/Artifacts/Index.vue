@@ -36,7 +36,6 @@ const { push } = useRouter()
 const request = useAxios()
 
 const loading = ref(true)
-const keywords = ref('')
 
 const getRepoItemApi = async (artifactId: number): Promise<ArtifactRepoItem[]> => {
   let projectId = Number(params.id)
@@ -56,12 +55,15 @@ const getArtifactRepoApi = async (): Promise<ArtifactRepoData[]> => {
   return res && res.data && res.data.data
 }
 
+const currentArtifacts = ref<ArtifactRepoItem[]>([])
+
 const repoSelected = async (name: string) => {
   let artifactId = Number(name)
   let artifact = artifactTypes.value.filter((r) => r.Id === artifactId).at(0)
 
   await getRepoItemApi(artifactId).then((resp) => {
     artifact!.Items = resp
+    currentArtifacts.value = resp
   })
 }
 
@@ -176,6 +178,19 @@ const copyToClipboard = (content: string) => {
 onMounted(() => {
   getArtifactRepoList()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  if (currentArtifacts.value) {
+    return currentArtifacts.value.filter(
+      (data) =>
+        !filterKeywords.value ||
+        data.fullName.toLowerCase().includes(filterKeywords.value.toLowerCase())
+    )
+  } else {
+    return []
+  }
+})
 </script>
 
 <template>
@@ -186,8 +201,8 @@ onMounted(() => {
           <span class="header_title">{{ t('router.artifacts') }}</span>
           <ElDivider direction="vertical" />
           <ElInput
-            v-model="keywords"
-            :placeholder="t('artifacts.name')"
+            v-model="filterKeywords"
+            :placeholder="t('artifacts.docker.list')"
             :suffix-icon="Search"
             clearable
           />
@@ -244,7 +259,7 @@ onMounted(() => {
         <ElSpace :size="10" direction="vertical" alignment="start" fill fill-ratio="100">
           <span class="header_title">{{ type.RepoName }}</span>
           <div v-if="type.Type === ArtifactRepoType.Docker">
-            <ElTable :data="type.Items" style="width: 100%">
+            <ElTable :data="filterData" style="width: 100%">
               <ElTableColumn fixed prop="name" :label="t('artifacts.docker.list')" width="250">
                 <template #default="scope">
                   <ElLink :underline="false"

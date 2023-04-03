@@ -7,7 +7,7 @@ import { Icon } from '@iconify/vue'
 import { Error } from '@/components/Error'
 import { Org } from '@/api/common/types'
 import { getOrganizationsApi } from '@/api/common'
-import { NodeType } from '@/api/configure/types'
+import { ArtifactRepoItem, NodeType } from '@/api/configure/types'
 import { getK8sRepoApi } from '@/api/configure/deploy'
 import {
   calcAge,
@@ -16,7 +16,7 @@ import {
   restartDeploymentApi,
   scaleReplicasApi
 } from '@/api/monitor'
-import { HandlerCommand, K8sRepoWithAppData } from '@/api/monitor/types'
+import { AppData, HandlerCommand, K8sRepoWithAppData } from '@/api/monitor/types'
 import { DeploymentApps } from '@/api/projects/types'
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import { useRoute, useRouter } from 'vue-router'
@@ -33,7 +33,6 @@ const { t } = useI18n()
 const podsDetailDlgVisible = ref(false)
 const scaleDlgVisible = ref(false)
 const loading = ref(true)
-const keywords = ref('')
 const Organizations = ref<Array<Org>>(new Array<Org>())
 const replicasNum = ref(0)
 const selectedDeploymentId = ref(0)
@@ -63,6 +62,7 @@ const repoSelected = async (force: boolean) => {
       const node = k8sWithApp.value[i]
       await getAppsApi(node.id, force).then((resp) => {
         node.items = resp
+        currentNode.value = resp
         reloadingApps.value = false
       })
       break
@@ -217,6 +217,20 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const currentNode = ref<AppData[]>([])
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  if (currentNode.value) {
+    return currentNode.value.filter(
+      (data) =>
+        !filterKeywords.value ||
+        data.name.toLowerCase().includes(filterKeywords.value.toLowerCase())
+    )
+  } else {
+    return []
+  }
+})
 </script>
 
 <template>
@@ -254,7 +268,7 @@ watchEffect(async () => {
         <span class="header_title">{{ t('router.monitor') }}</span>
         <ElDivider direction="vertical" />
         <ElInput
-          v-model="keywords"
+          v-model="filterKeywords"
           :placeholder="t('monitor.appName')"
           :suffix-icon="Search"
           clearable
@@ -312,7 +326,7 @@ watchEffect(async () => {
       <ElSpace :size="10" alignment="start" direction="vertical" fill fill-ratio="100">
         <span class="header_title">{{ node.name }}</span>
         <div v-if="node.type === NodeType.K8s">
-          <ElTable :data="node.items" style="width: 100%">
+          <ElTable :data="filterData" style="width: 100%">
             <ElTableColumn :label="t('monitor.appName')" fixed prop="name" width="250">
               <template #default="scope">
                 <ElLink :underline="false">{{ scope.row.name }}</ElLink>

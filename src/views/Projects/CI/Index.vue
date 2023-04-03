@@ -166,7 +166,7 @@ const submit = async (formEl: FormInstance) => {
   })
 }
 
-const planCards = ref<BuildPlanCard[]>()
+const planCards = ref<BuildPlanCard[]>([])
 const buildHistory = ref<BuildPlanCard[]>()
 
 const getBuildPlans = async () => {
@@ -328,6 +328,14 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 // 防止手动页面刷新后状态丢失
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
+})
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return planCards.value.filter(
+    (data) =>
+      !filterKeywords.value || data.name.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
 })
 </script>
 <template>
@@ -533,7 +541,7 @@ watchEffect(async () => {
     </ElRow>
     <ElDivider />
     <ElSpace :size="30" wrap>
-      <ElTable :data="planCards" style="width: 100%">
+      <ElTable :data="filterData" style="width: 100%">
         <ElTableColumn :label="t('project.ci.plan_name')" fixed prop="name" width="250" />
         <ElTableColumn :label="t('project.ci.build_env')" fixed prop="buildEnv" width="180" />
         <ElTableColumn :label="t('project.ci.code_branch')" fixed prop="branch.name" width="180" />

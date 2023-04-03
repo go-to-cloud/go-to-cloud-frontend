@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
 import { computed, ref, watchEffect } from 'vue'
-import { ElButton, ElDialog, ElMessage, FormInstance } from 'element-plus'
+import { ElButton, ElDialog, ElMessage, FormInstance, TableInstance } from 'element-plus'
 import { ScmType } from '@/api/configure/types'
 import { CircleCloseFilled, Delete, MoreFilled, Search } from '@element-plus/icons-vue'
 import {
@@ -29,6 +29,7 @@ const codeRepoDetailForm = ref({
   url: ''
 })
 
+const branchesLoading = ref(false)
 const showImportGit = function () {
   getBindCodeRepoGroups()
   bindDialogVisible.value = true
@@ -36,11 +37,14 @@ const showImportGit = function () {
 const bindCodeRepoGroups = ref<BindCodeRepoGroup[]>([])
 
 const getBindCodeRepoGroups = async () => {
-  await getBindCodeRepoGroupApi().then((dat) => {
-    if (dat!) {
-      bindCodeRepoGroups.value = dat
-    }
-  })
+  branchesLoading.value = true
+  await getBindCodeRepoGroupApi()
+    .then((dat) => {
+      if (dat!) {
+        bindCodeRepoGroups.value = dat
+      }
+    })
+    .finally(() => (branchesLoading.value = false))
 }
 
 function GetIcon(scmType: ScmType) {
@@ -65,7 +69,7 @@ const close = (formEl: FormInstance | undefined) => {
   bindDialogVisible.value = false
 }
 
-const sourceCodeList = ref<ImportedSourceCodeData[]>()
+const sourceCodeList = ref<ImportedSourceCodeData[]>([])
 
 const getSourceCodeList = async () => {
   let projectId = Number(params.id)
@@ -142,6 +146,14 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return sourceCodeList.value.filter(
+    (data) =>
+      !filterKeywords.value || data.url.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
@@ -153,7 +165,12 @@ watchEffect(async () => {
       status-icon
     >
       <ElSpace wrap>
-        <ElSelect v-model="selectedGit" :placeholder="t('common.selectText')" @change="gitSelected">
+        <ElSelect
+          v-model="selectedGit"
+          :placeholder="t('common.selectText')"
+          @change="gitSelected"
+          :loading="branchesLoading"
+        >
           <template #prefix>{{ gitHost }}</template>
           <ElOptionGroup
             v-for="group in bindCodeRepoGroups"
@@ -212,7 +229,7 @@ watchEffect(async () => {
         </ElButton>
       </ElCol>
     </ElRow>
-    <ElTable :data="sourceCodeList">
+    <ElTable :data="filterData">
       <ElTableColumn :label="t('coderepo.git.name')" width="600" prop="url">
         <template #default="scope">
           <ElSpace>

@@ -341,6 +341,14 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return builderNodesOnK8s.value.filter(
+    (data) =>
+      !filterKeywords.value || data.name.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
@@ -483,7 +491,7 @@ watchEffect(async () => {
         <span class="header_title">{{ t('router.builders') }}</span>
         <ElDivider direction="vertical" />
         <ElInput
-          v-model="keywords"
+          v-model="filterKeywords"
           :placeholder="t('builder.name')"
           :suffix-icon="Search"
           clearable
@@ -502,7 +510,7 @@ watchEffect(async () => {
   </ElRow>
   <ElTabs v-if="builderNodesOnK8s.length > 0">
     <ElTabPane :label="t('builder.all')">
-      <ElTable :data="builderNodesOnK8s" style="width: 100%">
+      <ElTable :data="filterData" style="width: 100%">
         <ElTableColumn :label="t('builder.node_name')" prop="name" width="350">
           <template #default="scope">
             <ElSpace>

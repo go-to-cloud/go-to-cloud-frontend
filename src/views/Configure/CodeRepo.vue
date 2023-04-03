@@ -88,7 +88,6 @@ const codeRepoDetailForm = ref({
   name: '',
   origin: ScmType.Gitlab,
   isPublic: false,
-  user: '',
   url: '',
   token: '',
   remark: '',
@@ -101,7 +100,6 @@ function resetForm() {
     name: '',
     origin: ScmType.Gitlab,
     isPublic: false,
-    user: '',
     url: '',
     token: '',
     remark: '',
@@ -215,8 +213,6 @@ const getCodeRepoList = async (params?: Params) => {
 }
 
 getCodeRepoList()
-
-const keywords = ref('')
 
 const testing = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
@@ -401,6 +397,14 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return codeRepoDataList.value.filter(
+    (data) =>
+      !filterKeywords.value || data.name.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
@@ -411,7 +415,7 @@ watchEffect(async () => {
         <span class="header_title">{{ t('router.coderepo') }}</span>
         <ElDivider direction="vertical" />
         <ElInput
-          v-model="keywords"
+          v-model="filterKeywords"
           :placeholder="t('coderepo.name')"
           :suffix-icon="Search"
           clearable
@@ -438,7 +442,7 @@ watchEffect(async () => {
   </ElRow>
   <ElTabs v-if="codeRepoDataList.length > 0">
     <ElTabPane :label="t('coderepo.all')">
-      <ElTable :data="codeRepoDataList" style="width: 100%">
+      <ElTable :data="filterData" style="width: 100%">
         <ElTableColumn :label="t('coderepo.name')" prop="name" width="350">
           <template #default="scope">
             <ElSpace>
@@ -591,16 +595,6 @@ watchEffect(async () => {
                 {{ hostGitee }}
               </template>
             </ElInput>
-          </ElFormItem>
-        </ElCol>
-      </ElRow>
-      <ElRow v-if="false">
-        <ElCol :span="18">
-          <ElFormItem :label="t('authz.user.account')" prop="user">
-            <ElInput
-              v-model="codeRepoDetailForm.user"
-              :placeholder="t('common.inputText') + t('authz.user.account')"
-            />
           </ElFormItem>
         </ElCol>
       </ElRow>

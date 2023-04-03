@@ -324,6 +324,16 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return deploymentsData.value.filter(
+    (data) =>
+      !filterKeywords.value ||
+      data.artifactName.toLowerCase().includes(filterKeywords.value.toLowerCase()) ||
+      data.k8sName.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
+})
 </script>
 <template>
   <ElDialog
@@ -716,7 +726,7 @@ watchEffect(async () => {
     <ElDivider />
     <ElScrollbar max-height="500px">
       <ElSpace :size="30" wrap>
-        <ElTable :data="deploymentsData" style="width: 100%">
+        <ElTable :data="filterData" style="width: 100%">
           <ElTableColumn
             :filter-method="nsFilterHandler"
             :filters="namespacesPair"

@@ -280,6 +280,14 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return k8sDataList.value.filter(
+    (data) =>
+      !filterKeywords.value || data.name.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
@@ -289,7 +297,12 @@ watchEffect(async () => {
       <ElSpace wrap>
         <span class="header_title">{{ t('router.k8s') }}</span>
         <ElDivider direction="vertical" />
-        <ElInput v-model="keywords" :placeholder="t('k8s.name')" :suffix-icon="Search" clearable />
+        <ElInput
+          v-model="filterKeywords"
+          :placeholder="t('k8s.name')"
+          :suffix-icon="Search"
+          clearable
+        />
       </ElSpace>
     </ElCol>
     <ElCol
@@ -312,7 +325,7 @@ watchEffect(async () => {
   </ElRow>
   <ElTabs v-if="k8sDataList.length > 0">
     <ElTabPane :label="t('k8s.all')">
-      <ElTable :data="k8sDataList" style="width: 100%">
+      <ElTable :data="filterData" style="width: 100%">
         <ElTableColumn :label="t('k8s.name')" prop="name" width="350">
           <template #default="scope">
             <ElSpace>

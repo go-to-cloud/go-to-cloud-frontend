@@ -109,7 +109,7 @@ export type RemoveRepoResult = {
 export interface NewBuilderNodes {
   id: number | null
   nodeType: number | 0
-  name: string | null
+  name: string
   maxWorkers: number | null
   workspace: string | null // 工作空间，等同于k8s的namespace
   kubeConfig: string | null

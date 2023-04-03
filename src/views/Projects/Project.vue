@@ -160,7 +160,6 @@ function resetForm() {
   newProjectForm.value = { id: 0, name: '', remark: '', orgId: null, org: null }
 }
 
-const keywords = ref('')
 const loading = ref(true)
 
 let projectDataList = ref<ProjectData[]>([])
@@ -248,6 +247,14 @@ const auth = computed(() => visibilityStore.getAuthCodes)
 watchEffect(async () => {
   await visibilityStore.setAuthCodes()
 })
+
+const filterKeywords = ref('')
+const filterData = computed(() => {
+  return projectDataList.value.filter(
+    (data) =>
+      !filterKeywords.value || data.name.toLowerCase().includes(filterKeywords.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
@@ -327,7 +334,7 @@ watchEffect(async () => {
         <span class="header_title">{{ t('router.projects') }}</span>
         <ElDivider direction="vertical" />
         <ElInput
-          v-model="keywords"
+          v-model="filterKeywords"
           :placeholder="t('project.name')"
           :suffix-icon="Search"
           clearable
@@ -342,7 +349,7 @@ watchEffect(async () => {
   </ElRow>
   <ElTabs>
     <ElTabPane :label="t('project.all')">
-      <ElTable :data="projectDataList">
+      <ElTable :data="filterData">
         <ElTableColumn :label="t('project.name')" prop="name" width="450" />
         <ElTableColumn :label="t('common.organization')" prop="org" width="300">
           <template #default="scope">
