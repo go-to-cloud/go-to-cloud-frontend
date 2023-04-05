@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, unref, watch } from 'vue'
+import { onMounted, reactive, ref, unref, watch } from 'vue'
 import { Form } from '@/components/Form'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ElButton, ElCheckbox, ElLink } from 'element-plus'
@@ -12,6 +12,8 @@ import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from 'vue-router'
 import { useRouter } from 'vue-router'
 import { UserType } from '@/api/login/types'
 import { useValidator } from '@/hooks/web/useValidator'
+import Cookies from 'js-cookie'
+import CryptoJS from 'crypto-js'
 
 const { required } = useValidator()
 
@@ -40,7 +42,7 @@ const schema = reactive<FormSchema[]>([
   {
     field: 'username',
     label: t('login.username'),
-    value: 'root',
+    value: '',
     component: 'Input',
     colProps: {
       span: 24
@@ -52,7 +54,7 @@ const schema = reactive<FormSchema[]>([
   {
     field: 'password',
     label: t('login.password'),
-    value: 'root',
+    value: '',
     component: 'InputPassword',
     colProps: {
       span: 24
@@ -126,6 +128,14 @@ const signIn = async () => {
             permissionStore.setIsAddRouters(true)
             await push({ path: redirect.value || permissionStore.addRouters[0].path })
           }
+
+          if (remember.value) {
+            const tv = JSON.stringify({ h: formData.username, w: formData.password })
+            const etv = CryptoJS.AES.encrypt(tv, 'gtchelloworld').toString()
+            Cookies.set('hw', etv, { expires: 7 })
+          } else {
+            Cookies.set('hw', '', { expires: -1 })
+          }
         }
       } finally {
         loading.value = false
@@ -161,6 +171,22 @@ const getRole = async () => {
     push({ path: redirect.value || permissionStore.addRouters[0].path })
   }
 }
+
+onMounted(async () => {
+  const { getFormData } = methods
+  const formData = await getFormData<UserType>()
+  const tv = Cookies.get('hw') ? Cookies.get('hw') : ''
+
+  if (tv) {
+    const tvj = CryptoJS.AES.decrypt(tv, 'gtchelloworld').toString(CryptoJS.enc.Utf8)
+    if (tvj) {
+      const tvjson = JSON.parse(tvj)
+      formData.username = tvjson.h
+      formData.password = tvjson.w
+      remember.value = true
+    }
+  }
+})
 </script>
 
 <template>
