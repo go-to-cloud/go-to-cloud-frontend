@@ -1,6 +1,9 @@
 import { useAxios } from '@/hooks/web/useAxios'
 import type { UserType } from './types'
 import { MemberData, OrgType } from './types'
+import { ElMessage } from 'element-plus'
+import { useI18n } from '@/hooks/web/useI18n'
+const { t } = useI18n()
 
 interface RoleParams {
   roleName: string
@@ -9,7 +12,9 @@ interface RoleParams {
 const request = useAxios()
 
 export const loginApi = async (data: UserType): Promise<UserType> => {
-  const res = await request.post({ url: '/login', data })
+  const res = await request.post({ url: '/login', data }).catch(() => {
+    ElMessage.error(t('login.login') + t('common.failed'))
+  })
   return res && res.data
 }
 
