@@ -76,14 +76,19 @@ service.interceptors.response.use(
     }
   },
   (error: AxiosError) => {
-    console.log('err' + error) // for debug
     if (error.response?.status == 401) {
       wsCache.clear()
       tagsViewStore.delAllViews()
       resetRouter() // 重置静态路由表
       router.replace('/login').then((_) => {})
     }
-    ElMessage.error(error.message)
+
+    if (error.response?.status == 403) {
+      // @ts-ignore
+      ElMessage.error(error.response?.data?.message)
+    } else {
+      ElMessage.error(error.message)
+    }
     return Promise.reject(error)
   }
 )

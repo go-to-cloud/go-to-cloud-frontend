@@ -168,22 +168,28 @@ const getRole = async () => {
       addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
     })
     permissionStore.setIsAddRouters(true)
-    push({ path: redirect.value || permissionStore.addRouters[0].path })
+    await push({ path: redirect.value || permissionStore.addRouters[0].path })
   }
 }
 
 onMounted(async () => {
   const { getFormData } = methods
   const formData = await getFormData<UserType>()
-  const tv = Cookies.get('hw') ? Cookies.get('hw') : ''
+  if (window.location.hostname.toLowerCase() === 'demo.gotocloud.vip') {
+    formData.username = 'gotocloud'
+    formData.password = 'gtcgtc123!'
+    remember.value = true
+  } else {
+    const tv = Cookies.get('hw') ? Cookies.get('hw') : ''
 
-  if (tv) {
-    const tvj = CryptoJS.AES.decrypt(tv, 'gtchelloworld').toString(CryptoJS.enc.Utf8)
-    if (tvj) {
-      const tvjson = JSON.parse(tvj)
-      formData.username = tvjson.h
-      formData.password = tvjson.w
-      remember.value = true
+    if (tv) {
+      const tvj = CryptoJS.AES.decrypt(tv, 'gtchelloworld').toString(CryptoJS.enc.Utf8)
+      if (tvj) {
+        const tvjson = JSON.parse(tvj)
+        formData.username = tvjson.h
+        formData.password = tvjson.w
+        remember.value = true
+      }
     }
   }
 })
