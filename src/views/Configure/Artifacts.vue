@@ -465,7 +465,11 @@ const actionHandler = (command: HandlerCommand) => {
       break
 
     case 'delete_all_images':
-      deleteAllImages(command.item.hashId)
+      const imageId = ref<number[]>([])
+      for (let i = 0; i < command.item.tags.length; i++) {
+        imageId.value.push(command.item.tags[i].imageID)
+      }
+      deleteAllImages(command.item.hashId, imageId.value)
       break
   }
 }
@@ -474,14 +478,14 @@ function isFirstTabInit(a: ArtifactType): boolean {
   return a.Id === artifactTabHover.value || a.Id === artifactTabSelected.value
 }
 
-const deleteAllImages = (hashId: string) => {
+const deleteAllImages = (hashId: string, imageId: number[]) => {
   ElMessageBox.confirm(t('artifacts.docker.delete_image_confirm'), t('common.confirmMsgTitle'), {
     confirmButtonText: t('common.ok'),
     cancelButtonText: t('common.cancel'),
     type: 'warning'
   })
     .then(async () => {
-      await deleteImagesByHashIdApi(hashId).then((resp) => {
+      await deleteImagesByHashIdApi(hashId, imageId).then((resp) => {
         if (resp.success) {
           repoSelected(hashId.split(',')[0])
         }

@@ -62,9 +62,13 @@ export const deleteImageApi = async (params: number): Promise<RemoveRepoResult> 
   return res && res.data && res.data.data
 }
 
-export const deleteImagesByHashIdApi = async (hashId: string): Promise<RemoveRepoResult> => {
+export const deleteImagesByHashIdApi = async (
+  hashId: string,
+  imageId: number[]
+): Promise<RemoveRepoResult> => {
   const res = await request.delete<IResponse<RemoveRepoResult>>({
-    url: '/configure/artifact/images/hashId/' + hashId
+    url: '/configure/artifact/images/hashId/' + hashId,
+    data: imageId
   })
   return res && res.data && res.data.data
 }
