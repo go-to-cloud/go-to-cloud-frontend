@@ -67,6 +67,7 @@ const ruleForm = reactive<BuildPlan>({
   lint_check: '',
   artifact_enabled: true,
   dockerfile: '',
+  workdir: '.',
   image_name: '',
   artifact_repo_id: undefined,
   deploy_enabled: true,
@@ -91,6 +92,13 @@ const rules = reactive<FormRules>({
         if (!ruleForm.artifact_enabled) return true
         return value.trim().length > 0
       }
+    }
+  ],
+  workdir: [
+    {
+      required: true,
+      trigger: 'blur',
+      message: t('common.required')
     }
   ],
   image_name: [
@@ -485,6 +493,28 @@ const filterData = computed(() => {
                     />
                   </div>
                 </template>
+                <el-alert type="info" show-icon :closable="true">
+                  <p>
+                    "{{ t('project.ci.build_workdir') }}"
+                    指参与构建的文件在Dockerfile中的相对路径，又称为<b>工作上下文</b>
+                  </p>
+                </el-alert>
+                <ElFormItem :label="t('project.ci.build_workdir')" prop="workdir">
+                  <ElInput v-model="ruleForm.workdir" :disabled="!ruleForm.artifact_enabled" />
+                </ElFormItem>
+
+                <el-alert type="info" show-icon :closable="true">
+                  <p>
+                    "{{ t('project.ci.dockerfile') }}" 相对于 "{{
+                      t('project.ci.build_workdir')
+                    }}"的位置
+                    <br />
+                    例如，Dockerfile位于项目根目录的 <i>src</i>目录，{{
+                      t('project.ci.build_workdir')
+                    }}
+                    设置为 <i>./src</i>，则 {{ t('project.ci.dockerfile') }} 填写 <i>Dockerfile</i>
+                  </p>
+                </el-alert>
                 <ElFormItem :label="t('project.ci.dockerfile')" prop="dockerfile">
                   <ElInput v-model="ruleForm.dockerfile" :disabled="!ruleForm.artifact_enabled" />
                 </ElFormItem>

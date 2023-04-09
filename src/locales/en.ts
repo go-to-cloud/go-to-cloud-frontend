@@ -241,6 +241,7 @@ export default {
       lint_check: 'Lint',
       artifact_header: 'Artifact',
       dockerfile: 'Dockerfile',
+      build_workdir: 'Work Context',
       artifact_repo: 'Artifact Repo',
       artifact_name: 'Image Name',
       artifact_name_rule: 'Image name not match the rule, a-z, 0-9, . _ - only',

@@ -241,6 +241,7 @@ export default {
       lint_check: 'Lint检测',
       artifact_header: '镜像制品',
       dockerfile: 'Dockerfile',
+      build_workdir: '项目所在目录',
       artifact_repo: '制品仓库',
       artifact_name: '制品名称',
       artifact_name_rule: '镜像名称只允许小写字母、数字以及. _ -',
