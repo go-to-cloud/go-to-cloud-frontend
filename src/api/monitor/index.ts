@@ -74,7 +74,7 @@ export const getPodsDetailApi = async (
 }
 
 export const getWebSocketHost = (): string => {
-  return import.meta.env.VITE_BACKEND_HOST.replace('http', 'ws')
+  return window.location.origin.replace('http', 'ws')
 }
 
 export const getPodLogWebSocket = (
