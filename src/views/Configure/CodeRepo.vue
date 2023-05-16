@@ -571,7 +571,7 @@ const filterData = computed(() => {
           </ElFormItem>
         </ElCol>
       </ElRow>
-      <ElRow>
+      <ElRow v-if="false">
         <ElFormItem :label="t('coderepo.type')">
           <ElSwitch
             v-model="codeRepoDetailForm.isPublic"
@@ -581,7 +581,12 @@ const filterData = computed(() => {
           />
         </ElFormItem>
       </ElRow>
-      <ElRow>
+      <ElRow
+        v-if="
+          codeRepoDetailForm.origin !== ScmType.Github &&
+          codeRepoDetailForm.origin !== ScmType.Gitee
+        "
+      >
         <ElCol :span="18">
           <ElFormItem :label="t('coderepo.url')" prop="url">
             <ElInput
