@@ -277,6 +277,7 @@ export default {
       port_mapping: '端口映射',
       service_port: '服务端口',
       container_port: '容器端口',
+      node_port: '节点端口',
       env_vars: '环境变量',
       env_vars_key: '变量名',
       env_vars_value: '变量值',

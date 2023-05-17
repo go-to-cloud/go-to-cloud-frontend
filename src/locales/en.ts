@@ -277,6 +277,7 @@ export default {
       port_mapping: 'Port Mapping',
       service_port: 'Service Port',
       container_port: 'Container Port',
+      node_port: 'Node Port',
       env_vars: 'Environment Variables',
       env_vars_key: 'Variable',
       env_vars_value: 'Value',

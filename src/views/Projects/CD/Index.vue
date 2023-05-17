@@ -38,6 +38,12 @@ interface TextValuePair {
   value: string
 }
 
+interface ServicePortsPair {
+  servicePort: string
+  containerPort: string
+  nodePort: string
+}
+
 const nsFilterHandler = (
   value: string,
   row: DeploymentApps,
@@ -63,19 +69,21 @@ const removeVars = (index: number) => {
     env.splice(index, 1)
   }
 }
-const ports = reactive<{ portMapping: TextValuePair[] }>({
+const ports = reactive<{ portMapping: ServicePortsPair[] }>({
   portMapping: [
     {
-      text: '80',
-      value: '80'
+      servicePort: '80',
+      containerPort: '80',
+      nodePort: '32000'
     }
   ]
 })
 
 const addPorts = () => {
   ports.portMapping.push({
-    text: '',
-    value: ''
+    servicePort: '',
+    containerPort: '',
+    nodePort: ''
   })
 }
 const removePort = (index: number) => {
@@ -91,8 +99,9 @@ const historyLoading = ref(true)
 const showNewDeploymentDlg = () => {
   ports.portMapping = [
     {
-      text: '80',
-      value: '80'
+      servicePort: '80',
+      containerPort: '80',
+      nodePort: ''
     }
   ]
   tplDialogVisible.value = true
@@ -502,10 +511,10 @@ const filterData = computed(() => {
           </ElFormItem>
           <ElFormItem :label="t('project.cd.port_mapping')">
             <ElSpace :size="10" direction="vertical">
-              <ElFormItem v-for="(port, index) in ports.portMapping" :key="port.text">
-                <ElCol :span="8">
+              <ElFormItem v-for="(port, index) in ports.portMapping" :key="port.servicePort">
+                <ElCol :span="6">
                   <ElInput
-                    v-model="port.text"
+                    v-model="port.servicePort"
                     :controls="false"
                     :max="65535"
                     :min="1"
@@ -516,9 +525,9 @@ const filterData = computed(() => {
                   </ElInput>
                 </ElCol>
                 <ElCol :span="1" class="text-center" />
-                <ElCol :span="8">
+                <ElCol :span="6">
                   <ElInput
-                    v-model="port.value"
+                    v-model="port.containerPort"
                     :controls="false"
                     class="w-50"
                     placeholder="80"
@@ -526,6 +535,19 @@ const filterData = computed(() => {
                     :min="1"
                   >
                     <template #prepend>{{ t('project.cd.container_port') }}</template>
+                  </ElInput>
+                </ElCol>
+                <ElCol :span="1" class="text-center" />
+                <ElCol :span="6">
+                  <ElInput
+                    v-model="port.nodePort"
+                    :controls="false"
+                    class="w-50"
+                    placeholder="选填"
+                    :max="32767"
+                    :min="30000"
+                  >
+                    <template #prepend>{{ t('project.cd.node_port') }}</template>
                   </ElInput>
                 </ElCol>
                 <ElCol :span="2">
@@ -772,7 +794,7 @@ const filterData = computed(() => {
               <ElRow>
                 <ElCol v-for="(port, index) in scope.row.ports" :key="port" :span="24">
                   <ElTag v-if="index <= 2" style="margin: 3px"
-                    >{{ port.text }}:{{ port.value }}
+                    >{{ port.servicePort }}:{{ port.containerPort }}({{ port.nodePort }})
                   </ElTag>
                   <span v-if="index > 2">...</span>
                 </ElCol>
