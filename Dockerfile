@@ -2,7 +2,7 @@ FROM node:16-alpine as build
 WORKDIR /root/app
 COPY package.json .
 
-RUN ["npm", "install", "--registry=https://registry.npmmirror.com"]
+RUN ["npm", "install", "--registry=https://registry.npmmirror.com", "--legacy-peer-deps"]
 
 COPY . .
 RUN npm run build:pro
