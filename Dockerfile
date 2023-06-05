@@ -8,7 +8,7 @@ COPY package.json .
 RUN ["pnpm", "install", "--registry", "https://registry.npm.taobao.org"]
 
 COPY . .
-RUN pnpm build:pro
+RUN pnpm run build:pro
 
 #
 FROM nginx:stable
