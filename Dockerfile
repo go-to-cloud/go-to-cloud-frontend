@@ -1,11 +1,14 @@
-FROM node:16-alpine as build
+FROM node:16-alpine as base
+RUN npm i -g pnpm
+
+FROM base as build
 WORKDIR /root/app
 COPY package.json .
 
-RUN ["npm", "install", "--registry=https://registry.npmmirror.com", "--legacy-peer-deps"]
+RUN ["pnpm", "install", "--registry", "https://registry.npm.taobao.org"]
 
 COPY . .
-RUN npm run build:pro
+RUN pnpm build:pro
 
 #
 FROM nginx:stable
