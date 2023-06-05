@@ -1,4 +1,4 @@
-FROM node:16-alpine as base
+FROM node:16.20-alpine3.18 as base
 RUN npm i -g pnpm
 
 FROM base as build
